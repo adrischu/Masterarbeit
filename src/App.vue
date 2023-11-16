@@ -1,33 +1,48 @@
 <template>
-  <v-tabs v-model="tab" bg-color="grey">
+  <v-tabs v-model="tab" bg-color="green">
     <v-tab value="start">Start</v-tab>
     <v-tab value="systemeingabe">Systemeingabe</v-tab>
     <v-tab value="lasteingabe">Lasteingabe</v-tab>
+    <v-tab value="grafikausgabe">Grafikausgabe</v-tab>
+    <v-tab value="handbuch">Handbuch</v-tab>
+    <v-tab value="dev">Dev-Ausgabe</v-tab>
   </v-tabs>
 
   <v-window v-model="tab">
     <v-window-item value="start" transition="false" reverse-transition="false">
-      Hier ist der Startbildschirm.
+      <ViewStart></ViewStart>
     </v-window-item>
 
     <v-window-item value="systemeingabe" transition="false" reverse-transition="false">
-      Hier ist die Systemeingabe.
+      <ViewSystemeingabe></ViewSystemeingabe>
     </v-window-item>
 
     <v-window-item value="lasteingabe" transition="false" reverse-transition="false">
-      Hier ist die Lasteingabe.
+      <ViewLasteingabe></ViewLasteingabe>
+    </v-window-item>
+
+    <v-window-item value="grafikausgabe" transition="false" reverse-transition="false">
+      <ViewGrafikausgabe></ViewGrafikausgabe>
+    </v-window-item>
+
+    <v-window-item value="handbuch" transition="false" reverse-transition="false">
+      <ViewHandbuch></ViewHandbuch>
+    </v-window-item>
+
+    <v-window-item value="dev" transition="false" reverse-transition="false">
+      <ViewDevAusgabe></ViewDevAusgabe>
     </v-window-item>
   </v-window>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import ViewStart from './components/views/ViewStart.vue'
+import ViewSystemeingabe from './components/views/ViewSystemeingabe.vue'
+import ViewLasteingabe from './components/views/ViewLasteingabe.vue'
+import ViewGrafikausgabe from './components/views/ViewGrafikausgabe.vue'
+import ViewHandbuch from './components/views/ViewHandbuch.vue'
+import ViewDevAusgabe from './components/views/ViewDevAusgabe.vue'
 
-let tab = ref<Number>()
+let tab = ref<String>('start')
 </script>
-
-<style scoped>
-* {
-  text-transform: none !important;
-}
-</style>
