@@ -9,4 +9,14 @@ export default class System {
     this.Knoten = []
     this.Stäbe = []
   }
+
+  //Knoten
+  addKnoten(newKnoten: Knoten): void {
+    this.Knoten.push(newKnoten)
+    this.Knoten.sort((a, b) => a.Nummer - b.Nummer)
+  }
+
+  deleteKnoten(toDeleteIndex: number): void {
+    this.Knoten.splice(toDeleteIndex, 1)
+  }
 }

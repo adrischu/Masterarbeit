@@ -1,10 +1,10 @@
 import Vector from './Vector'
 
 export default class Knoten {
-  Nummer: Number
+  Nummer: number
   Koordinaten: Vector
 
-  constructor(nummer: Number = 0, Koordinaten: Vector = new Vector()) {
+  constructor(nummer: number = 0, Koordinaten: Vector = new Vector()) {
     this.Nummer = nummer
     this.Koordinaten = Koordinaten
   }

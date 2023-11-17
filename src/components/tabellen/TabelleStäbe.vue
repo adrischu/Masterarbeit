@@ -1,6 +1,6 @@
 <template>
   <h1>Stabeingabe</h1>
-  <v-table>
+  <v-table class="tabelle-input">
     <thead>
       <tr>
         <th>Stabnummer</th>
@@ -10,27 +10,44 @@
         <th></th>
       </tr>
     </thead>
+
     <tbody>
-      <tr>
+      <!-- Hier wird lediglich die Anfangsknotennummer verknüpft, NICHT das Knotenobjekt -->
+      <tr class="zeile-objektHinzufügen">
         <td><input type="number" v-model="tempStab.Nummer" /></td>
         <td>
-          <v-combobox
-            v-model="tempStab.Anfangsknoten"
-            :items="systemStore.system.Knoten"
-            item-text="Nummer"
-            item-value="Nummer"
-            return-object
-          ></v-combobox>
-          <!-- <input type="number" v-model="tempStab.Anfangsknoten" /> -->
+          <select class="tabelle-select" v-model="tempStab.Anfangsknotennummer">
+            <option
+              v-for="Knoten in systemStore.system.Knoten"
+              :value="Knoten.Nummer"
+              :key="Knoten.Nummer"
+            >
+              {{ Knoten.Nummer }}
+            </option>
+          </select>
         </td>
-        <td><input type="number" v-model="tempStab.Endknoten" /></td>
+
+        <!-- Hier wird lediglich die Anfangsknotennummer verknüpft, NICHT das Knotenobjekt -->
+        <td>
+          <select v-model="tempStab.Endknotennummer">
+            <option
+              v-for="Knoten in systemStore.system.Knoten"
+              :value="Knoten.Nummer"
+              :key="Knoten.Nummer"
+            >
+              {{ Knoten.Nummer }}
+            </option>
+          </select>
+        </td>
+
         <td><input type="number" v-model="tempStab.Elementabschnitte" /></td>
         <td><v-btn @click="pushStab()" color="green">Dazu</v-btn></td>
       </tr>
+
       <tr v-for="(Stab, index) in systemStore.system.Stäbe" :key="Stab.Nummer.valueOf">
         <td><input type="number" v-model="Stab.Nummer" /></td>
-        <td><input type="number" v-model="Stab.Anfangsknoten.Nummer" /></td>
-        <td><input type="number" v-model="Stab.Endknoten.Nummer" /></td>
+        <td><input type="number" v-model="Stab.Anfangsknotennummer" /></td>
+        <td><input type="number" v-model="Stab.Endknotennummer" /></td>
         <td><input type="number" v-model="Stab.Elementabschnitte" /></td>
         <td><v-btn @click="popStab(Stab, index)" color="red">Weg</v-btn></td>
       </tr>
