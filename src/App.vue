@@ -43,6 +43,14 @@ import ViewLasteingabe from './components/views/ViewLasteingabe.vue'
 import ViewGrafikausgabe from './components/views/ViewGrafikausgabe.vue'
 import ViewHandbuch from './components/views/ViewHandbuch.vue'
 import ViewDevAusgabe from './components/views/ViewDevAusgabe.vue'
+import { useSystemStore } from './stores/SystemStore'
+import Knoten from './typescript/classes/Knoten'
+import Vector from './typescript/classes/Vector'
+
+const systemStore = useSystemStore()
+
+systemStore.system.Knoten.push(new Knoten(1, new Vector(0, 0)))
+systemStore.system.Knoten.push(new Knoten(2, new Vector(3, 4)))
 
 let tab = ref<String>('start')
 </script>

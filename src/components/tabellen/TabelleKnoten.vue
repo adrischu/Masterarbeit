@@ -1,82 +1,43 @@
 <template>
   <h1>Knoteneingabe normal</h1>
-
-  <v-table class="tabelle-input">
-    <thead>
-      <tr>
-        <th v-for="item in header(new Knoten())" :key="item.title">
-          <span>{{ item.title }}</span>
-          <span v-if="item.einheit">[{{ item.einheit }}]</span>
-        </th>
-      </tr>
-    </thead>
-
-    <tbody>
-      <tr class="zeile-objektHinzufügen">
-        <td><input type="number" v-model="newKnoten.Nummer" /></td>
-        <td><input id="neuerKnoten_x" type="number" v-model="newKnoten.Koordinaten.x" /></td>
-        <td><input type="number" v-model="newKnoten.Koordinaten.z" /></td>
-        <td><v-btn @click="addKnoten()" color="green">Dazu</v-btn></td>
-      </tr>
-      <tr
-        v-for="(Knoten, index) in systemStore.system.Knoten.sort((a, b) => a.Nummer - b.Nummer)"
-        :key="Knoten.Nummer.valueOf"
-      >
-        <td v-for="item in header(Knoten)" :key="item.title">{{ item.property }}</td>
-      </tr>
-      <!-- <tr
-        v-for="(Knoten, index) in systemStore.system.Knoten.sort((a, b) => a.Nummer - b.Nummer)"
-        :key="Knoten.Nummer.valueOf"
-      > -->
-      <!-- <td><input type="number" v-model="Knoten.Nummer" /></td>
-        <td><input type="number" v-model="Knoten.Koordinaten.x" /></td>
-        <td><input type="number" v-model="Knoten.Koordinaten.z" /></td>
-        <td><v-btn @click="deleteKnoten(Knoten, index)" color="red">Weg</v-btn></td>
-      </tr> -->
-    </tbody>
-  </v-table>
-
-  <!-- <h1>Knoteneingabe mit Data-Table</h1>
-  <div>
-    <v-data-table :items="systemStore.system.Knoten" :headers="headers">
-      <template #header.asdf="{ column }">
-        {{ column.title }} <v-btn v-if="column.einheit">Click</v-btn>
-      </template>
-    </v-data-table>
-  </div> -->
+  <TabelleTemplate :objectlist="Knotenliste" :header="header" :createNewObject="newKnoten">
+  </TabelleTemplate>
 </template>
 
 <script setup lang="ts">
 import { useSystemStore } from '@/stores/SystemStore'
 import Knoten from '@/typescript/classes/Knoten'
+import TabelleTemplate from './TabelleTemplate.vue'
 
 const systemStore = useSystemStore()
-let newKnoten: Knoten = new Knoten(1)
 
-const header = function (
-  Knoten: Knoten
-): { title: string; showEinheit?: boolean; einheit?: string; property?: any }[] {
+const Knotenliste = systemStore.system.Knoten.sort((a, b) => a.Nummer - b.Nummer)
+
+const newKnoten = function () {
+  let newKnoten = new Knoten(1)
+  return newKnoten
+}
+
+const header = function (Knoten: Knoten) {
   return [
-    { title: 'Nummer', showEinheit: false, property: Knoten.Nummer },
-    { title: 'x-Koordinate', showEinheit: true, einheit: 'kNm', property: Knoten.Koordinaten.x },
-    { title: 'z-Koordinate', showEinheit: true, einheit: 'm', property: Knoten.Koordinaten.z },
-    { title: '' }
+    { id: 'Nummer', einheit: '', value: Knoten.Nummer, component: null },
+    { id: 'x-Koordinate', einheit: 'kNm', value: Knoten.Koordinaten.x, component: null },
+    { id: 'z-Koordinate', einheit: 'm', value: Knoten.Koordinaten.z, component: null },
+    { id: '', einheit: '', value: '', component: 'addSubButton' }
   ]
 }
-function addKnoten() {
-  systemStore.system.addKnoten(newKnoten)
-  newKnoten = new Knoten()
-  document.getElementById('neuerKnoten_x')!.focus()
-}
-function deleteKnoten(Knoten: Knoten, index: number) {
-  systemStore.system.deleteKnoten(index)
-}
+
+// function editKnoten(){
+
+// }
+
+// function addKnoten() {
+//   systemStore.system.addKnoten(newKnoten)
+//   newKnoten = new Knoten()
+//   document.getElementById('neuerKnoten_x')!.focus()
+// }
+
+// function deleteKnoten(Knoten: Knoten, index: number) {
+//   systemStore.system.deleteKnoten(index)
+// }
 </script>
-<!-- <template v-slot:item="{ props }">
-  <tr>
-    Nummer
-    {{
-      props.item.Nummer
-    }}
-  </tr>
-</template> -->
