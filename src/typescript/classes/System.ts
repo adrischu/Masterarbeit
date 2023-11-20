@@ -19,4 +19,9 @@ export default class System {
   deleteKnoten(toDeleteIndex: number): void {
     this.Knoten.splice(toDeleteIndex, 1)
   }
+
+  editKnoten(changedData: any[], toEditIndex: number): void {
+    //Nummer darf nicht geändert werden.
+    this.Knoten[toEditIndex].values = changedData
+  }
 }

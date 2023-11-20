@@ -40,9 +40,21 @@
       </tr>
     </tbody>
   </v-table>
+
+  <v-btn @click="addOne">Add1</v-btn>
+  <p v-for="item in items" :key="item">
+    {{ item }}
+  </p>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useSystemStore } from '@/stores/SystemStore'
+
+let items = ref([1, 2, 3])
+
+function addOne() {
+  items.value.push(items.value.length + 1)
+}
 const systemStore = useSystemStore()
 </script>
