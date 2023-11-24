@@ -20,7 +20,7 @@
   </v-table>
 
   <h2>Stabtabelle</h2>
-  <v-table>
+  <!-- <v-table>
     <thead>
       <tr>
         <th>Nummer</th>
@@ -39,7 +39,7 @@
         <td>{{ Stab.Länge }}</td>
       </tr>
     </tbody>
-  </v-table>
+  </v-table> -->
 
   <v-btn @click="addOne">Add1</v-btn>
   <p v-for="item in items" :key="item">

@@ -1,4 +1,4 @@
-# Programmieren
+# PROGRAMMIEREN
 
 ## Knotentabelle, Stabtabelle usw.
 
@@ -12,3 +12,7 @@
 # EXTRAS
 
 - In Eingabetabellen veränderbare (anklickbar) Parameter "Einheit" in den Tabellenkopf einbauen, mit denen man die Einheit mit der Werte eingelesen und ausgegeben werden, dynamisch ändern kann. (Soll am gespeicherten Objekt nichts ändern!!)
+
+- Bei Eingabetabellen: Bisher wird editEvent immer dann getriggert, wenn der Fokus von einer Zelle genommen wird. Ändern, sodass nur getriggert wird wenn zusätzhlich der Wert sich verändert hat. (tempWert einführen)
+
+- Button um `theme` zu wechseln. Info [hier](https://vuetifyjs.com/en/features/theme/#typescript).

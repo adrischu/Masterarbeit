@@ -22,20 +22,25 @@
           <td v-for="(headerItem, itemIndex) in newStatikObjekt.header" :key="itemIndex">
             <!-- Falls normaler Input vorhanden -->
             <input
-              v-if="headerItem.inputType === 'fixed' || 'input'"
+              v-if="headerItem.inputType === 'fixed' || headerItem.inputType === 'input'"
               :type="headerItem.inputFormat"
               v-model="newObjectValues[itemIndex]"
             />
             <!-- Falls DropDownBox vorhanden -->
             <select v-if="headerItem.inputType === 'select'" v-model="newObjectValues[itemIndex]">
               <option
-                v-for="StatikObjekt in headerItem.selectList"
-                :key="StatikObjekt.Nummer"
-                value=""
+                v-for="selectItem in headerItem.selectList"
+                :key="selectItem"
+                :value="selectItem"
               >
-                {{ StatikObjekt.Nummer }}
+                {{ selectItem }}
               </option>
             </select>
+            <!-- Falls Checkbox vorhanden -->
+            <v-checkbox-btn
+              v-if="headerItem.inputType === 'checkbox'"
+              v-model="newObjectValues[itemIndex]"
+            ></v-checkbox-btn>
           </td>
           <td>
             <v-btn @click="handleAdd" color="green">Dazu</v-btn>
@@ -64,14 +69,23 @@
               v-model="data[objectIndex][itemIndex]"
               @focusout="handleEdit(object, objectIndex)"
             >
+              <option :value="data[objectIndex][itemIndex]">
+                {{ data[objectIndex][itemIndex] }}
+              </option>
               <option
-                v-for="StatikObjekt in objectlist[objectIndex].header[itemIndex].selectList"
-                :key="StatikObjekt.Nummer"
-                value=""
+                v-for="selectItem in objectlist[objectIndex].header[itemIndex].selectList"
+                :key="selectItem"
+                :value="selectItem"
               >
-                {{ StatikObjekt.Nummer }}
+                {{ selectItem }}
               </option>
             </select>
+            <!-- Falls Checkbox vorhanden -->
+            <v-checkbox-btn
+              v-if="objectlist[objectIndex].header[itemIndex].inputType === 'checkbox'"
+              v-model="data[objectIndex][itemIndex]"
+              @change="handleEdit(object, objectIndex)"
+            ></v-checkbox-btn>
           </td>
           <td>
             <!-- <v-btn @click="handleEdit(object, objectIndex)" color="blue">Ändern</v-btn> -->
@@ -86,24 +100,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { type Ref } from 'vue'
-import type Knoten from '@/typescript/classes/Knoten'
-import type Stab from '@/typescript/classes/Stab'
 import type { isStatikobjekt } from '@/typescript/classes/interfaceStatikobjekt'
-
-type StatikObjekt = Knoten | Stab
-
-// type header = {
-//   id: string
-//   einheit: string
-//   value: string | number
-//   inputType: string
-//   selectList?: StatikObjekt[]
-// }
 
 const props = defineProps<{
   objectlist: isStatikobjekt[]
   createNewObject: () => isStatikobjekt
-  //   createHeader: (item: any) => header[] //TODO: Lösung finden. Type "any" ist nicht zufriedenstellen. Type "object" funkionert aus irgendeinem Grund nicht.
 }>()
 
 const emit = defineEmits<{
@@ -114,7 +115,7 @@ const emit = defineEmits<{
 
 let newStatikObjekt: isStatikobjekt = props.createNewObject()
 
-let newObjectValues: any[] = newStatikObjekt.values //Ref<any[]> = ref([newStatikObjekt.values])
+let newObjectValues: Ref<any[]> = ref(newStatikObjekt.values) //Ref<any[]> = ref([newStatikObjekt.values])
 
 let data: Ref<any[]> = ref([])
 
@@ -131,16 +132,14 @@ function updateData() {
 }
 
 function handleAdd() {
-  newStatikObjekt.values = newObjectValues
+  newStatikObjekt.values = newObjectValues.value
   emit('addStatikObjekt', newStatikObjekt)
   newStatikObjekt = props.createNewObject()
   //Hier könnte ein Callback für Fehlermeldungen eingebaut werden.
   updateData()
-  console.log(props.objectlist)
 }
 
 function handleEdit(objectData: any[], index: number) {
-  console.log('Verändertes Objekt: ', objectData)
   emit('editStatikObjekt', objectData, index)
   updateData()
 }

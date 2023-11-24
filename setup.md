@@ -52,6 +52,16 @@ app.use(vuetify)
 
 Nähere Informationen sind auf der [Seite von Vuetify](https://vuetifyjs.com/en/getting-started/installation/#existing-projects) unter dem Reiter **Existing Projects** zu finden zu finden.
 
+## Icons Implementieren
+
+- Anleitung auf der [Vuetify Website](https://vuetifyjs.com/en/features/icon-fonts/#installing-icon-fonts)
+  Kurzfassung:
+- in Kommandozeile
+
+```
+npm install @mdi/font -D
+```
+
 # SHOELACE IMPLEMENTIEREN
 
 Die Anleitung zum Implementieren von Shoelace in ein Vue-Projekt kann [hier](https://shoelace.style/frameworks/vue) gefunden werden.
