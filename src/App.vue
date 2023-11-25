@@ -7,6 +7,7 @@
       <v-tab value="grafikausgabe">Grafikausgabe</v-tab>
       <v-tab value="handbuch">Handbuch</v-tab>
       <v-tab value="dev">Dev-Ausgabe</v-tab>
+      <span>Deploy 25.11.2023 12:48</span>
     </v-tabs>
 
     <v-card-text>
