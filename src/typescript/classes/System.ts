@@ -1,5 +1,6 @@
+import type { isStatikobjekt } from './interfaceStatikobjekt'
 import Knoten from './Knoten'
-import type Lager from './Lager'
+import Lager from './Lager'
 import Stab from './Stab'
 
 export default class System {
@@ -17,48 +18,55 @@ export default class System {
   //Methoden, um Objekte, zu verändern, hinzuzufügen, oder zu löschen
   //-----------------------------------------------------------------
 
-  //Knoten
-  addKnoten(newKnoten: Knoten): void {
-    this.Knoten.push(newKnoten)
-    this.Knoten.sort((a, b) => a.Nummer - b.Nummer)
+  private determineObjectClass(objektTyp: string): {
+    statikobjekt: isStatikobjekt
+    statikobjektArray: isStatikobjekt[]
+  } {
+    let statikobjekt: isStatikobjekt
+    let statikobjektArray: isStatikobjekt[]
+    switch (objektTyp) {
+      case 'Knoten': {
+        statikobjekt = new Knoten()
+        statikobjektArray = this.Knoten
+        break
+      }
+      case 'Stab': {
+        statikobjekt = new Stab()
+        statikobjektArray = this.Stäbe
+        break
+      }
+      case 'Lager': {
+        statikobjekt = new Lager()
+        statikobjektArray = this.Lager
+        break
+      }
+      default: {
+        break
+      }
+    }
+    return { statikobjekt: statikobjekt!, statikobjektArray: statikobjektArray! }
   }
 
-  deleteKnoten(toDeleteIndex: number): void {
-    this.Knoten.splice(toDeleteIndex, 1)
+  addStatikobjekt(objektTyp: string, statikobjektdaten: any[]) {
+    const statikobjekt: isStatikobjekt = this.determineObjectClass(objektTyp).statikobjekt
+    const statikobjektArray: isStatikobjekt[] =
+      this.determineObjectClass(objektTyp).statikobjektArray
+
+    statikobjekt!.values = statikobjektdaten
+    statikobjektArray!.push(statikobjekt!)
   }
 
-  editKnoten(changedData: any[], toEditIndex: number): void {
-    //Nummer darf nicht geändert werden.
-    this.Knoten[toEditIndex].values = changedData
+  editStatikobjekt(objektTyp: string, statikobjektdaten: any[], objektindex: number) {
+    const statikobjektArray: isStatikobjekt[] =
+      this.determineObjectClass(objektTyp).statikobjektArray
+
+    statikobjektArray[objektindex].values = statikobjektdaten
   }
 
-  //Stab
-  addStab(newStab: Stab): void {
-    this.Stäbe.push(newStab)
-    this.Stäbe.sort((a, b) => a.Nummer - b.Nummer)
-  }
+  deleteStatikobjekt(objektTyp: string, objektindex: number) {
+    const statikobjektArray: isStatikobjekt[] =
+      this.determineObjectClass(objektTyp).statikobjektArray
 
-  deleteStab(toDeleteIndex: number): void {
-    this.Stäbe.splice(toDeleteIndex, 1)
-  }
-
-  editStab(changedData: any[], toEditIndex: number): void {
-    //Hier noch anpassungen dass
-    this.Stäbe[toEditIndex].values = changedData
-  }
-
-  //Lager
-  addLager(newLager: Lager): void {
-    this.Lager.push(newLager)
-    this.Lager.sort((a, b) => a.Nummer - b.Nummer)
-  }
-
-  deleteLager(toDeleteIndex: number): void {
-    this.Stäbe.splice(toDeleteIndex, 1)
-  }
-
-  editLager(changedData: any[], toEditIndex: number): void {
-    //Hier noch anpassungen dass
-    this.Lager[toEditIndex].values = changedData
+    statikobjektArray.splice(objektindex, 1)
   }
 }

@@ -101,17 +101,14 @@
 import { ref } from 'vue'
 import { type Ref } from 'vue'
 import type { isStatikobjekt } from '@/typescript/classes/interfaceStatikobjekt'
+import { useSystemStore } from '@/stores/SystemStore'
 
 const props = defineProps<{
   objectlist: isStatikobjekt[]
   createNewObject: () => isStatikobjekt
 }>()
 
-const emit = defineEmits<{
-  deleteStatikObjekt: [objektindex: number]
-  addStatikObjekt: [statikobjekt: isStatikobjekt]
-  editStatikObjekt: [statikobjekt: any[], objektindex: number]
-}>()
+const systemStore = useSystemStore()
 
 let newStatikObjekt: isStatikobjekt = props.createNewObject()
 
@@ -129,23 +126,25 @@ function updateData() {
   props.objectlist.forEach(function (statikobjekt) {
     data.value.push(statikobjekt.values)
   })
+  newObjectValues.value = newStatikObjekt.values
 }
 
 function handleAdd() {
-  newStatikObjekt.values = newObjectValues.value
-  emit('addStatikObjekt', newStatikObjekt)
+  systemStore.system.addStatikobjekt(newStatikObjekt.constructor.name, newObjectValues.value)
+  console.log(`${newStatikObjekt.constructor.name} hinzugefügt`)
   newStatikObjekt = props.createNewObject()
-  //Hier könnte ein Callback für Fehlermeldungen eingebaut werden.
   updateData()
 }
 
 function handleEdit(objectData: any[], index: number) {
-  emit('editStatikObjekt', objectData, index)
+  systemStore.system.editStatikobjekt(newStatikObjekt.constructor.name, objectData, index)
+  console.log(`${newStatikObjekt.constructor.name} geändert`)
   updateData()
 }
 
 function handleDelete(index: number) {
-  emit('deleteStatikObjekt', index)
+  systemStore.system.deleteStatikobjekt(newStatikObjekt.constructor.name, index)
+  console.log(`${newStatikObjekt.constructor.name} gelöscht`)
   updateData()
 }
 </script>
