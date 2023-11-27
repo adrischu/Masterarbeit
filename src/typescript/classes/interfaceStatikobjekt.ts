@@ -1,16 +1,19 @@
 export interface isStatikobjekt {
-  id: number
+ Nummer: number
 
-  get values(): (string | number)[]
+ get values(): (string | number)[]
 
-  set values(values: any[])
+ set values(values: any[])
 
-  get header(): {
-    id: string
-    einheit: string
-    value: string | number | boolean
-    inputType: string | 'fixed' | 'input' | 'select'
-    inputFormat?: string
-    selectList?: any[]
-  }[]
+ get header(): {
+  id: string //Angezeigter Name im Tabellenkopf
+  einheit: string //Angezeigte Einheit im Tabellenkopf
+  value: string | number | boolean //Angezeigter Wert im Tabellenkörper
+  inputType: string | "fixed" | "input" | "select" //Eingabetyp
+  //Für inputType = 'input'
+  inputFormat?: string //Eingabeformat, (nur für inputType=input)
+  //FÜr inputType = 'select'
+  selectListKeys?: any[] //Mitgegebene Liste für Combobox (nur falls inputType=select)
+  selectListValues?: any[]
+ }[]
 }

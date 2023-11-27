@@ -1,6 +1,6 @@
 <template>
-  <p><v-btn>Rechnen</v-btn></p>
-  <p>Hier ist der Startbildschirm.</p>
+ <p><v-btn>Rechnen</v-btn></p>
+ <p>Hier ist der Startbildschirm.</p>
 </template>
 <!-- ----------------------------------------------------------------------------------- -->
 <script setup lang="ts"></script>
