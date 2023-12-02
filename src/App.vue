@@ -12,7 +12,7 @@
    <v-tab value="handbuch">Handbuch</v-tab>
    <v-tab value="dev">Dev-Ausgabe</v-tab>
   </v-tabs>
-  <span style="color: black; margin: 0px"><p>current Commit: 27.11.2023 16:30</p></span>
+  <span style="color: black; margin: 0px"><p>current Commit: 02.12.2023 17:01</p></span>
 
   <v-card-text>
    <v-window v-model="tab">
