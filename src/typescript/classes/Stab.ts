@@ -5,6 +5,7 @@ import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 import type Querschnitt from "./Querschnitt"
 
 export default class Stab implements isStatikobjekt {
+ //folgende Werte werden bei Erstellung eines Knotens definiert.
  Nummer: number
  Anfangsknotennummer: number
  Anfangsknoten: Knoten | null
@@ -13,6 +14,11 @@ export default class Stab implements isStatikobjekt {
  Querschnittsnummer: number
  Querschnitt: Querschnitt | null
  Elementabschnitte: number
+ //folgende Werte werden bei der Berechnung definiert
+ Inzidenzen: number[]
+ M_k: number[][] | null
+ M_T: number[][] | null
+ M_K: number[][] | null
 
  constructor(Nummer: number = 1) {
   this.Nummer = Nummer
@@ -23,18 +29,26 @@ export default class Stab implements isStatikobjekt {
   this.Querschnittsnummer = 0
   this.Querschnitt = null
   this.Elementabschnitte = 10
+  this.Inzidenzen = []
+  this.M_k = []
+  this.M_T = []
+  this.M_K = []
  }
 
- get Länge(): number | string {
-  if (this.Anfangsknoten === null || this.Endknoten === null) {
-   return "?"
-  } else {
-   const stabVektor: Vector = new Vector(
-    this.Endknoten.Koordinaten!.x - this.Anfangsknoten.Koordinaten!.x,
-    this.Endknoten.Koordinaten!.z - this.Anfangsknoten.Koordinaten!.z,
-   )
-   return stabVektor.length
-  }
+ get Länge(): number {
+  return this.Stabvektor.length
+ }
+
+ private get Stabvektor(): Vector {
+  const stabVektor: Vector = new Vector(
+   this.Endknoten!.Koordinaten!.x - this.Anfangsknoten!.Koordinaten!.x,
+   this.Endknoten!.Koordinaten!.z - this.Anfangsknoten!.Koordinaten!.z,
+  )
+  return stabVektor
+ }
+
+ get Winkel(): number {
+  return this.Stabvektor.direction
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein

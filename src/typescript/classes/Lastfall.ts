@@ -2,14 +2,20 @@ import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 import type Knotenlast from "./Knotenlast"
 
 export default class Lastfall implements isStatikobjekt {
+ //folgende Werte werden bei Erstellung eines Knotens definiert.
  Nummer: number
  Name: string
  Knotenlastliste: Knotenlast[]
+ //folgende Werte werden erst bei Berechnung definiert.
+ Lastvektor: number[]
+ Verformungsvektor: number[]
 
  constructor(Nummer: number = 0) {
   this.Nummer = Nummer
   this.Name = ""
   this.Knotenlastliste = []
+  this.Lastvektor = []
+  this.Verformungsvektor = []
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein

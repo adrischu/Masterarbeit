@@ -12,7 +12,7 @@
    <v-tab value="handbuch">Handbuch</v-tab>
    <v-tab value="dev">Dev-Ausgabe</v-tab>
   </v-tabs>
-  <span style="color: black; margin: 0px"><p>current Deploy: 25.11.2023 12:48</p></span>
+  <span style="color: black; margin: 0px"><p>current Commit: 27.11.2023 16:30</p></span>
 
   <v-card-text>
    <v-window v-model="tab">
@@ -84,8 +84,14 @@
  const systemStore = useSystemStore()
 
  //SETUP eines vorgeladenen Modells
- systemStore.system.addStatikobjekt("Knoten", [1, 0, 0, 1])
- // systemStore.system.addStatikobjekt('Knoten', [2, 3, 4, 1])
+ systemStore.system.addStatikobjekt("Lager", [1, 1, 1, 1, 0, 0, 0], -1)
+ systemStore.system.addStatikobjekt("Knoten", [1, 0, 0, 1], -1)
+ systemStore.system.addStatikobjekt("Knoten", [2, 10, 0, 0], -1)
+ systemStore.system.addStatikobjekt("Material", [1, "S235", 210000000000], -1)
+ systemStore.system.addStatikobjekt("Querschnitt", [1, "IPE360", 1, 0.0072, 0.00016266], -1)
+ systemStore.system.addStatikobjekt("Stab", [1, 1, 2, 1, 5], -1)
+ systemStore.system.addStatikobjekt("Lastfall", [1, "EG"], -1)
+ systemStore.system.addStatikobjekt("Knotenlast", [1, 1, 2, 5000, 5000, 5000], 1)
 
  let tab = ref<String>("start")
 </script>

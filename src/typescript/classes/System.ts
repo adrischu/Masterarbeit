@@ -5,6 +5,8 @@ import Stab from "./Stab"
 import Querschnitt from "./Querschnitt"
 import Material from "./Material"
 import Lastfall from "./Lastfall"
+import Knotenlast from "./Knotenlast"
+import { startBerechnungen } from "../berechnungen"
 
 export default class System {
  Knotenliste: Knoten[]
@@ -14,6 +16,11 @@ export default class System {
  Materialliste: Material[]
  Lastfallliste: Lastfall[]
 
+ Freiheitsgrade: number
+ Verformungsinzidenzen: number[] //Indizenzen der NICHT-gehaltenen Freiheitsgrade
+ M_K_lang: number[][]
+ M_Kkurz: number[][]
+
  constructor() {
   this.Knotenliste = []
   this.Stabliste = []
@@ -21,6 +28,16 @@ export default class System {
   this.Querschnittliste = []
   this.Materialliste = []
   this.Lastfallliste = []
+
+  this.M_K_lang = []
+  this.M_Kkurz = []
+  this.Freiheitsgrade = 0
+  this.Verformungsinzidenzen = []
+ }
+
+ berechnen(): void {
+  startBerechnungen(this)
+  //Hier Überprüfungen einbauen
  }
 
  //-----------------------------------------------------------------
@@ -28,7 +45,10 @@ export default class System {
  //-----------------------------------------------------------------
 
  //Ermitteln den Typ des Objekts, damit im Nachhinein das richtige Statikobjektarray verändert werden kann
- private determineObjectClass(objektTyp: string): {
+ private determineObjectClass(
+  objektTyp: string,
+  lastfallnummer: number,
+ ): {
   statikobjekt: isStatikobjekt
   statikobjektArray: isStatikobjekt[]
  } {
@@ -65,6 +85,15 @@ export default class System {
     statikobjektArray = this.Lastfallliste
     break
    }
+   case "Knotenlast": {
+    statikobjekt = new Knotenlast()
+    statikobjektArray = this.searchObjectByNummer(
+     lastfallnummer,
+     this.Lastfallliste,
+    )!.Knotenlastliste
+    // this.Lastfallliste[lastfallnummer].Knotenlastliste
+    break
+   }
    default: {
     console.log(
      `Fehler in /src/typescript/System.ts bei Funktion determineObjectClass. "objektTyp = ${objektTyp}"`,
@@ -75,24 +104,41 @@ export default class System {
   return { statikobjekt: statikobjekt!, statikobjektArray: statikobjektArray! }
  }
 
- addStatikobjekt(objektTyp: string, statikobjektdaten: any[]): void {
-  const statikobjekt: isStatikobjekt = this.determineObjectClass(objektTyp).statikobjekt
-  const statikobjektArray: isStatikobjekt[] = this.determineObjectClass(objektTyp).statikobjektArray
+ addStatikobjekt(objektTyp: string, statikobjektdaten: any[], lastfallnummer: number): void {
+  const statikobjekt: isStatikobjekt = this.determineObjectClass(
+   objektTyp,
+   lastfallnummer,
+  ).statikobjekt
+  const statikobjektArray: isStatikobjekt[] = this.determineObjectClass(
+   objektTyp,
+   lastfallnummer,
+  ).statikobjektArray
 
   statikobjekt!.values = statikobjektdaten
   statikobjektArray!.push(statikobjekt!)
   this.buildSystem()
  }
 
- editStatikobjekt(objektTyp: string, statikobjektdaten: any[], objektindex: number): void {
-  const statikobjektArray: isStatikobjekt[] = this.determineObjectClass(objektTyp).statikobjektArray
+ editStatikobjekt(
+  objektTyp: string,
+  statikobjektdaten: any[],
+  objektindex: number,
+  lastfallnummer: number,
+ ): void {
+  const statikobjektArray: isStatikobjekt[] = this.determineObjectClass(
+   objektTyp,
+   lastfallnummer,
+  ).statikobjektArray
 
   statikobjektArray[objektindex].values = statikobjektdaten
   this.buildSystem()
  }
 
- deleteStatikobjekt(objektTyp: string, objektindex: number): void {
-  const statikobjektArray: isStatikobjekt[] = this.determineObjectClass(objektTyp).statikobjektArray
+ deleteStatikobjekt(objektTyp: string, objektindex: number, lastfallnummer: number): void {
+  const statikobjektArray: isStatikobjekt[] = this.determineObjectClass(
+   objektTyp,
+   lastfallnummer,
+  ).statikobjektArray
 
   statikobjektArray.splice(objektindex, 1)
   this.buildSystem()
@@ -109,38 +155,44 @@ export default class System {
  buildSystem(): void {
   //Knoten bekommt Lager-Objekt
   this.Knotenliste.forEach((knoten) => {
-   knoten.Lager = searchObjectByKey(knoten.Lagernummer, this.Lagerliste)
+   if (knoten.Lagernummer !== 0) {
+    knoten.Lager = this.searchObjectByNummer(knoten.Lagernummer, this.Lagerliste)
+   }
   })
   //Stab bekommt Anfangsknoten- Endknoten- und Querschnittobjekt
   this.Stabliste.forEach((stab) => {
-   stab.Anfangsknoten = searchObjectByKey(stab.Anfangsknotennummer, this.Knotenliste)
-   stab.Endknoten = searchObjectByKey(stab.Endknotennummer, this.Knotenliste)
-   stab.Querschnitt = searchObjectByKey(stab.Querschnittsnummer, this.Querschnittliste)
+   stab.Anfangsknoten = this.searchObjectByNummer(stab.Anfangsknotennummer, this.Knotenliste)
+   stab.Endknoten = this.searchObjectByNummer(stab.Endknotennummer, this.Knotenliste)
+   stab.Querschnitt = this.searchObjectByNummer(stab.Querschnittsnummer, this.Querschnittliste)
   })
   //Querschnitt bekommt Material-Objekt
   this.Querschnittliste.forEach((querschnitt) => {
-   querschnitt.Material = searchObjectByKey(querschnitt.Materialnummer, this.Materialliste)
+   querschnitt.Material = this.searchObjectByNummer(querschnitt.Materialnummer, this.Materialliste)
   })
-
+  //Knotenlasten bekommen Knoten
+  this.Lastfallliste.forEach((Lastfall) => {
+   Lastfall.Knotenlastliste.forEach((knotenlast) => {
+    knotenlast.Knoten = this.searchObjectByNummer(knotenlast.Knotennummer, this.Knotenliste)
+   })
+  })
   // console.log('System aufgebaut')
 
   //
-  function searchObjectByKey(key: number, objectArray: Knoten[]): Knoten | null
-  function searchObjectByKey(key: number, objectArray: Lager[]): Lager | null
-  function searchObjectByKey(key: number, objectArray: Querschnitt[]): Querschnitt | null
-  function searchObjectByKey(key: number, objectArray: Material[]): Material | null
-  function searchObjectByKey(key: number, objectArray: Stab[]): Stab | null
-  function searchObjectByKey(key: number, objektindex: Lastfall[]): Lastfall | null
-  function searchObjectByKey(key: number, objectArray: isStatikobjekt[]): isStatikobjekt | null {
-   let returnObject = null
-   objectArray.forEach(function (statikobjekt) {
-    if (statikobjekt.Nummer === key) {
-     console.log(`Passendes Objekt für Index ${key} gefunden`)
-     console.log("\t", statikobjekt)
-     returnObject = statikobjekt
-    }
-   })
-   return returnObject
-  }
+ }
+ searchObjectByNummer(key: number, objectArray: Knoten[]): Knoten | null
+ searchObjectByNummer(key: number, objectArray: Lager[]): Lager | null
+ searchObjectByNummer(key: number, objectArray: Querschnitt[]): Querschnitt | null
+ searchObjectByNummer(key: number, objectArray: Material[]): Material | null
+ searchObjectByNummer(key: number, objectArray: Stab[]): Stab | null
+ searchObjectByNummer(key: number, objektindex: Lastfall[]): Lastfall | null
+ searchObjectByNummer(key: number, objektindex: Knotenlast[]): Knotenlast | null
+ searchObjectByNummer(key: number, objectArray: isStatikobjekt[]): isStatikobjekt | null {
+  let returnObject = null
+  objectArray.forEach(function (statikobjekt) {
+   if (statikobjekt.Nummer === key) {
+    returnObject = statikobjekt
+   }
+  })
+  return returnObject
  }
 }

@@ -9,7 +9,7 @@ export default class Knotenlast implements isStatikobjekt {
  Knoten: Knoten | null
  Lastvektor: [x: number, z: number, phi: number]
 
- constructor(Nummer: number) {
+ constructor(Nummer: number = 0) {
   this.Nummer = Nummer
   this.Lastfallnummer = 1
   this.Knotennummer = 1

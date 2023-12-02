@@ -2,13 +2,13 @@ import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 
 export default class Lager implements isStatikobjekt {
  Nummer: number
- Lagerung: { x: boolean; z: boolean; phi: boolean }
- Feder: { x: number; z: number; phi: number }
+ Lagerung: [boolean, boolean, boolean]
+ Feder: [number, number, number]
 
  constructor(Nummer: number = 0) {
   this.Nummer = Nummer
-  this.Lagerung = { x: true, z: true, phi: true }
-  this.Feder = { x: 0, z: 0, phi: 0 }
+  this.Lagerung = [false, false, false]
+  this.Feder = [0, 0, 0]
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein
@@ -16,19 +16,19 @@ export default class Lager implements isStatikobjekt {
  get values() {
   return [
    this.Nummer,
-   this.Lagerung.x,
-   this.Lagerung.z,
-   this.Lagerung.phi,
-   this.Feder.x,
-   this.Feder.z,
-   this.Feder.phi,
+   this.Lagerung[0],
+   this.Lagerung[1],
+   this.Lagerung[2],
+   this.Feder[0],
+   this.Feder[1],
+   this.Feder[2],
   ]
  }
 
  set values([Nummer, LagX, LagZ, LagPhi, FedX, FedZ, FedPhi]: any[]) {
   this.Nummer = Nummer
-  this.Lagerung = { x: LagX, z: LagZ, phi: LagPhi }
-  this.Feder = { x: FedX, z: FedZ, phi: FedPhi }
+  this.Lagerung = [LagX, LagZ, LagPhi]
+  this.Feder = [FedX, FedZ, FedPhi]
  }
 
  get header() {
@@ -37,7 +37,7 @@ export default class Lager implements isStatikobjekt {
    {
     id: "Lager in x",
     einheit: "",
-    value: this.Lagerung.x,
+    value: this.Lagerung[0],
     inputType: "checkbox",
     inputFormat: "boolean",
     selectList: [0, 1],
@@ -45,7 +45,7 @@ export default class Lager implements isStatikobjekt {
    {
     id: "Lager in z",
     einheit: "",
-    value: this.Lagerung.z,
+    value: this.Lagerung[1],
     inputType: "checkbox",
     inputFormat: "boolean",
     selectList: [0, 1],
@@ -53,7 +53,7 @@ export default class Lager implements isStatikobjekt {
    {
     id: "Lager in phi",
     einheit: "",
-    value: this.Lagerung.phi,
+    value: this.Lagerung[2],
     inputType: "checkbox",
     inputFormat: "boolean",
     selectList: [0, 1],
@@ -61,21 +61,21 @@ export default class Lager implements isStatikobjekt {
    {
     id: "Feder in x",
     einheit: "N/m",
-    value: this.Feder.x,
+    value: this.Feder[0],
     inputType: "input",
     inputFormat: "number",
    },
    {
     id: "Feder in z",
     einheit: "N/m",
-    value: this.Feder.z,
+    value: this.Feder[1],
     inputType: "input",
     inputFormat: "number",
    },
    {
     id: "Feder in phi",
     einheit: "N/m",
-    value: this.Feder.phi,
+    value: this.Feder[2],
     inputType: "input",
     inputFormat: "number",
    },

@@ -1,8 +1,13 @@
 <template>
- <p><v-btn>Rechnen</v-btn></p>
+ <p><v-btn @click="systemStore.system.berechnen()">Rechnen</v-btn></p>
  <p>Hier ist der Startbildschirm.</p>
 </template>
 <!-- ----------------------------------------------------------------------------------- -->
-<script setup lang="ts"></script>
+<script setup lang="ts">
+ import { useSystemStore } from "@/stores/SystemStore"
+
+ const systemStore = useSystemStore()
+</script>
+
 <!-- ----------------------------------------------------------------------------------- -->
 <style></style>

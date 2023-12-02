@@ -3,6 +3,7 @@
  <TabelleTemplate
   :objectlist="Knotenlastliste"
   :createNewObject="newKnotenlast"
+  :lastfallnummer="lastfall.Nummer"
  />
 </template>
 

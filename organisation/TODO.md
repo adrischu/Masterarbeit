@@ -17,3 +17,7 @@
 - Bei Eingabetabellen: Bisher wird editEvent immer dann getriggert, wenn der Fokus von einer Zelle genommen wird. Ändern, sodass nur getriggert wird wenn zusätzhlich der Wert sich verändert hat. (tempWert einführen)
 
 - Button um `theme` zu wechseln. Info [hier](https://vuetifyjs.com/en/features/theme/#typescript).
+
+# Fehlerüberprüfung
+
+- Jeden Knoten darauf überprüfen, ob er Teil eines Stabes ist.

@@ -147,10 +147,16 @@
  import type { isStatikobjekt } from "@/typescript/classes/InterfaceStatikobjekt.js"
  import { useSystemStore } from "@/stores/SystemStore"
 
- const props = defineProps<{
-  objectlist: isStatikobjekt[]
-  createNewObject: (index: number) => isStatikobjekt
- }>()
+ const props = withDefaults(
+  defineProps<{
+   objectlist: isStatikobjekt[]
+   createNewObject: (index: number) => isStatikobjekt
+   lastfallnummer?: number
+  }>(),
+  {
+   lastfallnummer: -1,
+  },
+ )
 
  const systemStore = useSystemStore()
 
@@ -174,20 +180,33 @@
  }
 
  function handleAdd() {
-  systemStore.system.addStatikobjekt(newStatikObjekt.constructor.name, newObjectValues.value)
+  systemStore.system.addStatikobjekt(
+   newStatikObjekt.constructor.name,
+   newObjectValues.value,
+   props.lastfallnummer,
+  )
   console.log(`${newStatikObjekt.constructor.name} hinzugefügt`)
   newStatikObjekt = props.createNewObject(firstEmptyId())
   updateData()
  }
 
  function handleEdit(objectData: any[], index: number) {
-  systemStore.system.editStatikobjekt(newStatikObjekt.constructor.name, objectData, index)
+  systemStore.system.editStatikobjekt(
+   newStatikObjekt.constructor.name,
+   objectData,
+   index,
+   props.lastfallnummer,
+  )
   console.log(`${newStatikObjekt.constructor.name} geändert`)
   updateData()
  }
 
  function handleDelete(index: number) {
-  systemStore.system.deleteStatikobjekt(newStatikObjekt.constructor.name, index)
+  systemStore.system.deleteStatikobjekt(
+   newStatikObjekt.constructor.name,
+   index,
+   props.lastfallnummer,
+  )
   console.log(`${newStatikObjekt.constructor.name} gelöscht`)
   updateData()
  }

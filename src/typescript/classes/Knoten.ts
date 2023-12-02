@@ -4,16 +4,21 @@ import Vector from "./Vector"
 import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 
 export default class Knoten implements isStatikobjekt {
+ //Werte werden bei Erstellung eines Knotens definiert.
  Nummer: number
  Koordinaten: Vector
  Lagernummer: number
  Lager: Lager | null
+ //folgende Werte werden erst bei der Berechnung definiert.
+ Inzidenzen: number[]
 
  constructor(Nummer: number = 0) {
   this.Nummer = Nummer
   this.Koordinaten = new Vector(0, 0)
   this.Lagernummer = 0
   this.Lager = null
+
+  this.Inzidenzen = []
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein
@@ -27,6 +32,10 @@ export default class Knoten implements isStatikobjekt {
   this.Koordinaten.x = x
   this.Koordinaten.z = z
   this.Lagernummer = Lagernummer
+  if (Lagernummer === 0) {
+   this.Lager = new Lager(0)
+   this.Lager.values = [0, 0, 0, 0, 0, 0, 0] //neues Lager ohne Lagerung und ohne Federn
+  }
  }
 
  get header() {
