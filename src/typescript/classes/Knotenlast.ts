@@ -30,7 +30,14 @@ export default class Knotenlast implements isStatikobjekt {
   ]
  }
 
- set values([Nummer, Lastfallnummer, Knotennummer, xLast, zLast, phiLast]: any[]) {
+ set values([Nummer, Lastfallnummer, Knotennummer, xLast, zLast, phiLast]: [
+  Nummer: number,
+  Lastfallnummer: number,
+  Knotennummer: number,
+  LastInX: number,
+  LastInZ: number,
+  Moment: number,
+ ]) {
   this.Nummer = Nummer
   this.Lastfallnummer = Lastfallnummer
   this.Knotennummer = Knotennummer

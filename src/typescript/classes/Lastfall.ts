@@ -24,7 +24,7 @@ export default class Lastfall implements isStatikobjekt {
   return [this.Nummer, this.Name]
  }
 
- set values([Nummer, Name]: any[]) {
+ set values([Nummer, Name]: [Nummer: number, Name: string]) {
   this.Nummer = Nummer
   this.Name = Name
  }

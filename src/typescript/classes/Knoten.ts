@@ -27,15 +27,16 @@ export default class Knoten implements isStatikobjekt {
   return [this.Nummer, this.Koordinaten!.x, this.Koordinaten!.z, this.Lagernummer]
  }
 
- set values([Nummer, x, z, Lagernummer]: any[]) {
+ set values([Nummer, x, z, Lagernummer]: [
+  Nummer: number,
+  x: number,
+  z: number,
+  Lagernummer: number,
+ ]) {
   this.Nummer = Nummer
   this.Koordinaten.x = x
   this.Koordinaten.z = z
   this.Lagernummer = Lagernummer
-  if (Lagernummer === 0) {
-   this.Lager = new Lager(0)
-   this.Lager.values = [0, 0, 0, 0, 0, 0, 0] //neues Lager ohne Lagerung und ohne Federn
-  }
  }
 
  get header() {

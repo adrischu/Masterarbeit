@@ -12,7 +12,7 @@
    <v-tab value="handbuch">Handbuch</v-tab>
    <v-tab value="dev">Dev-Ausgabe</v-tab>
   </v-tabs>
-  <span style="color: black; margin: 0px"><p>current Commit: 02.12.2023 17:01</p></span>
+  <span style="color: black; margin: 0px"><p>current Commit: 04.12.2023 13:42</p></span>
 
   <v-card-text>
    <v-window v-model="tab">
@@ -83,15 +83,23 @@
 
  const systemStore = useSystemStore()
 
+ //Starttab ist immer erster Tab
+ let tab = ref<String>("start")
+
  //SETUP eines vorgeladenen Modells
- systemStore.system.addStatikobjekt("Lager", [1, 1, 1, 1, 0, 0, 0], -1)
+ //IPE360 - Stahl
+ //Einfeldträger 20m - links eingespannt - rechts gelenkig - rechts 100kN/m Feder in z
+ //Last: 5kN in x, 5kN in z, 5kNm - in Feldmitte
+ systemStore.system.addStatikobjekt("Lager", [1, true, true, true, 0, 0, 0], -1)
+ systemStore.system.addStatikobjekt("Lager", [2, true, true, true, 0, 100000, 0], -1)
  systemStore.system.addStatikobjekt("Knoten", [1, 0, 0, 1], -1)
  systemStore.system.addStatikobjekt("Knoten", [2, 10, 0, 0], -1)
+ systemStore.system.addStatikobjekt("Knoten", [3, 20, 0, 2], -1)
+ systemStore.system.addStatikobjekt("Gelenk", [1, false, false, true], -1)
  systemStore.system.addStatikobjekt("Material", [1, "S235", 210000000000], -1)
- systemStore.system.addStatikobjekt("Querschnitt", [1, "IPE360", 1, 0.0072, 0.00016266], -1)
- systemStore.system.addStatikobjekt("Stab", [1, 1, 2, 1, 5], -1)
+ systemStore.system.addStatikobjekt("Querschnitt", [1, "IPE360", 1, 0.007273, 0.00016266], -1)
+ systemStore.system.addStatikobjekt("Stab", [1, 1, 2, 1, 0, 0, 5], -1)
+ systemStore.system.addStatikobjekt("Stab", [2, 2, 3, 1, 0, 1, 5], -1)
  systemStore.system.addStatikobjekt("Lastfall", [1, "EG"], -1)
  systemStore.system.addStatikobjekt("Knotenlast", [1, 1, 2, 5000, 5000, 5000], 1)
-
- let tab = ref<String>("start")
 </script>

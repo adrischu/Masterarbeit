@@ -17,7 +17,7 @@ export default class Material implements isStatikobjekt {
   return [this.Nummer, this.Name, this.E]
  }
 
- set values([Nummer, Name, E]: any[]) {
+ set values([Nummer, Name, E]: [Nummer: number, Name: string, EModul: number]) {
   this.Nummer = Nummer
   this.Name = Name
   this.E = E

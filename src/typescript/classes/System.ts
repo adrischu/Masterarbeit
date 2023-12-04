@@ -7,12 +7,14 @@ import Material from "./Material"
 import Lastfall from "./Lastfall"
 import Knotenlast from "./Knotenlast"
 import { startBerechnungen } from "../berechnungen"
+import Gelenk from "./Gelenk"
 
 export default class System {
  Knotenliste: Knoten[]
  Stabliste: Stab[]
  Lagerliste: Lager[]
  Querschnittliste: Querschnitt[]
+ Gelenkliste: Gelenk[]
  Materialliste: Material[]
  Lastfallliste: Lastfall[]
 
@@ -26,6 +28,7 @@ export default class System {
   this.Stabliste = []
   this.Lagerliste = []
   this.Querschnittliste = []
+  this.Gelenkliste = []
   this.Materialliste = []
   this.Lastfallliste = []
 
@@ -78,6 +81,11 @@ export default class System {
    case "Querschnitt": {
     statikobjekt = new Querschnitt()
     statikobjektArray = this.Querschnittliste
+    break
+   }
+   case "Gelenk": {
+    statikobjekt = new Gelenk()
+    statikobjektArray = this.Gelenkliste
     break
    }
    case "Lastfall": {
@@ -157,13 +165,28 @@ export default class System {
   this.Knotenliste.forEach((knoten) => {
    if (knoten.Lagernummer !== 0) {
     knoten.Lager = this.searchObjectByNummer(knoten.Lagernummer, this.Lagerliste)
+   } else {
+    knoten.Lager = new Lager(0)
+    knoten.Lager.values = [0, false, false, false, 0, 0, 0] //neues Lager ohne Lagerung und ohne Federn
    }
   })
-  //Stab bekommt Anfangsknoten- Endknoten- und Querschnittobjekt
+  //Stab bekommt Anfangsknoten- Endknoten- Querschnitt- und Gelenkobjekt
   this.Stabliste.forEach((stab) => {
    stab.Anfangsknoten = this.searchObjectByNummer(stab.Anfangsknotennummer, this.Knotenliste)
    stab.Endknoten = this.searchObjectByNummer(stab.Endknotennummer, this.Knotenliste)
    stab.Querschnitt = this.searchObjectByNummer(stab.Querschnittsnummer, this.Querschnittliste)
+   if (stab.Anfangsgelenknummer !== 0) {
+    stab.Anfangsgelenk = this.searchObjectByNummer(stab.Anfangsgelenknummer, this.Gelenkliste)
+   } else {
+    stab.Anfangsgelenk = new Gelenk(0)
+    stab.Anfangsgelenk.values = [0, false, false, false]
+   }
+   if (stab.Endgelenknummer !== 0) {
+    stab.Endgelenk = this.searchObjectByNummer(stab.Endgelenknummer, this.Gelenkliste)
+   } else {
+    stab.Endgelenk = new Gelenk(0)
+    stab.Endgelenk.values = [0, false, false, false]
+   }
   })
   //Querschnitt bekommt Material-Objekt
   this.Querschnittliste.forEach((querschnitt) => {
@@ -180,6 +203,7 @@ export default class System {
   //
  }
  searchObjectByNummer(key: number, objectArray: Knoten[]): Knoten | null
+ searchObjectByNummer(key: number, objectArray: Gelenk[]): Gelenk | null
  searchObjectByNummer(key: number, objectArray: Lager[]): Lager | null
  searchObjectByNummer(key: number, objectArray: Querschnitt[]): Querschnitt | null
  searchObjectByNummer(key: number, objectArray: Material[]): Material | null

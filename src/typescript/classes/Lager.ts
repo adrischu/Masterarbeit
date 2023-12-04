@@ -25,7 +25,15 @@ export default class Lager implements isStatikobjekt {
   ]
  }
 
- set values([Nummer, LagX, LagZ, LagPhi, FedX, FedZ, FedPhi]: any[]) {
+ set values([Nummer, LagX, LagZ, LagPhi, FedX, FedZ, FedPhi]: [
+  Nummer: number,
+  LagerX: boolean,
+  LagerZ: boolean,
+  LagerPhi: boolean,
+  FederX: number,
+  FederZ: number,
+  FederPhi: number,
+ ]) {
   this.Nummer = Nummer
   this.Lagerung = [LagX, LagZ, LagPhi]
   this.Feder = [FedX, FedZ, FedPhi]

@@ -25,7 +25,13 @@ export default class Querschnitt implements isStatikobjekt {
   return [this.Nummer, this.Name, this.Materialnummer, this.A, this.I]
  }
 
- set values([Nummer, Name, Materialnummer, A, I]: any[]) {
+ set values([Nummer, Name, Materialnummer, A, I]: [
+  Nummer: number,
+  Name: string,
+  Materialnummer: number,
+  Fläche: number,
+  Trägheitsmoment: number,
+ ]) {
   this.Nummer = Nummer
   this.Name = Name
   this.Materialnummer = Materialnummer

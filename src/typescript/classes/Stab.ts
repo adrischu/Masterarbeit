@@ -3,6 +3,7 @@ import Vector from "./Vector"
 import { useSystemStore } from "@/stores/SystemStore"
 import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 import type Querschnitt from "./Querschnitt"
+import Gelenk from "./Gelenk"
 
 export default class Stab implements isStatikobjekt {
  //folgende Werte werden bei Erstellung eines Knotens definiert.
@@ -13,6 +14,10 @@ export default class Stab implements isStatikobjekt {
  Endknoten: Knoten | null
  Querschnittsnummer: number
  Querschnitt: Querschnitt | null
+ Anfangsgelenknummer: number
+ Anfangsgelenk: Gelenk | null
+ Endgelenknummer: number
+ Endgelenk: Gelenk | null
  Elementabschnitte: number
  //folgende Werte werden bei der Berechnung definiert
  Inzidenzen: number[]
@@ -28,6 +33,10 @@ export default class Stab implements isStatikobjekt {
   this.Endknoten = null
   this.Querschnittsnummer = 0
   this.Querschnitt = null
+  this.Anfangsgelenknummer = 0
+  this.Anfangsgelenk = null
+  this.Endgelenknummer = 0
+  this.Endgelenk = null
   this.Elementabschnitte = 10
   this.Inzidenzen = []
   this.M_k = []
@@ -59,6 +68,8 @@ export default class Stab implements isStatikobjekt {
    this.Anfangsknotennummer,
    this.Endknotennummer,
    this.Querschnittsnummer,
+   this.Anfangsgelenknummer,
+   this.Endgelenknummer,
    this.Elementabschnitte,
   ]
  }
@@ -68,12 +79,24 @@ export default class Stab implements isStatikobjekt {
   Anfangsknotennummer,
   Endknotennummer,
   Querschnittsnummer,
+  Anfangsgelenknummer,
+  Endgelenknummer,
   Elementabschnitte,
- ]: any[]) {
+ ]: [
+  Nummer: number,
+  Anfangsknotennummer: number,
+  Endknotennummer: number,
+  Querschnittsnummer: number,
+  Anfangsgelenknummer: number,
+  Endgelenknummer: number,
+  Elementabschnitt: number,
+ ]) {
   this.Nummer = Nummer
   this.Anfangsknotennummer = Anfangsknotennummer
   this.Endknotennummer = Endknotennummer
   this.Querschnittsnummer = Querschnittsnummer
+  this.Anfangsgelenknummer = Anfangsgelenknummer
+  this.Endgelenknummer = Endgelenknummer
   this.Elementabschnitte = Elementabschnitte
  }
 
@@ -106,6 +129,22 @@ export default class Stab implements isStatikobjekt {
      (querschnitt) => `${querschnitt.Nummer}: ${querschnitt.Name}`,
     ),
     selectListValues: systemStore.system.Querschnittliste.map((querschnitt) => querschnitt.Nummer),
+   },
+   {
+    id: "Anfangsgelenk",
+    einheit: "",
+    value: this.Anfangsgelenknummer,
+    inputType: "select",
+    selectListKeys: systemStore.system.Gelenkliste.map((gelenk) => `Gelenk ${gelenk.Nummer}`),
+    selectListValues: systemStore.system.Gelenkliste.map((gelenk) => gelenk.Nummer),
+   },
+   {
+    id: "Endgelenk",
+    einheit: "",
+    value: this.Endgelenknummer,
+    inputType: "select",
+    selectListKeys: systemStore.system.Gelenkliste.map((gelenk) => `Gelenk ${gelenk.Nummer}`),
+    selectListValues: systemStore.system.Gelenkliste.map((gelenk) => gelenk.Nummer),
    },
    {
     id: "Elementanzahl",
