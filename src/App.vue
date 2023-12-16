@@ -2,7 +2,7 @@
  <v-card>
   <v-tabs
    v-model="tab"
-   bg-color="green"
+   bg-color="rgb(0,80,0)"
   >
    <v-tab value="start">Start</v-tab>
    <v-tab value="systemeingabe">Systemeingabe</v-tab>
@@ -12,7 +12,8 @@
    <v-tab value="handbuch">Handbuch</v-tab>
    <v-tab value="dev">Dev-Ausgabe</v-tab>
   </v-tabs>
-  <span style="color: black; margin: 0px"><p>current Commit: 04.12.2023 13:42</p></span>
+  <span><v-btn @click="systemStore.system.berechnen()">Rechnen</v-btn></span>
+  <span style="color: rgb(128, 128, 128); margin: 0px">current Commit: 04.12.2023 13:42</span>
 
   <v-card-text>
    <v-window v-model="tab">
@@ -80,6 +81,8 @@
  import ViewHandbuch from "./components/views/ViewHandbuch.vue"
  import ViewDevAusgabe from "./components/views/ViewDevAusgabe.vue"
  import ViewSystemausgabe from "./components/views/ViewSystemausgabe.vue"
+ import System from "./typescript/classes/System"
+ import { Theorie } from "./typescript/enumerations"
 
  const systemStore = useSystemStore()
 
@@ -87,9 +90,10 @@
  let tab = ref<String>("start")
 
  //SETUP eines vorgeladenen Modells
- //IPE360 - Stahl
- //Einfeldträger 20m - links eingespannt - rechts gelenkig - rechts 100kN/m Feder in z
+ //QS+Mat: IPE360 - Stahl
+ //System: EFT 20m - links eingespannt - rechts gelenkig - rechts 100kN/m Feder in z
  //Last: 5kN in x, 5kN in z, 5kNm - in Feldmitte
+ /* systemStore.system = new System()
  systemStore.system.addStatikobjekt("Lager", [1, true, true, true, 0, 0, 0], -1)
  systemStore.system.addStatikobjekt("Lager", [2, true, true, true, 0, 100000, 0], -1)
  systemStore.system.addStatikobjekt("Knoten", [1, 0, 0, 1], -1)
@@ -98,8 +102,22 @@
  systemStore.system.addStatikobjekt("Gelenk", [1, false, false, true], -1)
  systemStore.system.addStatikobjekt("Material", [1, "S235", 210000000000], -1)
  systemStore.system.addStatikobjekt("Querschnitt", [1, "IPE360", 1, 0.007273, 0.00016266], -1)
- systemStore.system.addStatikobjekt("Stab", [1, 1, 2, 1, 0, 0, 5], -1)
- systemStore.system.addStatikobjekt("Stab", [2, 2, 3, 1, 0, 1, 5], -1)
- systemStore.system.addStatikobjekt("Lastfall", [1, "EG"], -1)
- systemStore.system.addStatikobjekt("Knotenlast", [1, 1, 2, 5000, 5000, 5000], 1)
+ systemStore.system.addStatikobjekt("Stab", [1, 1, 2, 1, 0, 0, 10], -1)
+ systemStore.system.addStatikobjekt("Stab", [2, 2, 3, 1, 0, 1, 10], -1)
+ systemStore.system.addStatikobjekt("Lastfall", [1, "EG", Theorie.Theorie_2_trig], -1)
+ systemStore.system.addStatikobjekt("Knotenlast", [1, 2, 5000, 5000, 5000], 1)
+*/
+
+ //Setup eines vorgeladenen Modells
+ //QS+Mat: IPE360 - Stahl
+ //System Kragarm 10m
+ systemStore.system = new System()
+ systemStore.system.addStatikobjekt("Lager", [1, true, true, true, 0, 0, 0], -1)
+ systemStore.system.addStatikobjekt("Knoten", [1, 0, 0, 1], -1)
+ systemStore.system.addStatikobjekt("Knoten", [2, 10, 0, 0], -1)
+ systemStore.system.addStatikobjekt("Material", [1, "S235", 210000000000], -1)
+ systemStore.system.addStatikobjekt("Querschnitt", [1, "IPE360", 1, 0.007273, 0.00016266], -1)
+ systemStore.system.addStatikobjekt("Stab", [1, 1, 2, 1, 0, 0, 10], -1)
+ systemStore.system.addStatikobjekt("Lastfall", [1, "EG", Theorie.Theorie_2_trig], -1)
+ systemStore.system.addStatikobjekt("Knotenlast", [1, 2, -5000, 5000, 0], 1)
 </script>

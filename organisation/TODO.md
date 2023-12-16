@@ -18,6 +18,8 @@
 
 - Button um `theme` zu wechseln. Info [hier](https://vuetifyjs.com/en/features/theme/#typescript).
 
+- Bei Lastfällen die Zusatzoption "Kopie" hinzufügen. -> Stellt eine Kopie eines anderen Lastfalls dar. So können leicht verschiedene Theorien verglichen werden, während die Lasten jeweils nur bei einem Lastfall erstellt werden müssen.
+
 # Fehlerüberprüfung
 
 - Jeden Knoten darauf überprüfen, ob er Teil eines Stabes ist.

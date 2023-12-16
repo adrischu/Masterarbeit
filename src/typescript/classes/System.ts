@@ -6,8 +6,8 @@ import Querschnitt from "./Querschnitt"
 import Material from "./Material"
 import Lastfall from "./Lastfall"
 import Knotenlast from "./Knotenlast"
-import { startBerechnungen } from "../berechnungen"
 import Gelenk from "./Gelenk"
+import { startBerechnungen } from "../berechnungen"
 
 export default class System {
  Knotenliste: Knoten[]
@@ -20,8 +20,6 @@ export default class System {
 
  Freiheitsgrade: number
  Verformungsinzidenzen: number[] //Indizenzen der NICHT-gehaltenen Freiheitsgrade
- M_K_lang: number[][]
- M_Kkurz: number[][]
 
  constructor() {
   this.Knotenliste = []
@@ -32,8 +30,6 @@ export default class System {
   this.Materialliste = []
   this.Lastfallliste = []
 
-  this.M_K_lang = []
-  this.M_Kkurz = []
   this.Freiheitsgrade = 0
   this.Verformungsinzidenzen = []
  }
@@ -193,15 +189,14 @@ export default class System {
    querschnitt.Material = this.searchObjectByNummer(querschnitt.Materialnummer, this.Materialliste)
   })
   //Knotenlasten bekommen Knoten
-  this.Lastfallliste.forEach((Lastfall) => {
-   Lastfall.Knotenlastliste.forEach((knotenlast) => {
+  this.Lastfallliste.forEach((lastfall) => {
+   lastfall.Knotenlastliste.forEach((knotenlast) => {
     knotenlast.Knoten = this.searchObjectByNummer(knotenlast.Knotennummer, this.Knotenliste)
+    knotenlast.Lastfallnummer = lastfall.Nummer
    })
   })
-  // console.log('System aufgebaut')
-
-  //
  }
+
  searchObjectByNummer(key: number, objectArray: Knoten[]): Knoten | null
  searchObjectByNummer(key: number, objectArray: Gelenk[]): Gelenk | null
  searchObjectByNummer(key: number, objectArray: Lager[]): Lager | null

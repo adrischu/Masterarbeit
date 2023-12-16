@@ -25,17 +25,17 @@ export default class Material implements isStatikobjekt {
 
  get header() {
   return [
-   { id: "Nummer", einheit: "", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
+   { title: "Nummer", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
-    id: "Name",
-    einheit: "",
+    title: "Name",
+    unit: "",
     value: this.Name,
     inputType: "input",
     inputFormat: "text",
    },
    {
-    id: "E-Modul",
-    einheit: "N/m²",
+    title: "E-Modul",
+    unit: "N/m²",
     value: this.E,
     inputType: "input",
     inputFormat: "number",

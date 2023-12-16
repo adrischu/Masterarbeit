@@ -3,6 +3,8 @@
   <v-table
    class="eingabetabelle-tabelle"
    density="compact"
+   hover
+   fixed-header
   >
    <!--  -->
    <!-- Tabellenkopfzeile -->
@@ -11,10 +13,26 @@
     <tr>
      <th
       v-for="headerItem in newStatikObjekt.header"
-      :key="headerItem.id"
+      :key="headerItem.title"
      >
-      <span v-html="headerItem.id"></span>
-      <span v-if="headerItem.einheit"> [{{ headerItem.einheit }}]</span>
+      <span v-html="headerItem.title"></span>
+      <span
+       v-if="headerItem.unit"
+       v-html="`[${headerItem.unit}]`"
+      ></span>
+      <v-btn
+       v-if="headerItem.tooltip"
+       icon
+       color="rgb(255, 255, 80)"
+       size="20"
+       :active="false"
+       ><v-icon>mdi-help</v-icon
+       ><v-tooltip
+        activator="parent"
+        location="end"
+        open-delay="500"
+        ><div v-html="headerItem.tooltip"></div></v-tooltip
+      ></v-btn>
      </th>
     </tr>
    </thead>
@@ -154,7 +172,7 @@
    lastfallnummer?: number
   }>(),
   {
-   lastfallnummer: -1,
+   lastfallnummer: -1, //Default-Wert
   },
  )
 
@@ -162,7 +180,7 @@
 
  let newStatikObjekt: isStatikobjekt = props.createNewObject(firstEmptyId())
 
- let newObjectValues: Ref<any[]> = ref(newStatikObjekt.values) //Ref<any[]> = ref([newStatikObjekt.values])
+ let newObjectValues: Ref<any[]> = ref(newStatikObjekt.values)
 
  let data: Ref<any[]> = ref([])
 
@@ -225,7 +243,7 @@
 
 <style scoped>
  .eingabetabelle-ersteZeile {
-  background-color: rgb(142, 255, 142);
+  background-color: rgb(14, 80, 14);
   height: 10px;
  }
 
@@ -249,6 +267,7 @@
   align-items: center;
   border: #646262 solid;
   border-width: 1px;
+  width: 1%;
  }
 
  thead {

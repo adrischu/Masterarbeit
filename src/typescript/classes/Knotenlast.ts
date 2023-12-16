@@ -22,7 +22,6 @@ export default class Knotenlast implements isStatikobjekt {
  get values() {
   return [
    this.Nummer,
-   this.Lastfallnummer,
    this.Knotennummer,
    this.Lastvektor[0],
    this.Lastvektor[1],
@@ -30,16 +29,14 @@ export default class Knotenlast implements isStatikobjekt {
   ]
  }
 
- set values([Nummer, Lastfallnummer, Knotennummer, xLast, zLast, phiLast]: [
+ set values([Nummer, Knotennummer, xLast, zLast, phiLast]: [
   Nummer: number,
-  Lastfallnummer: number,
   Knotennummer: number,
   LastInX: number,
   LastInZ: number,
   Moment: number,
  ]) {
   this.Nummer = Nummer
-  this.Lastfallnummer = Lastfallnummer
   this.Knotennummer = Knotennummer
   this.Lastvektor[0] = xLast
   this.Lastvektor[1] = zLast
@@ -49,39 +46,29 @@ export default class Knotenlast implements isStatikobjekt {
  get header() {
   const systemStore = useSystemStore()
   return [
-   { id: "Nummer", einheit: "", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
+   { title: "Nummer", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
-    id: "Lastfall",
-    einheit: "",
-    value: this.Lastfallnummer,
-    inputType: "input",
-    inputFormat: "number",
-   },
-   {
-    id: "Knotennummer",
-    einheit: "",
+    title: "Knotennummer",
     value: this.Knotennummer,
     inputType: "select",
     selectListKeys: systemStore.system.Knotenliste.map((knoten) => `Knoten ${knoten.Nummer}`),
     selectListValues: systemStore.system.Knotenliste.map((knoten) => knoten.Nummer),
    },
    {
-    id: "F<sub>x</sub>",
-    einheit: "m",
+    title: "F<sub>x</sub>",
+    unit: "m",
     value: this.Lastvektor[0],
     inputType: "input",
     inputFormat: "number",
    },
    {
-    id: "F<sub>z</sub>",
-    einheit: "",
+    title: "F<sub>z</sub>",
     value: this.Lastvektor[1],
     inputType: "input",
     inputFormat: "number",
    },
    {
-    id: "M<sub>y</sub>",
-    einheit: "",
+    title: "M<sub>y</sub>",
     value: this.Lastvektor[2],
     inputType: "input",
     inputFormat: "number",

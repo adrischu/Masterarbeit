@@ -1,49 +1,45 @@
-export function matMultiply(...matrices: number[][][]): number[][] | null {
- if (matrices.length < 2) {
-  console.error("Es müssen mindestens zwei Matrizen übergeben werden.")
+export function matMultiplyMat(A: number[][], B: number[][]): number[][] | null {
+ const rowsA = A.length
+ const colsA = A[0].length
+ const rowsB = B.length
+ const colsB = B[0].length
+
+ // Überprüfe die Kompatibilität der Matrizen für die Multiplikation
+ if (colsA !== rowsB) {
+  console.error(
+   "Die Anzahl der Spalten von Matrix A muss gleich der Anzahl der Zeilen von Matrix B sein.",
+  )
   return null
  }
 
- // Überprüfe die Kompatibilität der Matrizen für die Multiplikation
- for (let i = 1; i < matrices.length; i++) {
-  if (matrices[i - 1][0].length !== matrices[i].length) {
-   console.error(
-    "Die Anzahl der Spalten von Matrix",
-    i,
-    "muss der Anzahl der Zeilen von Matrix",
-    i + 1,
-    "entsprechen.",
-   )
-   return null
-  }
- }
+ const result: number[][] = Array.from({ length: rowsA }, () => Array(colsB).fill(0))
 
- // Funktion für die Matrizenmultiplikation
- function matrixMultiply(a: number[][], b: number[][]): number[][] {
-  const rowsA = a.length
-  const colsA = a[0].length
-  const rowsB = b.length
-  const colsB = b[0].length
-
-  const result: number[][] = Array.from({ length: rowsA }, () => Array(colsB).fill(0))
-
-  for (let i = 0; i < rowsA; i++) {
-   for (let j = 0; j < colsB; j++) {
-    for (let k = 0; k < colsA; k++) {
-     result[i][j] += a[i][k] * b[k][j]
-    }
+ for (let i = 0; i < rowsA; i++) {
+  for (let j = 0; j < colsB; j++) {
+   for (let k = 0; k < colsA; k++) {
+    result[i][j] += A[i][k] * B[k][j]
    }
   }
-
-  return result
  }
 
- // Multiplikation der Matrizen von links nach rechts
- let result = matrices[0]
- for (let i = 1; i < matrices.length; i++) {
-  result = matrixMultiply(result, matrices[i])
-  if (result === null) {
-   return null // Wenn die Multiplikation nicht möglich ist, breche ab
+ return result
+}
+
+export function matMultiplyVec(A: number[][], b: number[]): number[] | null {
+ const rowsA = A.length
+ const colsA = A[0].length
+
+ // Überprüfe die Kompatibilität von Matrix A und Vektor b
+ if (colsA !== b.length) {
+  console.error("Die Anzahl der Spalten von Matrix A muss gleich der Länge von Vektor b sein.")
+  return null
+ }
+
+ const result: number[] = Array(rowsA).fill(0)
+
+ for (let i = 0; i < rowsA; i++) {
+  for (let j = 0; j < colsA; j++) {
+   result[i] += A[i][j] * b[j]
   }
  }
 

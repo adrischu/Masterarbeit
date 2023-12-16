@@ -37,14 +37,14 @@ In **main.ts** folgenden Code hinzufügen:
 
 ```ts
 // Vuetify
-import 'vuetify/styles'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
+import "vuetify/styles"
+import { createVuetify } from "vuetify"
+import * as components from "vuetify/components"
+import * as directives from "vuetify/directives"
 
 const vuetify = createVuetify({
-  components,
-  directives
+ components,
+ directives,
 })
 
 app.use(vuetify)
@@ -80,7 +80,7 @@ $npm install @shoelace-style/shoelace
 In **main.ts** folgende Code-Zeile eingeben:
 
 ```ts
-import '@shoelace-style/shoelace/dist/themes/light.css'
+import "@shoelace-style/shoelace/dist/themes/light.css"
 ```
 
 Um das Dark-Theme von Shoelace zu nutzen müssen zwei Schritte befolgt werden.
@@ -93,8 +93,8 @@ Um das Dark-Theme von Shoelace zu nutzen müssen zwei Schritte befolgt werden.
 In **main.ts** folgende Code-Zeilen eingeben:
 
 ```ts
-import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js'
-setBasePath('https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.11.2/cdn/')
+import { setBasePath } from "@shoelace-style/shoelace/dist/utilities/base-path.js"
+setBasePath("https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.11.2/cdn/")
 ```
 
 ## SHOELACE KOMPONENTEN MÜSSEN VON VUE IGNORIERT WERDEN
@@ -103,36 +103,36 @@ In **vite.config.ts** folgenden code anstelle von `HIER` in `export default defi
 
 ```ts
 template: {
-  compilerOptions: {
-    isCustomElement: (tag) => tag.startsWith('sl-')
-  }
+ compilerOptions: {
+  isCustomElement: (tag) => tag.startsWith("sl-")
+ }
 }
 ```
 
 Danach sollte es so aussehen:
 
 ```ts
-import { fileURLToPath, URL } from 'node:url'
+import { fileURLToPath, URL } from "node:url"
 
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import { defineConfig } from "vite"
+import vue from "@vitejs/plugin-vue"
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    vue({
-      template: {
-        compilerOptions: {
-          isCustomElement: (tag) => tag.startsWith('sl-')
-        }
-      }
-    })
-  ],
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
-  }
+ plugins: [
+  vue({
+   template: {
+    compilerOptions: {
+     isCustomElement: (tag) => tag.startsWith("sl-"),
+    },
+   },
+  }),
+ ],
+ resolve: {
+  alias: {
+   "@": fileURLToPath(new URL("./src", import.meta.url)),
+  },
+ },
 })
 ```
 
@@ -142,7 +142,7 @@ In **main.ts** folgende Code-Zeile einfügen:
 
 ```ts
 //Button
-import '@shoelace-style/shoelace/dist/components/button/button.js'
+import "@shoelace-style/shoelace/dist/components/button/button.js"
 ```
 
 # BUG-FIXES
@@ -171,12 +171,12 @@ Neue Datei **.hintrc** im Hauptordner hinzufügen, mit folgendem Code:
 
 ```json
 {
-  "extends": ["development"],
-  "hints": {
-    "typescript-config/is-valid": "off",
-    "typescript-config/consistent-casing": "off",
-    "typescript-config/strict": "off"
-  }
+ "extends": ["development"],
+ "hints": {
+  "typescript-config/is-valid": "off",
+  "typescript-config/consistent-casing": "off",
+  "typescript-config/strict": "off"
+ }
 }
 ```
 

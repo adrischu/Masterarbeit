@@ -18,7 +18,7 @@ export default class Stab implements isStatikobjekt {
  Anfangsgelenk: Gelenk | null
  Endgelenknummer: number
  Endgelenk: Gelenk | null
- Elementabschnitte: number
+ Stababschnitte: number
  //folgende Werte werden bei der Berechnung definiert
  Inzidenzen: number[]
  M_k: number[][] | null
@@ -37,7 +37,7 @@ export default class Stab implements isStatikobjekt {
   this.Anfangsgelenk = null
   this.Endgelenknummer = 0
   this.Endgelenk = null
-  this.Elementabschnitte = 10
+  this.Stababschnitte = 10
   this.Inzidenzen = []
   this.M_k = []
   this.M_T = []
@@ -70,7 +70,7 @@ export default class Stab implements isStatikobjekt {
    this.Querschnittsnummer,
    this.Anfangsgelenknummer,
    this.Endgelenknummer,
-   this.Elementabschnitte,
+   this.Stababschnitte,
   ]
  }
 
@@ -81,7 +81,7 @@ export default class Stab implements isStatikobjekt {
   Querschnittsnummer,
   Anfangsgelenknummer,
   Endgelenknummer,
-  Elementabschnitte,
+  Stababschnitte,
  ]: [
   Nummer: number,
   Anfangsknotennummer: number,
@@ -89,7 +89,7 @@ export default class Stab implements isStatikobjekt {
   Querschnittsnummer: number,
   Anfangsgelenknummer: number,
   Endgelenknummer: number,
-  Elementabschnitt: number,
+  Stababschnitte: number,
  ]) {
   this.Nummer = Nummer
   this.Anfangsknotennummer = Anfangsknotennummer
@@ -97,32 +97,29 @@ export default class Stab implements isStatikobjekt {
   this.Querschnittsnummer = Querschnittsnummer
   this.Anfangsgelenknummer = Anfangsgelenknummer
   this.Endgelenknummer = Endgelenknummer
-  this.Elementabschnitte = Elementabschnitte
+  this.Stababschnitte = Stababschnitte
  }
 
  get header() {
   const systemStore = useSystemStore()
   return [
-   { id: "Nummer", einheit: "", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
+   { title: "Nummer", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
-    id: "Anfangsknoten",
-    einheit: "",
+    title: "Anfangsknoten",
     value: this.Anfangsknotennummer,
     inputType: "select",
     selectListKeys: systemStore.system.Knotenliste.map((knoten) => `Knoten ${knoten.Nummer}`),
     selectListValues: systemStore.system.Knotenliste.map((knoten) => knoten.Nummer),
    },
    {
-    id: "Endknoten",
-    einheit: "",
+    title: "Endknoten",
     value: this.Endknotennummer,
     inputType: "select",
     selectListKeys: systemStore.system.Knotenliste.map((knoten) => `Knoten ${knoten.Nummer}`),
     selectListValues: systemStore.system.Knotenliste.map((knoten) => knoten.Nummer),
    },
    {
-    id: "Querschnitt",
-    einheit: "",
+    title: "Querschnitt",
     value: this.Querschnittsnummer,
     inputType: "select",
     selectListKeys: systemStore.system.Querschnittliste.map(
@@ -131,27 +128,26 @@ export default class Stab implements isStatikobjekt {
     selectListValues: systemStore.system.Querschnittliste.map((querschnitt) => querschnitt.Nummer),
    },
    {
-    id: "Anfangsgelenk",
-    einheit: "",
+    title: "Anfangsgelenk",
     value: this.Anfangsgelenknummer,
     inputType: "select",
     selectListKeys: systemStore.system.Gelenkliste.map((gelenk) => `Gelenk ${gelenk.Nummer}`),
     selectListValues: systemStore.system.Gelenkliste.map((gelenk) => gelenk.Nummer),
    },
    {
-    id: "Endgelenk",
-    einheit: "",
+    title: "Endgelenk",
     value: this.Endgelenknummer,
     inputType: "select",
     selectListKeys: systemStore.system.Gelenkliste.map((gelenk) => `Gelenk ${gelenk.Nummer}`),
     selectListValues: systemStore.system.Gelenkliste.map((gelenk) => gelenk.Nummer),
    },
    {
-    id: "Elementanzahl",
-    einheit: "",
-    value: this.Elementabschnitte,
+    title: "Stababschnitte",
+    value: this.Stababschnitte,
     inputType: "input",
     inputFormat: "number",
+    tooltip:
+     "<p>Anzahl der Abschnitte, in die der Stab zur Ergebnisausgabe zerteilt wird.</p><p>Die Anzahl der Stababschnitte hat keine Auswirkung auf die Berechnung.</p>",
    },
   ]
  }
