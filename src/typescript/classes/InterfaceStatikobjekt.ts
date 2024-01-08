@@ -1,5 +1,6 @@
 export interface isStatikobjekt {
  Nummer: number
+ Typ: string
 
  get values()
 

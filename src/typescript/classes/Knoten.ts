@@ -6,6 +6,7 @@ import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 export default class Knoten implements isStatikobjekt {
  //Werte werden bei Erstellung eines Knotens definiert.
  Nummer: number
+ Typ: string = "Knoten"
  Koordinaten: Vector
  Lagernummer: number
  Lager: Lager | null

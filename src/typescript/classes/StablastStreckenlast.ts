@@ -7,6 +7,7 @@ import { matMultiplyMat, matMultiplyVec, matTrans } from "../matrix"
 //Stabtrapezlast
 export default class StablastStreckenlast implements isStatikobjekt, isStablast {
  Nummer: number
+ Typ: string = "StablastStreckenlast"
  Lastfallnummer: number
  Stabnummer: number
  Stab: Stab | null

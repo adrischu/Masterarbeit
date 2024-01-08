@@ -7,6 +7,7 @@ import type StablastStreckenlast from "./StablastStreckenlast"
 export default class Lastfall implements isStatikobjekt {
  //folgende Werte werden bei Erstellung eines Knotens definiert.
  Nummer: number
+ Typ: string = "Lastfall"
  Name: string
  Theorie: Theorie
  Knotenlastliste: Knotenlast[]

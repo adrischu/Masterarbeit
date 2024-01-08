@@ -3,6 +3,7 @@ import type { isStatikobjekt } from "./InterfaceStatikobjekt.js"
 export default class Gelenk implements isStatikobjekt {
  //Werte werden bei Erstellung eines Knotens definiert.
  Nummer: number
+ Typ: string = "Gelenk"
  Gelenke: [x: boolean, z: boolean, phi: boolean]
 
  constructor(Nummer: number = 0) {

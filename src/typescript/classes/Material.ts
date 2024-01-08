@@ -2,6 +2,7 @@ import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 
 export default class Material implements isStatikobjekt {
  Nummer: number
+ Typ: string = "Material"
  Name: string
  E: number
 

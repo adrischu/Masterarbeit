@@ -4,6 +4,7 @@ import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 
 export default class Querschnitt implements isStatikobjekt {
  Nummer: number
+ Typ: string = "Querschnitt"
  Name: string
  Materialnummer: number
  Material: Material | null

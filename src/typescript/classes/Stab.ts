@@ -8,6 +8,7 @@ import Gelenk from "./Gelenk"
 export default class Stab implements isStatikobjekt {
  //folgende Werte werden bei Erstellung eines Knotens definiert.
  Nummer: number
+ Typ: string = "Stab"
  Anfangsknotennummer: number
  Anfangsknoten: Knoten | null
  Endknotennummer: number

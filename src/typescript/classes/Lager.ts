@@ -2,6 +2,7 @@ import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 
 export default class Lager implements isStatikobjekt {
  Nummer: number
+ Typ: string = "Lager"
  Lagerung: [boolean, boolean, boolean]
  Feder: [number, number, number]
 

@@ -4,6 +4,7 @@ import Knoten from "./Knoten"
 
 export default class Knotenlast implements isStatikobjekt {
  Nummer: number
+ Typ: string = "Knotenlast"
  Lastfallnummer: number
  Knotennummer: number
  Knoten: Knoten | null
