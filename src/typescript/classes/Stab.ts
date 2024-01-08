@@ -48,7 +48,7 @@ export default class Stab implements isStatikobjekt {
   return this.Stabvektor.length
  }
 
- private get Stabvektor(): Vector {
+ get Stabvektor(): Vector {
   const stabVektor: Vector = new Vector(
    this.Endknoten!.Koordinaten!.x - this.Anfangsknoten!.Koordinaten!.x,
    this.Endknoten!.Koordinaten!.z - this.Anfangsknoten!.Koordinaten!.z,
@@ -149,6 +149,22 @@ export default class Stab implements isStatikobjekt {
     tooltip:
      "<p>Anzahl der Abschnitte, in die der Stab zur Ergebnisausgabe zerteilt wird.</p><p>Die Anzahl der Stababschnitte hat keine Auswirkung auf die Berechnung.</p>",
    },
+  ]
+ }
+
+ //Gibt die 6x6 Transformationsmatrix für ein Element
+ //mit der Stabdrehung alpha[rad] zurück.
+ get T(): number[][] {
+  const sin = Math.sin
+  const cos = Math.cos
+  const alpha = this.Winkel
+  return [
+   [cos(alpha), sin(alpha), 0, 0, 0, 0],
+   [-sin(alpha), cos(alpha), 0, 0, 0, 0],
+   [0, 0, 1, 0, 0, 0],
+   [0, 0, 0, cos(alpha), sin(alpha), 0],
+   [0, 0, 0, -sin(alpha), cos(alpha), 0],
+   [0, 0, 0, 0, 0, 1],
   ]
  }
 }

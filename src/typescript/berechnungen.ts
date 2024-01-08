@@ -162,9 +162,17 @@ function randbedingungenEinarbeiten(system: System, lastfall: Lastfall) {
 
 function lastvektorAufstellen(system: System, lastfall: Lastfall) {
  const tempLastvektor: number[] = Array(system.Freiheitsgrade).fill(0)
+ //Knotenlasten
  lastfall.Knotenlastliste.forEach((knotenlast) => {
   for (let i = 0; i <= 2; i++) {
    tempLastvektor[knotenlast.Knoten!.Inzidenzen[i]] += knotenlast.Lastvektor[i]
+  }
+ })
+
+ //Stablasten
+ lastfall.StablastListeStreckenlast.forEach((streckenlast) => {
+  for (let i = 0; i <= 5; i++) {
+   tempLastvektor[streckenlast.Stab!.Inzidenzen[i]] += streckenlast.Knotenersatzlasten[i]
   }
  })
 

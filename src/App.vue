@@ -86,7 +86,7 @@
 
  const systemStore = useSystemStore()
 
- //Starttab ist immer erster Tab
+ //Starttab ist beim Neuladen immer offen
  let tab = ref<String>("start")
 
  //SETUP eines vorgeladenen Modells
@@ -111,13 +111,18 @@
  //Setup eines vorgeladenen Modells
  //QS+Mat: IPE360 - Stahl
  //System Kragarm 10m
+ //Last: 5kN/m
  systemStore.system = new System()
  systemStore.system.addStatikobjekt("Lager", [1, true, true, true, 0, 0, 0], -1)
  systemStore.system.addStatikobjekt("Knoten", [1, 0, 0, 1], -1)
- systemStore.system.addStatikobjekt("Knoten", [2, 10, 0, 0], -1)
+ systemStore.system.addStatikobjekt("Knoten", [2, 10, 5, 0], -1)
  systemStore.system.addStatikobjekt("Material", [1, "S235", 210000000000], -1)
- systemStore.system.addStatikobjekt("Querschnitt", [1, "IPE360", 1, 0.007273, 0.00016266], -1)
+ systemStore.system.addStatikobjekt("Querschnitt", [1, "IPE360", 1, 0.00721, 0.00016113], -1)
  systemStore.system.addStatikobjekt("Stab", [1, 1, 2, 1, 0, 0, 10], -1)
- systemStore.system.addStatikobjekt("Lastfall", [1, "EG", Theorie.Theorie_2_trig], -1)
- systemStore.system.addStatikobjekt("Knotenlast", [1, 2, -5000, 5000, 0], 1)
+ systemStore.system.addStatikobjekt("Lastfall", [1, "EG", Theorie.Theorie_1], -1)
+ systemStore.system.addStatikobjekt(
+  "StablastStreckenlast",
+  [1, 1, "global", "z", true, 2000, 5000],
+  1,
+ )
 </script>

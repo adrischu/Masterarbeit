@@ -2,6 +2,7 @@ import { Theorie } from "../enumerations"
 import type Balkenelement from "./Balkenelement"
 import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 import type Knotenlast from "./Knotenlast"
+import type StablastStreckenlast from "./StablastStreckenlast"
 
 export default class Lastfall implements isStatikobjekt {
  //folgende Werte werden bei Erstellung eines Knotens definiert.
@@ -9,6 +10,7 @@ export default class Lastfall implements isStatikobjekt {
  Name: string
  Theorie: Theorie
  Knotenlastliste: Knotenlast[]
+ StablastListeStreckenlast: StablastStreckenlast[]
  //folgende Werte werden erst bei Berechnung definiert.
  Elementliste: Balkenelement[]
  Lastvektor: number[]
@@ -22,6 +24,7 @@ export default class Lastfall implements isStatikobjekt {
   this.Name = ""
   this.Theorie = Theorie.Theorie_1
   this.Knotenlastliste = []
+  this.StablastListeStreckenlast = []
   this.Lastvektor = []
   this.Verformungsvektor_kurz = []
   this.Verformungsvektor_lang = []
