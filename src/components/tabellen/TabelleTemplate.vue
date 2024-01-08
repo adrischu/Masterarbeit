@@ -162,7 +162,7 @@
 <script setup lang="ts">
  import { ref } from "vue"
  import { type Ref } from "vue"
- import type { isStatikobjekt } from "@/typescript/classes/InterfaceStatikobjekt.js"
+ import type { isStatikobjekt } from "@/typescript/classes/InterfaceStatikobjekt"
  import { useSystemStore } from "@/stores/SystemStore"
 
  const props = withDefaults(

@@ -1,4 +1,4 @@
-import type { isStatikobjekt } from "./InterfaceStatikobjekt"
+import type { isStatikobjekt } from "./InterfaceStatikobjekt.js"
 
 export default class Gelenk implements isStatikobjekt {
  //Werte werden bei Erstellung eines Knotens definiert.

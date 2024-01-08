@@ -1,7 +1,7 @@
 import { useSystemStore } from "@/stores/SystemStore"
 import Lager from "./Lager"
 import Vector from "./Vector"
-import type { isStatikobjekt } from "./InterfaceStatikobjekt"
+import type { isStatikobjekt } from "./InterfaceStatikobjekt.js"
 
 export default class Knoten implements isStatikobjekt {
  //Werte werden bei Erstellung eines Knotens definiert.
