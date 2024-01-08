@@ -84,7 +84,7 @@
         location="end"
         open-delay="500"
        >
-        {{ newStatikObjekt.constructor.name }} hinzufügen
+        {{ newStatikObjekt.Typ }} hinzufügen
        </v-tooltip></v-btn
       >
      </td>
@@ -149,7 +149,7 @@
         location="end"
         open-delay="500"
        >
-        {{ newStatikObjekt.constructor.name }} entfernen
+        {{ newStatikObjekt.Typ }} entfernen
        </v-tooltip></v-btn
       >
      </td>
@@ -199,33 +199,24 @@
 
  function handleAdd() {
   systemStore.system.addStatikobjekt(
-   newStatikObjekt.constructor.name,
+   newStatikObjekt.Typ,
    newObjectValues.value,
    props.lastfallnummer,
   )
-  console.log(`${newStatikObjekt.constructor.name} hinzugefügt`)
+  console.log(`${newStatikObjekt.Typ} hinzugefügt`)
   newStatikObjekt = props.createNewObject(firstEmptyId())
   updateData()
  }
 
  function handleEdit(objectData: any[], index: number) {
-  systemStore.system.editStatikobjekt(
-   newStatikObjekt.constructor.name,
-   objectData,
-   index,
-   props.lastfallnummer,
-  )
-  console.log(`${newStatikObjekt.constructor.name} geändert`)
+  systemStore.system.editStatikobjekt(newStatikObjekt.Typ, objectData, index, props.lastfallnummer)
+  console.log(`${newStatikObjekt.Typ} geändert`)
   updateData()
  }
 
  function handleDelete(index: number) {
-  systemStore.system.deleteStatikobjekt(
-   newStatikObjekt.constructor.name,
-   index,
-   props.lastfallnummer,
-  )
-  console.log(`${newStatikObjekt.constructor.name} gelöscht`)
+  systemStore.system.deleteStatikobjekt(newStatikObjekt.Typ, index, props.lastfallnummer)
+  console.log(`${newStatikObjekt.Typ} gelöscht`)
   updateData()
  }
 
