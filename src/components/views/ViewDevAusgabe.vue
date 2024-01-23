@@ -44,23 +44,44 @@
     </tbody>
   </v-table> -->
 
- <v-btn @click="addOne">Add1</v-btn>
- <p
-  v-for="item in items"
-  :key="item"
+ <h2>Ergebnisse</h2>
+ <v-table
+  v-for="element in systemStore.system.Lastfallliste[0].Elementliste"
+  :key="element.Nummer.valueOf"
  >
-  {{ item }}
- </p>
+  <thead>
+   <tr>
+    <th>i</th>
+    <th>x [m]</th>
+    <th>N [kN]</th>
+    <th>V [kN]</th>
+    <th>M [kNm]</th>
+    <th>ux [mm]</th>
+    <th>uz [mm]</th>
+    <th>phi [mrad]</th>
+   </tr>
+  </thead>
+  <tbody>
+   <tr
+    v-for="index in element.Ausgabepunkte"
+    :key="index"
+   >
+    <td>{{ index - 1 }}</td>
+    <td>{{ ((index - 1) * element.Stab.Länge) / (element.Ausgabepunkte - 1) }}</td>
+    <td>{{ element.N[index - 1] / 1000 }}</td>
+    <td>{{ element.V[index - 1] / 1000 }}</td>
+    <td>{{ element.M[index - 1] / 1000 }}</td>
+    <td>{{ element.ux[index - 1] * 1000 }}</td>
+    <td>{{ element.uz[index - 1] * 1000 }}</td>
+    <td>{{ element.phi[index - 1] * 1000 }}</td>
+   </tr>
+  </tbody>
+ </v-table>
 </template>
 
 <script setup lang="ts">
  import { ref } from "vue"
  import { useSystemStore } from "@/stores/SystemStore"
 
- let items = ref([1, 2, 3])
-
- function addOne() {
-  items.value.push(items.value.length + 1)
- }
  const systemStore = useSystemStore()
 </script>

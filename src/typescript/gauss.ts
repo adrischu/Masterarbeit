@@ -2,7 +2,7 @@
 export function gauss(n: number, a: number[][], b: number[]) {
  //***********************************************************************
  //                                                                      *
- // Funktion GAUSS zur Lösung linearer Gleichungen A*x=B               *
+ // Funktion GAUSS zur Lösung linearer Gleichungen A*x=B                 *
  //                                                                      *
  //***********************************************************************
 

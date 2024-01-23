@@ -3,6 +3,7 @@ import type { isStablast } from "./InterfaceStablast"
 import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 import Stab from "./Stab"
 import { matMultiplyMat, matMultiplyVec, matTrans } from "../matrix"
+import type Balkenelement from "./Balkenelement"
 
 //Stabtrapezlast
 export default class StablastStreckenlast implements isStatikobjekt, isStablast {
@@ -11,6 +12,7 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
  Lastfallnummer: number
  Stabnummer: number
  Stab: Stab | null
+ Element: Balkenelement | null
  Koordinatensystem: string //Ob auf globale Richtung oder lokale Richtung bezogen.
  Richtung: string //ob x- oder z-Richtung
  Projektion: boolean //Ob Projektiert oder auf wahre Stablänge gerechnet.
@@ -22,6 +24,7 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   this.Lastfallnummer = 0
   this.Stabnummer = 1
   this.Stab = null
+  this.Element = null
   this.Koordinatensystem = "lokal"
   this.Richtung = "z"
   this.Projektion = false
@@ -122,10 +125,10 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   //Schneider Auflager 23 4.8
   const l = this.Stab!.Länge
   const lokKräfte = [
-   (0.35 * p[0] + 0.15 * p[1]) * l, //Linke Auflagerkraft für Last in x
+   (p[0] / 3 + p[1] / 6) * l, //Linke Auflagerkraft für Last in x
    (0.35 * p[2] + 0.15 * p[3]) * l, //Linke Auflagerkraft für Last in z
    -((1.5 * p[2] + p[3]) * l * l) / 30, //Linkes Auflagermoment für Last in z
-   (0.15 * p[0] + 0.35 * p[1]) * l, //Rechte Auflagerkraft für Last in x
+   (p[0] / 6 + p[1] / 3) * l, //Rechte Auflagerkraft für Last in x
    (0.15 * p[2] + 0.35 * p[3]) * l, //Rechte Auflagerkraft für Last in z
    ((p[2] + 1.5 * p[3]) * l * l) / 30, //Rechtes Auflagermoment für Last in z
   ]
@@ -134,6 +137,37 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   const erslast = matMultiplyVec(matTrans(this.Stab!.T), lokKräfte)!
 
   return erslast
+ }
+
+ Ausgabepunkt(x: number): number[] {
+  const p = this.lokaleLastwerte
+  const pxl = p[0] //Linker Lastwert der Trapezlast in Richtung parallel zum Stab
+  const pxr = p[1] //Rechter Lastwert... parallel...
+  const pzl = p[2] //Linker Lastwert der Trapezlast in Richtung senkrecht zum Stab
+  const pzr = p[3] //Rechter Lastwert... senkrecht...
+  const dpx = pxr - pxl
+  const dpz = pzr - pzl
+  const l = this.Stab?.Länge!
+  const t = x / l
+  const EI = this.Stab?.Querschnitt?.Material?.E! * this.Stab?.Querschnitt?.I!
+  const EA = this.Stab?.Querschnitt?.Material?.E! * this.Stab?.Querschnitt?.A!
+
+  const N = -pxl * x - ((pxr - pxl) / (2 * l)) * x * x
+  const V = -pzl * x - ((pzr - pzl) / (2 * l)) * x * x
+  const M = (-pzl / 2) * x ** 2 - ((pzr - pzl) / (6 * l)) * x ** 3
+  const ux = -(pxl * x * x) / 2 / EA - ((pxr - pxl) * x * x * x) / 6 / l / EA //Ich :(((pxl - pxr) * x ** 3) / l - 3 * pxl * x ** 2 + l * (2 * pxl + pxr) * x) / (6 * EA) //Rothe: -(pxl * x * x) / 2 / EA - ((pxr - pxl) * x * x * x) / 6 / l / EA
+  const uz = ((pzl * x ** 4) / 24 + (((pzr - pzl) / l) * x ** 5) / 120) / EI
+  /*(x ** 2 *
+    (x * (x * ((pzl - pzr) * x - 5 * pzl * l) + (7 * pzl + 3 * pzr) * l ** 2) -
+     (3 * pzl + 2 * pzr) * l ** 3)) /
+   (120 * EI * l)*/
+  const phi = -((pzl * x ** 3) / 6 + (((pzr - pzl) / l) * x ** 4) / 24) / EI
+  /*(x *
+    (x * (5 * x * ((pzl - pzr) * x - 4 * pzl * l) + (3 * pzl + 3 * pzr) * l ** 2) -
+     2 * (3 * pzl + 2 * pzr) * l ** 3)) /
+   (120 * EI * l)
+*/
+  return [N, V, M, ux, uz, phi]
  }
 
  get header() {

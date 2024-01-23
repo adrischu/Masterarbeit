@@ -19,6 +19,7 @@ export default class Lastfall implements isStatikobjekt {
  Verformungsvektor_lang: number[]
  M_K_lang: number[][]
  M_K_kurz: number[][]
+ Lagerkräfte: number[]
 
  constructor(Nummer: number = 0) {
   this.Nummer = Nummer
@@ -32,6 +33,7 @@ export default class Lastfall implements isStatikobjekt {
   this.Elementliste = []
   this.M_K_lang = []
   this.M_K_kurz = []
+  this.Lagerkräfte = []
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein

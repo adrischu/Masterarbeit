@@ -111,18 +111,38 @@
  //Setup eines vorgeladenen Modells
  //QS+Mat: IPE360 - Stahl
  //System Kragarm 10m
- //Last: 5kN/m
+ //Trapezlast: 2kN/m->5kN/m
  systemStore.system = new System()
  systemStore.system.addStatikobjekt("Lager", [1, true, true, true, 0, 0, 0], -1)
  systemStore.system.addStatikobjekt("Knoten", [1, 0, 0, 1], -1)
- systemStore.system.addStatikobjekt("Knoten", [2, 10, 5, 0], -1)
+ systemStore.system.addStatikobjekt("Knoten", [2, 10, 0, 0], -1)
  systemStore.system.addStatikobjekt("Material", [1, "S235", 210000000000], -1)
  systemStore.system.addStatikobjekt("Querschnitt", [1, "IPE360", 1, 0.00721, 0.00016113], -1)
  systemStore.system.addStatikobjekt("Stab", [1, 1, 2, 1, 0, 0, 10], -1)
  systemStore.system.addStatikobjekt("Lastfall", [1, "EG", Theorie.Theorie_1], -1)
  systemStore.system.addStatikobjekt(
   "StablastStreckenlast",
-  [1, 1, "global", "z", true, 2000, 5000],
+  [1, 1, "lokal", "z", true, 2000, 5000],
   1,
  )
+
+ /*
+ //Setup eines vorgeladenen Modells
+ //QS+Mat: IPE360 - Stahl
+ //System Kragarm 10m waagrecht
+ //Trapezlast in lokal x: 50kN/m->100kN/m
+ systemStore.system = new System()
+ systemStore.system.addStatikobjekt("Lager", [1, true, true, true, 0, 0, 0], -1)
+ systemStore.system.addStatikobjekt("Knoten", [1, 0, 0, 1], -1)
+ systemStore.system.addStatikobjekt("Knoten", [2, 10, 0, 0], -1)
+ systemStore.system.addStatikobjekt("Material", [1, "S235", 210000000000], -1)
+ systemStore.system.addStatikobjekt("Querschnitt", [1, "IPE360", 1, 0.00721, 0.00016113], -1)
+ systemStore.system.addStatikobjekt("Stab", [1, 1, 2, 1, 0, 0, 10], -1)
+ systemStore.system.addStatikobjekt("Lastfall", [1, "EG", Theorie.Theorie_1], -1)
+ systemStore.system.addStatikobjekt(
+  "StablastStreckenlast",
+  [1, 1, "lokal", "x", true, 50000, 100000],
+  1,
+ )
+ */
 </script>

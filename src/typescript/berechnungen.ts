@@ -4,6 +4,8 @@ import Balkenelement from "./classes/Balkenelement"
 import Lastfall from "./classes/Lastfall"
 import { gauss } from "./gauss"
 import { Theorie } from "./enumerations"
+import type { isStablast } from "./classes/InterfaceStablast"
+import Knotenlast from "./classes/Knotenlast"
 //-------------------------------------------------------------------------------
 export function startBerechnungen(system: System): void {
  console.log("Berechnungen werden gestartet.")
@@ -39,6 +41,9 @@ export function startBerechnungen(system: System): void {
    console.table(matTrans(lastfall.Verformungsvektor_kurz))
    elementkräfteBestimmen(system, lastfall, lastfall.Theorie)
   }
+
+  schnittgrößenBestimmen(system, lastfall, lastfall.Theorie)
+  lagerkräfteBestimmen(system, lastfall)
  })
 }
 
@@ -117,8 +122,23 @@ function freiheitsgradeDefinieren(system: System): void {
 }
 
 function elementeAufstellen(system: System, lastfall: Lastfall) {
+ //Alle Stablasten sammeln und beim Erstellen der Elemente diese den Stablasten zuordnen
+ const stablasten: isStablast[] = []
+ lastfall.StablastListeStreckenlast.forEach((last) => {
+  stablasten.push(last)
+ })
+
  system.Stabliste.forEach((stab) => {
-  lastfall.Elementliste.push(new Balkenelement(stab.Nummer, stab))
+  const neuesElement = new Balkenelement(stab.Nummer, stab)
+  lastfall.Elementliste.push(neuesElement)
+
+  //Neues Balkenelement wird allen zugehörigen Stablasten zugeordnet
+  stablasten.forEach((stablast) => {
+   if (stablast.Stab === stab) {
+    stablast.Element = neuesElement
+    neuesElement.Stablasten.push(stablast)
+   }
+  })
  })
 }
 
@@ -169,11 +189,13 @@ function lastvektorAufstellen(system: System, lastfall: Lastfall) {
   }
  })
 
- //Stablasten
- lastfall.StablastListeStreckenlast.forEach((streckenlast) => {
-  for (let i = 0; i <= 5; i++) {
-   tempLastvektor[streckenlast.Stab!.Inzidenzen[i]] += streckenlast.Knotenersatzlasten[i]
-  }
+ //Knotenersatzlasten aus Stablasten
+ lastfall.Elementliste.forEach((element) => {
+  element.Stablasten.forEach((stablast) => {
+   stablast.Knotenersatzlasten.forEach((lastterm, index) => {
+    tempLastvektor[element.Inzidenzen[index]] += lastterm
+   })
+  })
  })
 
  lastfall.Lastvektor = system.Verformungsinzidenzen.map((index) => tempLastvektor[index])
@@ -204,14 +226,52 @@ function gleichungssystemLösen(system: System, lastfall: Lastfall) {
   for (let i = 0; i < 6; i++) {
    element.Verformungen[i] = lastfall.Verformungsvektor_lang[element.Inzidenzen[i]]
   }
+  //Elementverformungen ins lokale System transformieren
+  element.Verformungen = matMultiplyVec(element.T, element.Verformungen)!
  })
 }
 
 function elementkräfteBestimmen(system: System, lastfall: Lastfall, theorie: Theorie) {
- //Kräfte auf Knotenverschiebungen
  lastfall.Elementliste.forEach((element) => {
+  //StabendKräfte aus Knotenverschiebungen ermitteln
   element.F = matMultiplyVec(element.k_lok(theorie), element.Verformungen)!
+  //Knotenersatzlasten aus Stablasten abziehen
+  //Knotenersatzlasten müssen erst ins lokale System transformiert werden.
+  element.Stablasten.forEach((stablast) => {
+   matMultiplyVec(element.T, stablast.Knotenersatzlasten)!.forEach((lastterm, index) => {
+    element.F[index] -= lastterm
+   })
+  })
+
   console.log(`Stabendkräfte Stab ${element.Stab.Nummer}`)
   console.table(matTrans(element.F))
  })
+}
+
+function schnittgrößenBestimmen(system: System, lastfall: Lastfall, theorie: Theorie) {
+ lastfall.Elementliste.forEach((element) => {
+  element.AusgabepunkteBerechnen()
+ })
+}
+
+function lagerkräfteBestimmen(system: System, lastfall: Lastfall) {
+ lastfall.Lagerkräfte = Array(system.Freiheitsgrade).fill(0)
+
+ //Gleichgewicht am Knoten durchführen
+
+ //Kräfte aus Stabenden
+ lastfall.Elementliste.forEach((element) => {
+  const kräfte_global = matMultiplyVec(matTrans(element.T), element.F)!
+  for (let i = 0; i <= 5; i++) {
+   lastfall.Lagerkräfte[element.Inzidenzen[i]] -= kräfte_global[i]
+  }
+ })
+ //Kräfte aus Knotenlasten
+ lastfall.Knotenlastliste.forEach((knotenlast) => {
+  for (let i = 0; i <= 2; i++) {
+   lastfall.Lagerkräfte[knotenlast.Knoten?.Inzidenzen[i]!] += knotenlast.Lastvektor[i]
+  }
+ })
+ console.log("Lagerkräfte")
+ console.table(lastfall.Lagerkräfte)
 }

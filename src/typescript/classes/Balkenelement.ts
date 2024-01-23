@@ -10,10 +10,12 @@
 import type Stab from "./Stab"
 import { Theorie } from "../enumerations"
 import { matAdd, matMultiplyMat, matMultiplyVec, matSub, matTrans } from "../matrix"
+import type { isStablast } from "./InterfaceStablast"
 
 export default class Balkenelement {
  Nummer: number
  Stab: Stab //Zugehöriger Stab
+ Stablasten: isStablast[]
  Ausgabepunkte: number //Anzahl an Ausgabepunkten entlang des Stabs
  F: number[] //lokale Stabendschnittgrößen nach WGV-Vorzeichen [Nl,Vl,Ml,Nr,Vr,Mr]
  Verformungen: number[]
@@ -23,13 +25,14 @@ export default class Balkenelement {
  N: number[]
  V: number[]
  M: number[]
- u: number[]
- w: number[]
+ ux: number[]
+ uz: number[]
  phi: number[]
 
  constructor(Nummer: number, Stab: Stab) {
   this.Nummer = Nummer
   this.Stab = Stab
+  this.Stablasten = []
   this.Ausgabepunkte = Stab.Stababschnitte + 1
   this.Theorie = Theorie.Theorie_1
   this.F = Array(6).fill(0)
@@ -37,8 +40,8 @@ export default class Balkenelement {
   this.N = Array(this.Ausgabepunkte)
   this.V = Array(this.Ausgabepunkte)
   this.M = Array(this.Ausgabepunkte)
-  this.u = Array(this.Ausgabepunkte)
-  this.w = Array(this.Ausgabepunkte)
+  this.ux = Array(this.Ausgabepunkte)
+  this.uz = Array(this.Ausgabepunkte)
   this.phi = Array(this.Ausgabepunkte)
  }
 
@@ -48,13 +51,14 @@ export default class Balkenelement {
   const sin = Math.sin
   const cos = Math.cos
   const alpha = this.Stab.Winkel
+  // prettier-ignore
   return [
-   [cos(alpha), sin(alpha), 0, 0, 0, 0],
-   [-sin(alpha), cos(alpha), 0, 0, 0, 0],
-   [0, 0, 1, 0, 0, 0],
-   [0, 0, 0, cos(alpha), sin(alpha), 0],
-   [0, 0, 0, -sin(alpha), cos(alpha), 0],
-   [0, 0, 0, 0, 0, 1],
+   [cos(alpha) , sin(alpha),  0 ,      0     ,      0    , 0],
+   [-sin(alpha), cos(alpha),  0 ,      0     ,      0    , 0],
+   [     0     ,     0     ,  1 ,      0     ,      0    , 0],
+   [     0     ,     0     ,  0 , cos(alpha) , sin(alpha), 0],
+   [     0     ,     0     ,  0 , -sin(alpha), cos(alpha), 0],
+   [     0     ,     0     ,  0 ,      0     ,      0    , 1],
   ]
  }
 
@@ -143,31 +147,67 @@ export default class Balkenelement {
     return []
    }
   }
+  //Lokale Stabsteifigkeitsmatrix mit Parametern, sodass verschiedene Ansätze abgedeckt werden können.
+  // prettier-ignore
   return [
-   [(E * A) / L, 0, 0, -(E * A) / L, 0, 0],
-   [
-    0,
-    (d * E * I) / (L * L * L),
-    -(c * E * I) / (L * L),
-    0,
-    -(d * E * I) / (L * L * L),
-    -(c * E * I) / (L * L),
-   ],
-   [0, -(c * E * I) / (L * L), (a * E * I) / L, 0, (c * E * I) / (L * L), (b * E * I) / L],
-   [(-E * A) / L, 0, 0, (E * A) / L, 0, 0],
-   [
-    0,
-    (-d * E * I) / (L * L * L),
-    (c * E * I) / (L * L),
-    0,
-    (d * E * I) / (L * L * L),
-    (c * E * I) / (L * L),
-   ],
-   [0, (-c * E * I) / (L * L), (b * E * I) / L, 0, (c * E * I) / (L * L), (a * E * I) / L],
+   [  (E * A) / L ,              0             ,            0           , -(E * A) / L ,              0             ,            0           ],
+   [       0      ,  (d * E * I) / (L * L * L) , -(c * E * I) / (L * L) ,       0      , -(d * E * I) / (L * L * L) , -(c * E * I) / (L * L) ],
+   [       0      ,    -(c * E * I) / (L * L)  ,     (a * E * I) / L    ,       0      ,  (c * E * I) / (L * L)     ,  (b * E * I) / L       ],
+   [ (-E * A) / L ,              0             ,            0           ,  (E * A) / L ,              0             ,            0           ],
+   [       0      , (-d * E * I) / (L * L * L) ,  (c * E * I) / (L * L) ,       0      ,  (d * E * I) / (L * L * L) ,  (c * E * I) / (L * L) ],
+   [       0      ,   (-c * E * I) / (L * L)   ,     (b * E * I) / L    ,       0      ,  (c * E * I) / (L * L)     ,  (a * E * I) / L       ],
   ]
  }
 
  get Inzidenzen() {
   return this.Stab.Inzidenzen
+ }
+
+ AusgabepunkteBerechnen(): void {
+  //Schnittgrö0en aus
+  const S = [-this.F[0], -this.F[1], -this.F[2], this.F[3], this.F[4], this.F[5]]
+  const V = [
+   this.Verformungen[0],
+   this.Verformungen[1],
+   this.Verformungen[2],
+   this.Verformungen[3],
+   this.Verformungen[4],
+   this.Verformungen[5],
+  ]
+  const Nl = -this.F[0]
+  const Vl = -this.F[1]
+  const Ml = -this.F[2]
+  const uxl = this.Verformungen[0]
+  const uxr = this.Verformungen[3]
+  const uzl = this.Verformungen[1]
+  const uzr = this.Verformungen[4]
+  const phil = this.Verformungen[2]
+  const phir = this.Verformungen[5]
+  for (let i = 0; i < this.Ausgabepunkte; i++) {
+   const l = this.Stab.Länge //Stablänge
+   const t = i / (this.Ausgabepunkte - 1) //Position im Stab (0 bis 1)
+   const x = t * l //Position in x Richtung des aktuellen Ausgabepunktes
+   const EA = this.Stab.Querschnitt!.A * this.Stab.Querschnitt!.Material!.E
+   const EI = this.Stab.Querschnitt!.I * this.Stab.Querschnitt!.Material!.E
+
+   //Grundwert aus Knotenverschiebungen
+   this.N[i] = Nl
+   this.V[i] = Vl
+   this.M[i] = Ml + Vl * x
+   this.ux[i] = uxl + (Nl * x) / EA //Ich: uxl + (uxr - uxl) * t //Rothe: uxl + (Nl * x) / EA
+   this.uz[i] = uzl - phil * x - ((Ml * x * x) / 2 + (Vl * x * x * x) / 6) / EI
+   this.phi[i] = phil + (Ml * x + (Vl * x * x) / 2) / EI
+
+   //Additive Werte aus Stablasten
+   this.Stablasten.forEach((stablast) => {
+    const Ausgabepunkt = stablast.Ausgabepunkt(x)
+    this.N[i] += Ausgabepunkt[0]
+    this.V[i] += Ausgabepunkt[1]
+    this.M[i] += Ausgabepunkt[2]
+    this.ux[i] += Ausgabepunkt[3]
+    this.uz[i] += Ausgabepunkt[4]
+    this.phi[i] += Ausgabepunkt[5]
+   })
+  }
  }
 }
