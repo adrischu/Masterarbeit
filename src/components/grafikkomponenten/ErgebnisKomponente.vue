@@ -1,30 +1,25 @@
 <template>
- <!-- Stab -->
- <line
-  :x1="anfang.x"
-  :y1="anfang.z"
-  :x2="ende.x"
-  :y2="ende.z"
-  :stroke="graphicSettings.STAB_FARBE"
-  :stroke-width="graphicSettings.STAB_DICKE"
- />
- <polygon
-  v-for="p in polygons"
-  :points="`${p.k1.x},${p.k1.z} ${p.k2.x},${p.k2.z} ${p.k3.x},${p.k3.z} ${p.k4.x},${p.k4.z}`"
-  :key="p.k1.x"
-  stroke="black"
-  fill="white"
-  :opacity="0.3"
- />
- <polygon
-  v-for="p in polygons"
-  :points="`${p.k1.x},${p.k1.z} ${p.k2.x},${p.k2.z} ${p.k3.x},${p.k3.z} ${p.k4.x},${p.k4.z}`"
-  :key="p.k1.x"
-  :stroke="p.col"
-  :fill="p.col"
-  opacity="0.3"
-  stroke-opacity="0.3"
- />
+ <!-- Weißes Polygon wird unterlegt, damit Farben besser sichtbar sind -->
+ <g>
+  <polygon
+   v-for="p in polygons"
+   :points="`${p.k1.x},${p.k1.z} ${p.k2.x},${p.k2.z} ${p.k3.x},${p.k3.z} ${p.k4.x},${p.k4.z}`"
+   :key="p.k1.x"
+   stroke="black"
+   fill="white"
+   :opacity="0.3"
+  />
+  <!-- Farbige Polygone -->
+  <polygon
+   v-for="p in polygons"
+   :points="`${p.k1.x},${p.k1.z} ${p.k2.x},${p.k2.z} ${p.k3.x},${p.k3.z} ${p.k4.x},${p.k4.z}`"
+   :key="p.k1.x"
+   :stroke="p.col"
+   :fill="p.col"
+   opacity="0.3"
+   stroke-opacity="0.3"
+  />
+ </g>
 </template>
 
 <script setup lang="ts">
@@ -38,6 +33,8 @@
  const props = defineProps<{
   element: Balkenelement
   transform: { x: number; y: number; scale: number }
+  scaleSchnittgroesse: number
+  getErgebnisListe: (element: Balkenelement) => number[]
  }>()
 
  let anfang = computed(() => {
@@ -55,10 +52,7 @@
  })
 
  let stabGrößen = computed(() => {
-  return props.element.M
- })
- let scaleGröße = computed(() => {
-  return 100 / Math.max(Math.max(...stabGrößen.value), Math.min(...stabGrößen.value))
+  return props.getErgebnisListe(props.element)
  })
 
  let polygons = computed(() => {
@@ -70,16 +64,23 @@
   const ausgabepunkte = props.element.Ausgabepunkte - 1
 
   for (let i = 0; i <= ausgabepunkte - 1; i++) {
-   if (Math.sign(stabGrößen.value[i]) !== -1 * Math.sign(stabGrößen.value[i + 1])) {
+   //Falls das Vorzeichen wechselt, werden zwei Polygone erstellt
+   const vorzeichenWechselt =
+    (Math.sign(stabGrößen.value[i]) === 1 && Math.sign(stabGrößen.value[i + 1]) === -1) ||
+    (Math.sign(stabGrößen.value[i]) === -1 && Math.sign(stabGrößen.value[i + 1]) === 1)
+   if (!vorzeichenWechselt) {
     const k1 = anfang.value.movePolar((i / ausgabepunkte) * distance, angle)
-    const k2 = k1.movePolar(stabGrößen.value[i] * scaleGröße.value, angle + Math.PI / 2)
+    const k2 = k1.movePolar(stabGrößen.value[i] * props.scaleSchnittgroesse, angle + Math.PI / 2)
     const k4 = anfang.value.movePolar(((i + 1) / ausgabepunkte) * distance, angle)
-    const k3 = k4.movePolar(stabGrößen.value[i + 1] * scaleGröße.value, angle + Math.PI / 2)
+    const k3 = k4.movePolar(
+     stabGrößen.value[i + 1] * props.scaleSchnittgroesse,
+     angle + Math.PI / 2,
+    )
     let col: string
     if (stabGrößen.value[i] + stabGrößen.value[i + 1] > 0) {
-     col = "rgb(0,0,255)"
+     col = graphicSettings.FARBE_SCHNITTGROESSE_POSITIV
     } else {
-     col = "rgb(255,0,0)"
+     col = graphicSettings.FARBE_SCHNITTGROESSE_NEVATIV
     }
     polygons.push({ k1, k2, k3, k4, col })
    } else {
@@ -88,22 +89,29 @@
      (Math.abs(stabGrößen.value[i]) + Math.abs(stabGrößen.value[i + 1]))
     console.log(t)
     let k1 = anfang.value.movePolar((i / ausgabepunkte) * distance, angle)
-    let k2 = k1.movePolar(stabGrößen.value[i] * scaleGröße.value, angle + Math.PI / 2)
+    let k2 = k1.movePolar(stabGrößen.value[i] * props.scaleSchnittgroesse, angle + Math.PI / 2)
     let k4 = anfang.value.movePolar(((i + t) / ausgabepunkte) * distance, angle)
     let k3 = k4
-    let col: string = stabGrößen.value[i] > 0 ? "rgb(0,0,255)" : "rgb(255,0,0)"
+    let col: string =
+     stabGrößen.value[i] > 0
+      ? graphicSettings.FARBE_SCHNITTGROESSE_POSITIV
+      : graphicSettings.FARBE_SCHNITTGROESSE_NEVATIV
 
     polygons.push({ k1, k2, k3, k4, col })
     const k5 = k4.movePolar(0, 0)
     const k6 = k5
     const k8 = anfang.value.movePolar(((i + 1) / ausgabepunkte) * distance, angle)
-    const k7 = k8.movePolar(stabGrößen.value[i + 1] * scaleGröße.value, angle + Math.PI / 2)
-    col = stabGrößen.value[i + 1] > 0 ? "rgb(0,0,255)" : "rgb(255,0,0)"
+    const k7 = k8.movePolar(
+     stabGrößen.value[i + 1] * props.scaleSchnittgroesse,
+     angle + Math.PI / 2,
+    )
+    col =
+     stabGrößen.value[i + 1] > 0
+      ? graphicSettings.FARBE_SCHNITTGROESSE_POSITIV
+      : graphicSettings.FARBE_SCHNITTGROESSE_NEVATIV
     polygons.push({ k1: k5, k2: k6, k3: k7, k4: k8, col })
    }
   }
-  console.log("Polygone berechnet")
-  console.table(polygons)
   return polygons
  })
 </script>

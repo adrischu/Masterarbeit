@@ -7,7 +7,7 @@ import Material from "./Material"
 import Lastfall from "./Lastfall"
 import Knotenlast from "./Knotenlast"
 import Gelenk from "./Gelenk"
-import { startBerechnungen } from "../berechnungen"
+import { startBerechnungen, ergebnisseLöschen } from "../berechnungen"
 import StablastStreckenlast from "./StablastStreckenlast"
 
 export default class System {
@@ -18,6 +18,8 @@ export default class System {
  Gelenkliste: Gelenk[]
  Materialliste: Material[]
  Lastfallliste: Lastfall[]
+
+ istBerechnet: boolean
 
  Freiheitsgrade: number
  Verformungsinzidenzen: number[] //Indizenzen der NICHT-gehaltenen Freiheitsgrade
@@ -30,6 +32,8 @@ export default class System {
   this.Gelenkliste = []
   this.Materialliste = []
   this.Lastfallliste = []
+
+  this.istBerechnet = false
 
   this.Freiheitsgrade = 0
   this.Verformungsinzidenzen = []
@@ -130,6 +134,7 @@ export default class System {
   statikobjekt!.values = statikobjektdaten
   statikobjektArray!.push(statikobjekt!)
   this.buildSystem()
+  ergebnisseLöschen(this)
  }
 
  editStatikobjekt(
@@ -145,6 +150,7 @@ export default class System {
 
   statikobjektArray[objektindex].values = statikobjektdaten
   this.buildSystem()
+  ergebnisseLöschen(this)
  }
 
  deleteStatikobjekt(objektTyp: string, objektindex: number, lastfallnummer: number): void {
@@ -155,6 +161,7 @@ export default class System {
 
   statikobjektArray.splice(objektindex, 1)
   this.buildSystem()
+  ergebnisseLöschen(this)
  }
 
  //Durchsucht ein Array aus Statikobjekten mit einem key gibt das passende Objekt zurück.

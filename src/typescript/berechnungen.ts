@@ -44,11 +44,12 @@ export function startBerechnungen(system: System): void {
 
   schnittgrößenBestimmen(system, lastfall, lastfall.Theorie)
   lagerkräfteBestimmen(system, lastfall)
+  lastfall.istBerechnet = true
  })
 }
 
 //-------------------------------------------------------------------------------
-function ergebnisseLöschen(system: System): void {
+export function ergebnisseLöschen(system: System): void {
  system.Freiheitsgrade = 0
  system.Verformungsinzidenzen = []
  system.Lastfallliste.forEach((lastfall) => {
@@ -58,6 +59,7 @@ function ergebnisseLöschen(system: System): void {
   lastfall.Lastvektor = []
   lastfall.M_K_kurz = []
   lastfall.M_K_lang = []
+  lastfall.istBerechnet = false
  })
 }
 

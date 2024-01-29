@@ -20,6 +20,7 @@ export default class Lastfall implements isStatikobjekt {
  M_K_lang: number[][]
  M_K_kurz: number[][]
  Lagerkräfte: number[]
+ istBerechnet: boolean
 
  constructor(Nummer: number = 0) {
   this.Nummer = Nummer
@@ -34,6 +35,7 @@ export default class Lastfall implements isStatikobjekt {
   this.M_K_lang = []
   this.M_K_kurz = []
   this.Lagerkräfte = []
+  this.istBerechnet = false
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein

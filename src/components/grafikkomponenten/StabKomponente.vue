@@ -5,8 +5,8 @@
   :y1="anfang.z"
   :x2="ende.x"
   :y2="ende.z"
-  :stroke="graphicSettings.STAB_FARBE"
-  :stroke-width="graphicSettings.STAB_DICKE"
+  :stroke="graphicSettings.FARBE_STAB"
+  :stroke-width="graphicSettings.LINIENDICKE_STAB"
  />
  <!-- Gestrichelte Linie -->
  <line
@@ -14,8 +14,8 @@
   :y1="anfangGestrichelt.z"
   :x2="endeGestrichelt.x"
   :y2="endeGestrichelt.z"
-  :stroke="graphicSettings.GESTRICHELTELINIE_FARBE"
-  :stroke-width="graphicSettings.GESTRICHELTELINIE_DICKE"
+  :stroke="graphicSettings.FARBE_GESTRICHELTELINIE"
+  :stroke-width="graphicSettings.LINIENDICKE_GESTRICHELTELINIE"
   stroke-dasharray="9"
  />
 </template>
@@ -49,13 +49,14 @@
 
  let anfangGestrichelt = computed(() => {
   return anfang.value.movePolar(
-   graphicSettings.GESTRICHELTELINIE_ABSTAND,
+   graphicSettings.ABSTAND_GESTRICHELTELINIE,
    props.stab.Stabvektor.direction + Math.PI / 2,
   )
  })
+
  let endeGestrichelt = computed(() => {
   return ende.value.movePolar(
-   graphicSettings.GESTRICHELTELINIE_ABSTAND,
+   graphicSettings.ABSTAND_GESTRICHELTELINIE,
    props.stab.Stabvektor.direction + Math.PI / 2,
   )
  })
