@@ -31,4 +31,8 @@ export default class Vector {
   this.x = this.x + v.x
   this.z = this.z + v.z
  }
+
+ movePolar(distance: number, angle: number): Vector {
+  return new Vector(this.x + Math.cos(angle) * distance, this.z + Math.sin(angle) * distance)
+ }
 }

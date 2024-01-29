@@ -7,28 +7,28 @@
    :width="graphWidth"
    :height="graphHeight"
   >
+   <!-- Ergebnisgrößen -->
+   <ErgebnisKomponente
+    v-for="element in systemStore.system.Lastfallliste[0].Elementliste"
+    :key="element.Nummer"
+    :element="element"
+    :transform="transform"
+   />
+
    <!-- Stäbe -->
-   <g
+   <StabKomponente
     v-for="stab in systemStore.system.Stabliste"
     :key="stab.Nummer"
-   >
-    <line
-     :x1="stab.Anfangsknoten!.Koordinaten.x * transform.scale + transform.x"
-     :y1="stab.Anfangsknoten!.Koordinaten.z * transform.scale + transform.y"
-     :x2="stab.Endknoten!.Koordinaten.x * transform.scale + transform.x"
-     :y2="stab.Endknoten!.Koordinaten.z * transform.scale + transform.y"
-     stroke="black"
-     stroke-width="8"
-    />
-   </g>
+    :stab="stab"
+    :transform="transform"
+   />
+
    <!-- Knoten -->
-   <circle
+   <KnotenKomponente
     v-for="knoten in systemStore.system.Knotenliste"
     :key="knoten.Nummer"
-    :cx="knoten.Koordinaten.x * transform.scale + transform.x"
-    :cy="knoten.Koordinaten.z * transform.scale + transform.y"
-    r="8"
-    fill="red"
+    :knoten="knoten"
+    :transform="transform"
    />
   </svg>
  </div>
@@ -38,6 +38,9 @@
  import { computed, ref, onMounted, onBeforeUnmount, nextTick } from "vue"
  import { type Ref } from "vue"
  import { useSystemStore } from "@/stores/SystemStore"
+ import StabKomponente from "../grafikkomponenten/StabKomponente.vue"
+ import KnotenKomponente from "../grafikkomponenten/KnotenKomponente.vue"
+ import ErgebnisKomponente from "../grafikkomponenten/ErgebnisKomponente.vue"
 
  const systemStore = ref(useSystemStore())
  const graphContainer: Ref<HTMLElement | null> = ref(null)
