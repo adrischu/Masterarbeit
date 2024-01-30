@@ -39,6 +39,15 @@
     :transform="transform"
    />
 
+   <!-- Stablasten -->
+   <StablastKomponente
+    v-for="element in lastfall.Elementliste"
+    :key="element.Nummer"
+    :element="element"
+    :transform="transform"
+    :scaleLasten="0.05"
+   />
+
    <!-- Verformtes System -->
    <g v-if="lastfall.istBerechnet">
     <VerformungKomponente
@@ -57,6 +66,7 @@
  import { computed, ref, type Ref, onMounted, onBeforeUnmount, nextTick } from "vue"
  import { useSystemStore } from "@/stores/SystemStore"
  import StabKomponente from "../grafikkomponenten/StabKomponente.vue"
+ import StablastKomponente from "../grafikkomponenten/StablastKomponente.vue"
  import KnotenKomponente from "../grafikkomponenten/KnotenKomponente.vue"
  import ErgebnisKomponente from "../grafikkomponenten/ErgebnisKomponente.vue"
  import VerformungKomponente from "../grafikkomponenten/VerformungKomponente.vue"

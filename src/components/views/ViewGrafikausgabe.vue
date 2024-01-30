@@ -32,10 +32,12 @@
 <script setup lang="ts">
  import FensterGrafik from "./FensterGrafik.vue"
  import { useSystemStore } from "@/stores/SystemStore"
+ import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
  import type Lastfall from "@/typescript/classes/Lastfall"
  import { ref, type Ref } from "vue"
 
  const systemStore = useSystemStore()
+ const graphicSettings = useGraphicSettingsStore()
 
  let lastfall: Ref<Lastfall> = ref(systemStore.system.Lastfallliste[0])
  let ergebnisgroesse = ref(0)

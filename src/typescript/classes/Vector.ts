@@ -19,14 +19,17 @@ export default class Vector {
   this.x = x
   this.z = z
  }
+
  scale(f: number): void {
   this.x = f * this.x
   this.z = f * this.z
  }
+
  subtract(v: Vector): void {
   this.x = this.x - v.x
   this.z = this.z - v.z
  }
+
  add(v: Vector): void {
   this.x = this.x + v.x
   this.z = this.z + v.z
@@ -34,5 +37,13 @@ export default class Vector {
 
  movePolar(distance: number, angle: number): Vector {
   return new Vector(this.x + Math.cos(angle) * distance, this.z + Math.sin(angle) * distance)
+ }
+
+ moveAlongVector(vector: Vector, ratio: number): Vector {
+  return new Vector(this.x + vector.x * ratio, this.z + vector.z * ratio)
+ }
+
+ copy(): Vector {
+  return new Vector(this.x, this.z)
  }
 }

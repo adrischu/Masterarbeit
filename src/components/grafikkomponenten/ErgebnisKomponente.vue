@@ -19,6 +19,23 @@
    opacity="0.3"
    stroke-opacity="0.3"
   />
+  <text
+   v-for="(p, index) in points"
+   :key="index"
+   text-anchor="middle"
+   dominant-baseline="middle"
+   :fill="p.col"
+   :font-size="`${graphicSettings.SCHRIFTGROESSE_SCHNITTGROESSEN}px`"
+   :x="p.x"
+   :y="p.z"
+  >
+   {{
+    Math.round(
+     (stabGrößen[index] + Number.EPSILON) * 10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN,
+    ) /
+    10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN
+   }}
+  </text>
  </g>
 </template>
 
@@ -55,6 +72,7 @@
   return props.getErgebnisListe(props.element)
  })
 
+ //Berechnet Polygone jeweils zwischen zwei Ausgabepunkten.
  let polygons = computed(() => {
   let polygons: { k1: Vector; k2: Vector; k3: Vector; k4: Vector; col: string }[] = []
   const angle = props.element.Stab.Stabvektor.direction
@@ -113,5 +131,46 @@
    }
   }
   return polygons
+ })
+
+ //Berechnet die einzelnen Punkte
+ let points = computed(() => {
+  let points: { x: number; z: number; col: string }[] = []
+  const angle = props.element.Stab.Stabvektor.direction
+  const distance = Math.sqrt(
+   (ende.value.x - anfang.value.x) ** 2 + (ende.value.z - anfang.value.z) ** 2,
+  )
+  const ausgabepunkte = props.element.Ausgabepunkte - 1
+
+  stabGrößen.value.forEach((stabgröße, i) => {
+   let point = anfang.value //Start am Anfang
+    .movePolar((i / ausgabepunkte) * distance, angle) //Bewegt sich auf Stabachse
+    .movePolar(stabGrößen.value[i] * props.scaleSchnittgroesse, angle + Math.PI / 2)
+    .movePolar(Math.sign(stabGrößen.value[i]) * graphicSettings.ABSTAND_TEXT, angle + Math.PI / 2)
+
+   //Falls die Schnittgröße 0 ist, soll die Zahl über den Stab (nicht bei der gestrichelten Linie) geschoben werden
+   if (Math.sign(stabGrößen.value[i]) === 0) {
+    point = point.movePolar(-1 * graphicSettings.ABSTAND_TEXT, angle + Math.PI / 2)
+   }
+
+   //Schriftfarbe ermitteln pos=blau neg=rot 0=schwarz
+   let col: string
+   switch (true) {
+    case stabGrößen.value[i] < 0: {
+     col = graphicSettings.FARBE_SCHNITTGROESSE_NEVATIV
+     break
+    }
+    case stabGrößen.value[i] > 0: {
+     col = graphicSettings.FARBE_SCHNITTGROESSE_POSITIV
+     break
+    }
+    default: {
+     col = "rgb(0,0,0)"
+     break
+    }
+   }
+   points.push({ x: point.x, z: point.z, col: col })
+  })
+  return points
  })
 </script>
