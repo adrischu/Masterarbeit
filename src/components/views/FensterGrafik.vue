@@ -30,7 +30,13 @@
     :stab="stab"
     :transform="transform"
    />
-
+   <!-- Knoten -->
+   <LagerKomponente
+    v-for="knoten in systemStore.system.Knotenliste"
+    :key="knoten.Nummer"
+    :knoten="knoten"
+    :transform="transform"
+   />
    <!-- Knoten -->
    <KnotenKomponente
     v-for="knoten in systemStore.system.Knotenliste"
@@ -41,11 +47,21 @@
 
    <!-- Stablasten -->
    <StablastKomponente
-    v-for="element in lastfall.Elementliste"
-    :key="element.Nummer"
-    :element="element"
+    v-for="stab in systemStore.system.Stabliste"
+    :key="stab.Nummer"
+    :stab="stab"
+    :lasten="lastfall.Stablastliste.filter((stablast) => stablast.Stab === stab)"
     :transform="transform"
-    :scaleLasten="0.05"
+    :scaleLasten="scaleStablasten"
+   />
+
+   <!-- Lagerkräfte -->
+   <LagerkraefteKomponente
+    v-for="knoten in systemStore.system.Knotenliste"
+    :key="knoten.Nummer"
+    :knoten="knoten"
+    :transform="transform"
+    :lastfall="lastfall"
    />
 
    <!-- Verformtes System -->
@@ -68,15 +84,20 @@
  import StabKomponente from "../grafikkomponenten/StabKomponente.vue"
  import StablastKomponente from "../grafikkomponenten/StablastKomponente.vue"
  import KnotenKomponente from "../grafikkomponenten/KnotenKomponente.vue"
+ import LagerkraefteKomponente from "../grafikkomponenten/LagerkraefteKomponente.vue"
+ import LagerKomponente from "../grafikkomponenten/LagerKomponente.vue"
  import ErgebnisKomponente from "../grafikkomponenten/ErgebnisKomponente.vue"
  import VerformungKomponente from "../grafikkomponenten/VerformungKomponente.vue"
  import Balkenelement from "@/typescript/classes/Balkenelement"
  import type Lastfall from "@/typescript/classes/Lastfall"
+ import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
 
  const props = defineProps<{
   lastfall: Lastfall
   ergebnisgroesse: number
  }>()
+
+ const graphicSettings = useGraphicSettingsStore()
 
  const elementliste = computed(() => {
   return props.lastfall.Elementliste
@@ -150,24 +171,24 @@
  const scaleSchnittgroesse = computed(() => {
   const absMax = Math.max(Math.abs(minSchnittgröße.value), Math.abs(maxSchnittgröße.value))
 
-  return absMax === 0 ? 0 : 100 / absMax
+  return absMax === 0 ? 0 : (graphicSettings.SKALIERUNG_SCHNITTGROESSEN * 100) / absMax
  })
 
- const minVerformung = computed(() => {
-  let min: number = getErgebnisListe.value(elementliste.value[0])[0]
-  elementliste.value.forEach((element) => {
-   min = Math.min(min, Math.min(...getErgebnisListe.value(element)))
-  })
-  return min
- })
+ //  const minVerformung = computed(() => {
+ //   let min: number = getErgebnisListe.value(elementliste.value[0])[0]
+ //   elementliste.value.forEach((element) => {
+ //    min = Math.min(min, Math.min(...getErgebnisListe.value(element)))
+ //   })
+ //   return min
+ //  })
 
- const maxVerformung = computed(() => {
-  let max: number = getErgebnisListe.value(elementliste.value[0])[0]
-  elementliste.value.forEach((element) => {
-   max = Math.max(max, Math.max(...getErgebnisListe.value(element)))
-  })
-  return max
- })
+ //  const maxVerformung = computed(() => {
+ //   let max: number = getErgebnisListe.value(elementliste.value[0])[0]
+ //   elementliste.value.forEach((element) => {
+ //    max = Math.max(max, Math.max(...getErgebnisListe.value(element)))
+ //   })
+ //   return max
+ //  })
 
  const scaleVerformung = computed(() => {
   let max: number = 0
@@ -176,7 +197,15 @@
     max = Math.max(max, Math.sqrt(element.ux[i] ** 2 + element.uz[i] ** 2))
    }
   })
-  return max === 0 ? 0 : 100 / max
+  return max === 0 ? 0 : (graphicSettings.SKALIERUNG_VERFORMUNGEN * 100) / max
+ })
+
+ const scaleStablasten = computed(() => {
+  let max = Math.abs(props.lastfall.StablastListeStreckenlast[0].pl)
+  props.lastfall.StablastListeStreckenlast.forEach((last) => {
+   max = Math.max(max, Math.abs(last.pl), Math.abs(last.pr))
+  })
+  return max === 0 ? 0 : (graphicSettings.SKALIERUNG_STABLASTEN * 60) / max
  })
 
  const systemStore = ref(useSystemStore())

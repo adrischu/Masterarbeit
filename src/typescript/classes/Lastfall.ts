@@ -1,5 +1,6 @@
 import { Theorie } from "../enumerations"
 import type Balkenelement from "./Balkenelement"
+import type { isStablast } from "./InterfaceStablast"
 import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 import type Knotenlast from "./Knotenlast"
 import type StablastStreckenlast from "./StablastStreckenlast"
@@ -36,6 +37,10 @@ export default class Lastfall implements isStatikobjekt {
   this.M_K_kurz = []
   this.Lagerkräfte = []
   this.istBerechnet = false
+ }
+
+ get Stablastliste() {
+  return this.StablastListeStreckenlast as isStablast[]
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein

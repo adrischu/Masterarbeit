@@ -10,11 +10,13 @@
 <script setup lang="ts">
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
  import type Knoten from "@/typescript/classes/Knoten"
+ import type Lastfall from "@/typescript/classes/Lastfall"
 
  const graphicSettings = useGraphicSettingsStore()
 
  defineProps<{
   knoten: Knoten
+  lastfall: Lastfall
   transform: { x: number; y: number; scale: number }
  }>()
 </script>

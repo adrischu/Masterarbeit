@@ -178,11 +178,11 @@ export default class Balkenelement {
   const Vl = -this.F[1]
   const Ml = -this.F[2]
   const uxl = this.Verformungen[0]
-  const uxr = this.Verformungen[3]
+  //const uxr = this.Verformungen[3]
   const uzl = this.Verformungen[1]
-  const uzr = this.Verformungen[4]
+  //const uzr = this.Verformungen[4]
   const phil = this.Verformungen[2]
-  const phir = this.Verformungen[5]
+  //const phir = this.Verformungen[5]
   for (let i = 0; i < this.Ausgabepunkte; i++) {
    const l = this.Stab.Länge //Stablänge
    const t = i / (this.Ausgabepunkte - 1) //Position im Stab (0 bis 1)
