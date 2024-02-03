@@ -4,26 +4,12 @@
   <marker
    id="arrowVert"
    viewBox="0 0 10 10"
-   refX="10"
+   refX="5"
    refY="5"
    markerWidth="15"
    markerHeight="15"
    orient="auto-start-reverse"
-   :stroke="graphicSettings.FARBE_STABLAST"
-   :fill="graphicSettings.FARBE_STABLAST"
-  >
-   <path d="M 0 0 L 10 5 L 0 10 z" />
-  </marker>
-
-  <marker
-   id="arrowHor"
-   viewBox="0 0 10 10"
-   refX="10"
-   refY="5"
-   markerWidth="15"
-   markerHeight="15"
-   orient="auto-start-reverse"
-   :stroke="graphicSettings.FARBE_STABLAST"
+   stroke="none"
    :fill="graphicSettings.FARBE_STABLAST"
   >
    <path d="M 0 0 L 10 5 L 0 10 z" />

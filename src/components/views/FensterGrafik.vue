@@ -50,20 +50,31 @@
     v-for="stab in systemStore.system.Stabliste"
     :key="stab.Nummer"
     :stab="stab"
-    :lasten="lastfall.Stablastliste.filter((stablast) => stablast.Stab === stab)"
+    :lasten="stablasten.filter((stablast) => stablast.Stab === stab)"
     :transform="transform"
     :scaleLasten="scaleStablasten"
    />
 
-   <!-- Lagerkräfte -->
-   <LagerkraefteKomponente
+   <!-- Knotenlasten -->
+   <KnotenlastKomponente
     v-for="knoten in systemStore.system.Knotenliste"
     :key="knoten.Nummer"
     :knoten="knoten"
+    :lasten="knotenlasten.filter((knotenlast) => knotenlast.Knoten === knoten)"
     :transform="transform"
-    :lastfall="lastfall"
+    :scaleLasten="scaleKnotenlasten"
    />
 
+   <!-- Lagerkräfte -->
+   <g v-if="lastfall.istBerechnet">
+    <LagerkraefteKomponente
+     v-for="knoten in systemStore.system.Knotenliste"
+     :key="knoten.Nummer"
+     :knoten="knoten"
+     :transform="transform"
+     :lagerreaktionen="lastfall.Lagerkräfte"
+    />
+   </g>
    <!-- Verformtes System -->
    <g v-if="lastfall.istBerechnet">
     <VerformungKomponente
@@ -83,13 +94,14 @@
  import { useSystemStore } from "@/stores/SystemStore"
  import StabKomponente from "../grafikkomponenten/StabKomponente.vue"
  import StablastKomponente from "../grafikkomponenten/StablastKomponente.vue"
+ import KnotenlastKomponente from "../grafikkomponenten/KnotenlastKomponente.vue"
  import KnotenKomponente from "../grafikkomponenten/KnotenKomponente.vue"
  import LagerkraefteKomponente from "../grafikkomponenten/LagerkraefteKomponente.vue"
  import LagerKomponente from "../grafikkomponenten/LagerKomponente.vue"
  import ErgebnisKomponente from "../grafikkomponenten/ErgebnisKomponente.vue"
  import VerformungKomponente from "../grafikkomponenten/VerformungKomponente.vue"
  import Balkenelement from "@/typescript/classes/Balkenelement"
- import type Lastfall from "@/typescript/classes/Lastfall"
+ import Lastfall from "@/typescript/classes/Lastfall"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
 
  const props = defineProps<{
@@ -101,6 +113,14 @@
 
  const elementliste = computed(() => {
   return props.lastfall.Elementliste
+ })
+
+ const stablasten = computed(() => {
+  return props.lastfall.Stablastliste
+ })
+
+ const knotenlasten = computed(() => {
+  return props.lastfall.Knotenlastliste
  })
 
  const getErgebnisListe = computed(() => {
@@ -206,6 +226,19 @@
    max = Math.max(max, Math.abs(last.pl), Math.abs(last.pr))
   })
   return max === 0 ? 0 : (graphicSettings.SKALIERUNG_STABLASTEN * 60) / max
+ })
+
+ const scaleKnotenlasten = computed(() => {
+  let max = 0
+  props.lastfall.Knotenlastliste.forEach((knotenlast) => {
+   max = Math.max(
+    max,
+    Math.abs(knotenlast.Lastvektor[0]),
+    Math.abs(knotenlast.Lastvektor[1]),
+    Math.abs(knotenlast.Lastvektor[2]),
+   )
+  })
+  return max === 0 ? 0 : (graphicSettings.SKALIERUNG_KNOTENLASTEN * 60) / max
  })
 
  const systemStore = ref(useSystemStore())
