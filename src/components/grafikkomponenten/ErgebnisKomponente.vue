@@ -105,7 +105,6 @@
     const t =
      Math.abs(stabGrößen.value[i]) /
      (Math.abs(stabGrößen.value[i]) + Math.abs(stabGrößen.value[i + 1]))
-    console.log(t)
     let k1 = anfang.value.movePolar((i / ausgabepunkte) * distance, angle)
     let k2 = k1.movePolar(stabGrößen.value[i] * props.scaleSchnittgroesse, angle + Math.PI / 2)
     let k4 = anfang.value.movePolar(((i + t) / ausgabepunkte) * distance, angle)

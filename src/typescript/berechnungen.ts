@@ -252,7 +252,7 @@ function elementkräfteBestimmen(system: System, lastfall: Lastfall, theorie: Th
 
 function schnittgrößenBestimmen(system: System, lastfall: Lastfall, theorie: Theorie) {
  lastfall.Elementliste.forEach((element) => {
-  element.AusgabepunkteBerechnen()
+  element.AusgabepunkteBerechnen(theorie)
  })
 }
 

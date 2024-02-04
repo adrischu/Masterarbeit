@@ -40,7 +40,7 @@
  const graphicSettings = useGraphicSettingsStore()
 
  let lastfall: Ref<Lastfall> = ref(systemStore.system.Lastfallliste[0])
- let ergebnisgroesse = ref(0)
+ let ergebnisgroesse = ref(2)
  let ergebnisgroessenAuswahl: { title: string; value: number }[] = [
   { title: "N", value: 0 },
   { title: "V", value: 1 },

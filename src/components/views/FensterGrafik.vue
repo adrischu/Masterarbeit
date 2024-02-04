@@ -46,24 +46,28 @@
    />
 
    <!-- Stablasten -->
-   <StablastKomponente
-    v-for="stab in systemStore.system.Stabliste"
-    :key="stab.Nummer"
-    :stab="stab"
-    :lasten="stablasten.filter((stablast) => stablast.Stab === stab)"
-    :transform="transform"
-    :scaleLasten="scaleStablasten"
-   />
+   <g v-if="lastfall.Stablastliste.length">
+    <StablastKomponente
+     v-for="stab in systemStore.system.Stabliste"
+     :key="stab.Nummer"
+     :stab="stab"
+     :lasten="stablasten.filter((stablast) => stablast.Stab === stab)"
+     :transform="transform"
+     :scaleLasten="scaleStablasten"
+    />
+   </g>
 
    <!-- Knotenlasten -->
-   <KnotenlastKomponente
-    v-for="knoten in systemStore.system.Knotenliste"
-    :key="knoten.Nummer"
-    :knoten="knoten"
-    :lasten="knotenlasten.filter((knotenlast) => knotenlast.Knoten === knoten)"
-    :transform="transform"
-    :scaleLasten="scaleKnotenlasten"
-   />
+   <g v-if="lastfall.Knotenlastliste.length">
+    <KnotenlastKomponente
+     v-for="knoten in systemStore.system.Knotenliste"
+     :key="knoten.Nummer"
+     :knoten="knoten"
+     :lasten="knotenlasten.filter((knotenlast) => knotenlast.Knoten === knoten)"
+     :transform="transform"
+     :scaleLasten="scaleKnotenlasten"
+    />
+   </g>
 
    <!-- Lagerkräfte -->
    <g v-if="lastfall.istBerechnet">

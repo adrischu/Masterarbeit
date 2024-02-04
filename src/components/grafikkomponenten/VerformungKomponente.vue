@@ -66,8 +66,6 @@
     points = points.concat(" ", `${verformt.x},${verformt.z}`)
    }
   }
-  console.log("Polygonpunkte")
-  console.log(points)
   return points
  })
 </script>

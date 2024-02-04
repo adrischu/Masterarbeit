@@ -1,6 +1,21 @@
 <template>
  <defs>
-  <!-- A marker to be used as an arrowhead -->
+  <defs>
+   <!-- A marker to be used as an arrowhead -->
+   <marker
+    id="arrowVertKnotenlast"
+    viewBox="0 0 10 10"
+    refX="5"
+    refY="5"
+    markerWidth="15"
+    markerHeight="15"
+    orient="auto-start-reverse"
+    :fill="graphicSettings.FARBE_STABLAST"
+    stroke-width="1.5"
+   >
+    <path d="M 0 0 L 10 5 L 0 10 z" />
+   </marker>
+  </defs>
  </defs>
 
  <g
@@ -11,7 +26,7 @@
   <path
    :d="last.path"
    :stroke="graphicSettings.FARBE_STABLAST"
-   marker-end="url(#arrowVert)"
+   marker-end="url(#arrowVertKnotenlast)"
    stroke-width="1.5"
    fill="none"
   />

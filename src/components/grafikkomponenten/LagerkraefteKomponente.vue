@@ -83,9 +83,6 @@
   //Lagerreaktion in x
   if (props.knoten.Lager?.Lagerung[0]) {
    reaktion = props.lagerreaktionen[props.knoten.Inzidenzen[0]]
-   console.log(
-    `Knoten ${props.knoten.Nummer} x: ${props.lagerreaktionen[props.knoten.Inzidenzen[0]]}`,
-   )
    dir = Math.PI
    k1 = knotenpunkt.value.movePolar(graphicSettings.ABSTAND_KNOTENLAST, dir)
    k2 = k1.movePolar(pfeillänge, dir)
@@ -97,9 +94,6 @@
   //Lagerreaktion in z
   if (props.knoten.Lager?.Lagerung[1]) {
    reaktion = props.lagerreaktionen[props.knoten.Inzidenzen[1]]
-   console.log(
-    `Knoten ${props.knoten.Nummer} x: ${props.lagerreaktionen[props.knoten.Inzidenzen[1]]}`,
-   )
    dir = Math.PI / 2
    k1 = knotenpunkt.value.movePolar(graphicSettings.ABSTAND_KNOTENLAST, dir)
    k2 = k1.movePolar(pfeillänge, dir)
@@ -111,7 +105,7 @@
 
   //Lagereaktion in phi
   if (props.knoten.Lager?.Lagerung[2]) {
-   reaktion = props.lagerreaktionen[props.knoten.Inzidenzen[1]]
+   reaktion = props.lagerreaktionen[props.knoten.Inzidenzen[2]]
    //d="M140,20 a20,20 0 1,0 -20,20" />
    const path =
     reaktion < 0

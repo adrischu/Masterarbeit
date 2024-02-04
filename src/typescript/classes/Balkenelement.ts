@@ -163,7 +163,7 @@ export default class Balkenelement {
   return this.Stab.Inzidenzen
  }
 
- AusgabepunkteBerechnen(): void {
+ AusgabepunkteBerechnen(theorie: Theorie): void {
   //Schnittgrö0en aus
   const S = [-this.F[0], -this.F[1], -this.F[2], this.F[3], this.F[4], this.F[5]]
   const V = [
@@ -197,6 +197,35 @@ export default class Balkenelement {
    this.ux[i] = uxl + (Nl * x) / EA //Ich: uxl + (uxr - uxl) * t //Rothe: uxl + (Nl * x) / EA
    this.uz[i] = uzl - phil * x - ((Ml * x * x) / 2 + (Vl * x * x * x) / 6) / EI
    this.phi[i] = phil + (Ml * x + (Vl * x * x) / 2) / EI
+
+   if (theorie !== Theorie.Theorie_1) {
+    // let dM = 0
+    // let dPhi = 0
+    // let dU = 0
+
+    // let ddU = this.uz[i] - uzl
+    // let ddM = -this.N[i] * ddU
+    // let ddPhi
+    // let ddV
+    // // while(Math.abs(ddM)>0.0001){
+    // //     this.M[i] = Ml + Vl * x - (this.uz[i]-uzl)
+
+    // // }
+    // while (Math.abs(ddM) > 0.0001) {
+    //  ddM = -this.N[i] * ddU
+    //  ddV = ddM / x
+    //  //ddPhi = (ddM * x) / EI
+    //  ddU = (ddV * x * x * x) / 3 / EI
+    //  //ddU = -(ddM * x * x) / 2 / EI
+    //  dM += ddM
+    //  dPhi += ddPhi
+    //  dU += ddU
+    // }
+    // this.M[i] += dM
+    // this.uz[i] += dU
+    // this.phi[i] += dPhi
+    this.M[i] -= this.N[i] * (this.uz[i] - uzl) //Momentenanteil Theorie 2 Ordnung
+   }
 
    //Additive Werte aus Stablasten
    this.Stablasten.forEach((stablast) => {
