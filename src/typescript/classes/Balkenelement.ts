@@ -21,6 +21,12 @@ export default class Balkenelement {
  Verformungen: number[]
  Theorie: Theorie
 
+ //Integrationskonstanten der Nichtlinearen DGL (trigonometrische Funktionen)
+ A: number
+ B: number
+ C: number
+ D: number
+
  //Schnittgrößen ("normale" Vorzeichenkonvention) entlang des Stabs
  N: number[]
  V: number[]
@@ -28,6 +34,32 @@ export default class Balkenelement {
  ux: number[]
  uz: number[]
  phi: number[]
+
+ berechneIntegrationskonstanten() {
+  const L = this.Stab.Länge
+  const EI = this.Stab.Querschnitt!.I * this.Stab.Querschnitt!.Material!.E
+  const N = (-this.F[0] + this.F[3]) / 2
+  const e = L * Math.sqrt(Math.abs(N) / EI)
+
+  const phii = this.Verformungen[2]
+  const phik = this.Verformungen[5]
+  const wi = this.Verformungen[1]
+  const wk = this.Verformungen[4]
+
+  const sin = Math.sin
+  const cos = Math.cos
+
+  const nenner = (e / L) * (e * sin(e) + 2 * cos(e) - 2)
+
+  //Integrationskonstanten für trigonimetrische Funktionen
+  this.A =
+   ((sin(e) - e) * (phii - phik) + (e / L - (e / L) * cos(e)) * (wk - wi + phii * L)) / nenner
+  this.B = ((1 - cos(e)) * (phii - phik) + (-e / L) * sin(e) * (wk - wi + phii * L)) / nenner
+  this.C =
+   (-phii * L) / e -
+   ((1 - cos(e)) * (phii - phik) + (-e / L) * sin(e) * (wk - wi + phii * L)) / nenner
+  this.D = wi - this.A
+ }
 
  constructor(Nummer: number, Stab: Stab) {
   this.Nummer = Nummer
@@ -43,6 +75,11 @@ export default class Balkenelement {
   this.ux = Array(this.Ausgabepunkte)
   this.uz = Array(this.Ausgabepunkte)
   this.phi = Array(this.Ausgabepunkte)
+
+  this.A = 0
+  this.B = 0
+  this.C = 0
+  this.D = 0
  }
 
  //Gibt die 6x6 Transformationsmatrix für ein Element
@@ -60,6 +97,13 @@ export default class Balkenelement {
    [     0     ,     0     ,  0 , -sin(alpha), cos(alpha), 0],
    [     0     ,     0     ,  0 ,      0     ,      0    , 1],
   ]
+ }
+
+ get eta(): number {
+  const L = this.Stab.Länge
+  const EI = this.Stab.Querschnitt!.I * this.Stab.Querschnitt!.Material!.E
+  const N = (-this.F[0] + this.F[3]) / 2
+  return L * Math.sqrt(Math.abs(N) / EI)
  }
 
  public k_glob(theorie: Theorie): number[][] {
@@ -199,6 +243,20 @@ export default class Balkenelement {
    this.phi[i] = phil + (Ml * x + (Vl * x * x) / 2) / EI
 
    if (theorie !== Theorie.Theorie_1) {
+    this.berechneIntegrationskonstanten()
+    const A = this.A
+    const B = this.B
+    const C = this.C
+    const D = this.D
+    const e = this.eta
+    const sin = Math.sin
+    const cos = Math.cos
+
+    this.uz[i] = A * cos((e / l) * x) + B * sin((e / l) * x) + ((C * e) / l) * x + D
+    this.phi[i] = ((A * e) / l) * sin((e / l) * x) - ((B * e) / l) * cos((e / l) * x) - (C * e) / l
+    this.M[i] =
+     (((A * e ** 2) / l ** 2) * cos((e / l) * x) + ((B * e ** 2) / l ** 2) * sin((e / l) * x)) * EI
+
     // let dM = 0
     // let dPhi = 0
     // let dU = 0
@@ -224,7 +282,7 @@ export default class Balkenelement {
     // this.M[i] += dM
     // this.uz[i] += dU
     // this.phi[i] += dPhi
-    this.M[i] -= this.N[i] * (this.uz[i] - uzl) //Momentenanteil Theorie 2 Ordnung
+    //this.M[i] -= this.N[i] * (this.uz[i] - uzl) //Momentenanteil Theorie 2 Ordnung
    }
 
    //Additive Werte aus Stablasten
