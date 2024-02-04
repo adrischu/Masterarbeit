@@ -208,25 +208,21 @@ export default class Balkenelement {
  }
 
  AusgabepunkteBerechnen(theorie: Theorie): void {
-  //Schnittgrö0en aus
-  const S = [-this.F[0], -this.F[1], -this.F[2], this.F[3], this.F[4], this.F[5]]
-  const V = [
-   this.Verformungen[0],
-   this.Verformungen[1],
-   this.Verformungen[2],
-   this.Verformungen[3],
-   this.Verformungen[4],
-   this.Verformungen[5],
-  ]
   const Nl = -this.F[0]
   const Vl = -this.F[1]
   const Ml = -this.F[2]
   const uxl = this.Verformungen[0]
-  //const uxr = this.Verformungen[3]
   const uzl = this.Verformungen[1]
-  //const uzr = this.Verformungen[4]
   const phil = this.Verformungen[2]
-  //const phir = this.Verformungen[5]
+  this.berechneIntegrationskonstanten()
+  const A = this.A
+  const B = this.B
+  const C = this.C
+  const D = this.D
+  const e = this.eta
+  const sin = Math.sin
+  const cos = Math.cos
+
   for (let i = 0; i < this.Ausgabepunkte; i++) {
    const l = this.Stab.Länge //Stablänge
    const t = i / (this.Ausgabepunkte - 1) //Position im Stab (0 bis 1)
@@ -243,46 +239,10 @@ export default class Balkenelement {
    this.phi[i] = phil + (Ml * x + (Vl * x * x) / 2) / EI
 
    if (theorie !== Theorie.Theorie_1) {
-    this.berechneIntegrationskonstanten()
-    const A = this.A
-    const B = this.B
-    const C = this.C
-    const D = this.D
-    const e = this.eta
-    const sin = Math.sin
-    const cos = Math.cos
-
-    this.uz[i] = A * cos((e / l) * x) + B * sin((e / l) * x) + ((C * e) / l) * x + D
-    this.phi[i] = ((A * e) / l) * sin((e / l) * x) - ((B * e) / l) * cos((e / l) * x) - (C * e) / l
     this.M[i] =
      (((A * e ** 2) / l ** 2) * cos((e / l) * x) + ((B * e ** 2) / l ** 2) * sin((e / l) * x)) * EI
-
-    // let dM = 0
-    // let dPhi = 0
-    // let dU = 0
-
-    // let ddU = this.uz[i] - uzl
-    // let ddM = -this.N[i] * ddU
-    // let ddPhi
-    // let ddV
-    // // while(Math.abs(ddM)>0.0001){
-    // //     this.M[i] = Ml + Vl * x - (this.uz[i]-uzl)
-
-    // // }
-    // while (Math.abs(ddM) > 0.0001) {
-    //  ddM = -this.N[i] * ddU
-    //  ddV = ddM / x
-    //  //ddPhi = (ddM * x) / EI
-    //  ddU = (ddV * x * x * x) / 3 / EI
-    //  //ddU = -(ddM * x * x) / 2 / EI
-    //  dM += ddM
-    //  dPhi += ddPhi
-    //  dU += ddU
-    // }
-    // this.M[i] += dM
-    // this.uz[i] += dU
-    // this.phi[i] += dPhi
-    //this.M[i] -= this.N[i] * (this.uz[i] - uzl) //Momentenanteil Theorie 2 Ordnung
+    this.uz[i] = A * cos((e / l) * x) + B * sin((e / l) * x) + ((C * e) / l) * x + D
+    this.phi[i] = ((A * e) / l) * sin((e / l) * x) - ((B * e) / l) * cos((e / l) * x) - (C * e) / l
    }
 
    //Additive Werte aus Stablasten
