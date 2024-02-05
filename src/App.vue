@@ -16,7 +16,10 @@
   <span style="color: rgb(128, 128, 128); margin: 0px">current Commit: 29.01.2024 22:31</span>
 
   <v-card-text>
-   <v-window v-model="tab">
+   <v-window
+    disabled
+    v-model="tab"
+   >
     <v-window-item
      value="start"
      transition="false"

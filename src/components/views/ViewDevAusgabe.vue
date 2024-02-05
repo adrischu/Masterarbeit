@@ -53,6 +53,7 @@
    <tr>
     <th>i</th>
     <th>x [m]</th>
+    <th>eta</th>
     <th>N [kN]</th>
     <th>V [kN]</th>
     <th>M [kNm]</th>
@@ -68,6 +69,7 @@
    >
     <td>{{ index - 1 }}</td>
     <td>{{ ((index - 1) * element.Stab.Länge) / (element.Ausgabepunkte - 1) }}</td>
+    <td>{{ element.eta }}</td>
     <td>{{ element.N[index - 1] / 1000 }}</td>
     <td>{{ element.V[index - 1] / 1000 }}</td>
     <td>{{ element.M[index - 1] / 1000 }}</td>
