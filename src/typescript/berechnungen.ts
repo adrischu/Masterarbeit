@@ -18,15 +18,15 @@ export function startBerechnungen(system: System): void {
  system.Lastfallliste.forEach((lastfall) => {
   elementeAufstellen(system, lastfall)
 
-  lastvektorAufstellen(system, lastfall)
-  console.log("\n\nLastvektor")
-  console.table(matTrans(lastfall.Lastvektor))
-
   const iterationen: number = lastfall.Theorie === Theorie.Theorie_1 ? 1 : 2
 
   //Für Theorie 1 wird nur einmal iteriert,
   //für Theorie 2 wird mit den errechneten Normalkräften erneut berechnet.
   for (let i = 1; i <= iterationen; i++) {
+   lastvektorAufstellen(system, lastfall, lastfall.Theorie)
+   console.log("\n\nLastvektor")
+   console.table(matTrans(lastfall.Lastvektor))
+
    steifigkeitsmatrixAufstellen(system, lastfall, lastfall.Theorie)
    console.log("\n\nNicht-kondensierte Gesamtsteifigkeitsmatrix (Th1)")
    console.table(lastfall.M_K_lang)
@@ -182,7 +182,7 @@ function randbedingungenEinarbeiten(system: System, lastfall: Lastfall) {
  }
 }
 
-function lastvektorAufstellen(system: System, lastfall: Lastfall) {
+function lastvektorAufstellen(system: System, lastfall: Lastfall, theorie: Theorie) {
  const tempLastvektor: number[] = Array(system.Freiheitsgrade).fill(0)
  //Knotenlasten
  lastfall.Knotenlastliste.forEach((knotenlast) => {
@@ -194,6 +194,10 @@ function lastvektorAufstellen(system: System, lastfall: Lastfall) {
  //Knotenersatzlasten aus Stablasten
  lastfall.Elementliste.forEach((element) => {
   element.Stablasten.forEach((stablast) => {
+   stablast.integrationskonstantenBestimmen(theorie)
+   stablast.knotenersatzlastenBestimmen(theorie)
+   console.log("Knotenersatzlasten")
+   console.table(stablast.Knotenersatzlasten)
    stablast.Knotenersatzlasten.forEach((lastterm, index) => {
     tempLastvektor[element.Inzidenzen[index]] += lastterm
    })

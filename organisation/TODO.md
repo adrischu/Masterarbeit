@@ -1,5 +1,9 @@
 # PROGRAMMIEREN
 
+## Statik
+
+- Schnittgrößenermittlung nach TH2 (trig) für Zugnormalkraft implementieren
+
 ## Knotentabelle, Stabtabelle usw.
 
 - Mechanismen einbauen, sodass immer automatisch die nächste Knoten/Stabnummer für ein neues Objekt genommen wird.

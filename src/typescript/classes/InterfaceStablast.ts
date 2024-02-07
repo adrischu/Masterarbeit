@@ -1,3 +1,4 @@
+import type { Theorie } from "../enumerations"
 import type Balkenelement from "./Balkenelement"
 import type Stab from "./Stab"
 
@@ -6,7 +7,9 @@ export interface isStablast {
  Stab: Stab | null
  Element: Balkenelement | null
  Typ: string
+ Knotenersatzlasten: number[] //[Nl, Vl, Ml, Nr, Vr, Mr]
 
- get Knotenersatzlasten(): number[] //[Nl, Vl, Ml, Nr, Vr, Mr]
- Ausgabepunkt(x: number): number[] //[N,V,M,ux,uz,phi]
+ knotenersatzlastenBestimmen(theorie: Theorie): void
+ integrationskonstantenBestimmen(theorie: Theorie): void
+ Ausgabepunkt(x: number, theorie: Theorie): number[] //[N,V,M,ux,uz,phi]
 }
