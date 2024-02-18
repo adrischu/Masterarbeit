@@ -1,8 +1,16 @@
 # PROGRAMMIEREN
 
+- Lizenzen einfügen?
+
+asdf $ a = b \* c$
+
 ## Statik
 
 - Schnittgrößenermittlung nach TH2 (trig) für Zugnormalkraft implementieren
+
+- Reduktionsverfahren in Baustatik 3 148 3.3
+
+- Vorverformungen Finite Elemente Mewthoden im Stahlbau kindmann kraus
 
 ## Knotentabelle, Stabtabelle usw.
 
@@ -27,3 +35,18 @@
 # Fehlerüberprüfung
 
 - Jeden Knoten darauf überprüfen, ob er Teil eines Stabes ist.
+
+- Fehler für Singuläre Steifigkeitsmatrix angeben.
+
+TODO Besprechung:
+
+- Schnittgrößenermittlung nach Näherungsansätzen soll funktionieren
+- Abspeicherfunktion (Prog Rothe: Dateien.ts) -> speichern als json (muss async Funktion sein)
+- (Vorverformungen)
+
+Aufbau Masterarbeittext:
+
+- Grundlegender Aufbau und Zusammenhang des Programmes soll erkärt werden.
+- Vergleichsbeispiel mit RSTAB
+- Herleitung der Formeln
+-

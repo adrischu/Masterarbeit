@@ -35,6 +35,11 @@ export default class Balkenelement {
  uz: number[]
  phi: number[]
 
+ /**
+  * Initialisiert ein Balkenelement.
+  * @param Nummer Stabnummer.
+  * @param Stab Stabobjekt
+  */
  constructor(Nummer: number, Stab: Stab) {
   this.Nummer = Nummer
   this.Stab = Stab
@@ -56,8 +61,10 @@ export default class Balkenelement {
   this.D = 0
  }
 
- //Gibt die 6x6 Transformationsmatrix für ein Element
- //mit der Stabdrehung alpha[rad] zurück.
+ /**
+  * Berechnet und gibt die 6x6 Transformationsmatrix für das Element
+  * mit der Stabdrehung alpha[rad] zurück.
+  */
  get T(): number[][] {
   const alpha = this.Stab.Winkel
   const sina = Math.sin(alpha)
@@ -73,6 +80,10 @@ export default class Balkenelement {
   ]
  }
 
+ /**
+  * Berechnet und gibt die Stabkennzahl des Stabes zurück.
+  * @note Sowohl für N<0 als auch für N>0 ist eta positiv.
+  */
  get eta(): number {
   const L = this.Stab.Länge
   const N = this.Nmean
@@ -80,21 +91,34 @@ export default class Balkenelement {
   return L * Math.sqrt(Math.abs(N) / this.EI)
  }
 
+ /**
+  * Gibt die Biegesteifigkeit EI für den Stab in [N/m²] zurück.
+  */
  get EI(): number {
   return this.Stab.Querschnitt!.I * this.Stab.Querschnitt!.Material!.E
  }
 
+ /**
+  * Gibt die Dehnsteifigkeit EA für den Stab in [N] zurück.
+  */
  get EA(): number {
   return this.Stab.Querschnitt!.A * this.Stab.Querschnitt!.Material!.E
  }
 
+ /**
+  * Gibt die Normalkraft gemittelt aus Stabanfang und Stabende in [N] zurück.
+  */
  get Nmean(): number {
   return (-this.F[0] + this.F[3]) / 2
  }
 
+ /**
+  * Berechnet und speichert die Integrationskonstanten A,B,C,D für den unbelasteten Stab
+  * mit wi, phii, wk, phik. Wird für die Schnittgrößenermittlung nach der exakten Lösung nach Theorie 2 Ordnung benötigt.
+  */
  berechneIntegrationskonstanten() {
   const L = this.Stab.Länge
-  const EI = this.EI
+  //const EI = this.EI
   const N = this.Nmean
   const e = this.eta
 
@@ -136,12 +160,22 @@ export default class Balkenelement {
     }
  }
 
+ /**
+  * Berechnet und gibt die globale Elementsteifigkeitsmatrix (6x6) zurück.
+  * @param theorie Berechnungstheorie.
+  * @returns globale Elementsteifigkeitsmatrix
+  */
  public k_glob(theorie: Theorie): number[][] {
   // k_glob = Ttrans * k_lok * T
   //TODO: Abfrage, ob Matrix null ist -> Fehler
   return matMultiplyMat(matMultiplyMat(matTrans(this.T), this.k_lok(theorie))!, this.T)!
  }
 
+ /**
+  * Berechnet und gibt die lokale Elementsteifigkeitsmatrix (6x6) zurück.
+  * @param theorie Berechnungstheorie.
+  * @returns lokale Elementsteifigkeitsmatrix.
+  */
  public k_lok(theorie: Theorie): number[][] {
   //Steifigkeitswerte
   const EI = this.EI
@@ -231,26 +265,63 @@ export default class Balkenelement {
   ]
  }
 
+ /**
+  * Gibt einen Vektor (6) zurück der die Verformungsinzidenzen (bezogen auf das Gesamtsystem)
+  * der Stabverformungen ui,wi,phii,uk,wk,phik enthält.
+  */
  get Inzidenzen() {
   return this.Stab.Inzidenzen
  }
 
+ /**
+  * Berechnet für die Ausgabepunkte entlang des Stabes die Größen N,V,M,ux,uz,phi.
+  * @note Hier werden nur die Größen für einen unbelasteten Stab mit Stabendverformungen
+  * wi,phii,wk,phik ermittelt.
+  * @note Die Größen aus den Stabblasten werden aus dieser Funktion aus aufgerufen und sind in der jeweiligen Stablastklasse zu finden.
+  * @param theorie Berechnungstheorie
+  */
  AusgabepunkteBerechnen(theorie: Theorie): void {
+  //Stabendgrößen
+  /**Normalkraft am linken Rand */
   const Nl = -this.F[0]
+  /**Querkraft am linken Rand */
   const Vl = -this.F[1]
+  /**Moment am linken Rand */
   const Ml = -this.F[2]
+  /**Verschiebung in Stabachse am linken Rand */
   const uxl = this.Verformungen[0]
+  /**Verschiebung senkrecht zur Stabachse am linken Rand (wi) */
   const uzl = this.Verformungen[1]
+  /**Verdrehung am linken Rand(phii) */
   const phil = this.Verformungen[2]
+  /**Verschiebung in Stabachse am rechten Rand */
+  const uxr = this.Verformungen[3]
+  /**Verschiebung senkrecht zur Stabachse am rechten Rand (wk) */
+  const uzr = this.Verformungen[4]
+  /**Verdrehung am rechten Rand (phik) */
+  const phir = this.Verformungen[5]
+  /**Mittlere Normalkraft */
   const N = (-this.F[0] + this.F[3]) / 2
-  const l = this.Stab.Länge //Stablänge
+  /**Stablänge */
+  const l = this.Stab.Länge
+  /**Dehnsteifigkeit */
   const EA = this.EA
+  /**Biegesteifigkeit */
   const EI = this.EI
+
   this.berechneIntegrationskonstanten()
+  /**Integrationskonstante */
   const A = this.A
+  /**Integrationskonstante */
   const B = this.B
+  /**Integrationskonstante */
   const C = this.C
+  /**Integrationskonstante */
   const D = this.D
+  /**
+   * Stabkennzahl
+   * - eta = L * ( |N| / EI ) ^ 0.5
+   */
   const e = this.eta
 
   for (let i = 0; i < this.Ausgabepunkte; i++) {
@@ -260,17 +331,34 @@ export default class Balkenelement {
    //Grundwert aus Knotenverschiebungen
 
    //Nach Theorie 1 Ordnung
+   //Verschiebungen nach Baustatik 3 (Dallmann 2023) - 3.1 (Prinzip der virtuellen Verschiebungen)
+   //Dieses Verfahren wird hier für alle Theorien außer der trigonometrischen Theorie 2 Ordnung genutzt.
    this.N[i] = Nl
    this.V[i] = Vl
    this.M[i] = Ml + Vl * x
-   this.ux[i] = uxl + (Nl * x) / EA //Ich: uxl + (uxr - uxl) * t //Rothe: uxl + (Nl * x) / EA
-   this.uz[i] = uzl - phil * x - ((Ml * x * x) / 2 + (Vl * x * x * x) / 6) / EI
-   this.phi[i] = phil + (Ml * x + (Vl * x * x) / 2) / EI
+   this.ux[i] = uxl * (1 - x / l) + (uxr * x) / l
+   //this.ux[i] = uxl + (Nl * x) / EA //Ich: uxl + (uxr - uxl) * t //Rothe: uxl + (Nl * x) / EA
+   this.uz[i] =
+    uzl * (1 - (3 * x ** 2) / l ** 2 + (2 * x ** 3) / l ** 3) +
+    phil * (-x + (2 * x ** 2) / l - x ** 3 / l ** 2) +
+    uzr * ((3 * x ** 2) / l ** 2 - (2 * x ** 3) / l ** 3) +
+    phir * (x ** 2 / l - x ** 3 / l ** 2)
+   //alt //this.uz[i] = uzl - phil * x - ((Ml * x * x) / 2 + (Vl * x * x * x) / 6) / EI //funktioniert nur für Th1
+   this.phi[i] =
+    uzl * ((6 * x) / l ** 2 - (6 * x ** 2) / l ** 3) +
+    phil * (1 - (4 * x) / l + (3 * x ** 2) / l ** 2) +
+    uzr * ((6 * x ** 2) / l ** 3 - (6 * x) / l ** 2) +
+    phir * ((3 * x ** 2) / l ** 2 - (2 * x) / l)
+   //this.phi[i] = phil + (Ml * x + (Vl * x * x) / 2) / EI //funktioniert nur bei Th1
 
-   //Nach Theorie 2 Ordnung
+   if (theorie === Theorie.Theorie_2_kub || theorie === Theorie.Theorie_2_pDelta) {
+    this.M[i] = Ml + Vl * x - Nl * (this.uz[i] - uzl)
+   }
+
+   //Nach Theorie 2 Ordnung - trigonometrisch
    if (theorie === Theorie.Theorie_2_trig && e > 0.00001) {
     switch (true) {
-     //Drucknormalkraft
+     //für Drucknormalkraft
      case N < 0: {
       const sin = Math.sin((e / l) * x)
       const cos = Math.cos((e / l) * x)
@@ -279,7 +367,7 @@ export default class Balkenelement {
       this.phi[i] = ((A * e) / l) * sin - ((B * e) / l) * cos - (C * e) / l
       break
      }
-     //Zugnormalkraft
+     //für Zugnormalkraft
      case N > 0: {
       const sinh = Math.sinh((e / l) * x)
       const cosh = Math.cosh((e / l) * x)
@@ -295,7 +383,7 @@ export default class Balkenelement {
      }
     }
    } else if (theorie === Theorie.Theorie_2_pDelta || theorie === Theorie.Theorie_2_kub) {
-    this.M[i] -= this.N[i] * (this.uz[i] - uzl)
+    //this.M[i] -= this.N[i] * (this.uz[i] - uzl)
    }
 
    //Additive Werte aus Stablasten
