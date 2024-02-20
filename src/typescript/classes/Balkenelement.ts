@@ -11,6 +11,7 @@ import type Stab from "./Stab"
 import { Theorie } from "../enumerations"
 import { matAdd, matMultiplyMat, matMultiplyVec, matSub, matTrans } from "../matrix"
 import type { isStablast } from "./InterfaceStablast"
+import { useSettingsStore } from "../../stores/SettingsStore"
 
 export default class Balkenelement {
  Nummer: number
@@ -82,12 +83,12 @@ export default class Balkenelement {
 
  /**
   * Berechnet und gibt die Stabkennzahl des Stabes zurück.
-  * @note Sowohl für N<0 als auch für N>0 ist eta positiv.
+  * @note Sowohl für N<0 als auch für N>0 ist epsilon positiv.
   */
- get eta(): number {
+ get epsilon(): number {
   const L = this.Stab.Länge
   const N = this.Nmean
-  //Laut Kindmann (2020) ist für eine Zugnormalkraft das Vorzeichen von eta zu ändern.
+  //Laut Kindmann (2020) ist für eine Zugnormalkraft das Vorzeichen von epsilon zu ändern.
   return L * Math.sqrt(Math.abs(N) / this.EI)
  }
 
@@ -120,7 +121,7 @@ export default class Balkenelement {
   const L = this.Stab.Länge
   //const EI = this.EI
   const N = this.Nmean
-  const e = this.eta
+  const e = this.epsilon
 
   const phii = this.Verformungen[2]
   const phik = this.Verformungen[5]
@@ -135,29 +136,29 @@ export default class Balkenelement {
   //Integrationskonstanten für trigonimetrische Funktionen
   //prettier-ignore
   switch (true) {
-     //Fall für Drucknormalkraft
-     case N < 0: {
-      const nenner = (e / L) * (e * sine + 2 * cose - 2)
-      this.A = ((sine - e) * (phii - phik) + (e / L - (e / L) * cose) * (wk - wi + phii * L)) / nenner
-      this.B = ((1 - cose) * (phii - phik) + (-e / L) * sine * (wk - wi + phii * L)) / nenner
-      this.C = -phii / (e / L) - this.B
-      this.D = wi - this.A
-      break
-     }
-     //Fall für Zugnormalkraft
-     case N > 0: {
-      const nenner = e * (e * sinhe + 2 - 2 * coshe)
-      this.A = (phii * L * (e * coshe - sinhe) - wi * e * (coshe - 1) - phik * L * (e - sinhe) + wk * e * (coshe - 1)) / nenner
-      this.B = (-phii * L * (e * sinhe + 1 - coshe) + phii * e * sinhe - phik * L * (coshe - 1) - wk * e * sinhe) / nenner
-      this.C = -phii / (e / L) - this.B
-      this.D = wi - this.A
-      break
-     }
-     default: {
-      //TODO: Fall einfügen, sodass numerische Probleme durch N=0 vermieden werden.
-      break
-     }
-    }
+   //Fall für Drucknormalkraft
+   case N < 0: {
+    const nenner = (e / L) * (e * sine + 2 * cose - 2)
+    this.A = ((sine - e) * (phii - phik) + (e / L - (e / L) * cose) * (wk - wi + phii * L)) / nenner
+    this.B = ((1 - cose) * (phii - phik) + (-e / L) * sine * (wk - wi + phii * L)) / nenner
+    this.C = -phii / (e / L) - this.B
+    this.D = wi - this.A
+    break
+   }
+   //Fall für Zugnormalkraft
+   case N > 0: {
+    const nenner = e * (e * sinhe + 2 - 2 * coshe)
+    this.A = (-wi * e * (coshe - 1) + phii * L * (e * coshe - sinhe) + wk * e * (coshe - 1) - phik * L * (e - sinhe)) / nenner
+    this.B = (+wi * e * sinhe - phii * L * (e * sinhe + 1 - coshe) - wk * e * sinhe - phik * L * (coshe - 1)) / nenner
+    this.C = (-phii * L) / e - this.B
+    this.D = wi - this.A
+    break
+   }
+   default: {
+    //TODO: Fall einfügen, sodass numerische Probleme durch N=0 vermieden werden.
+    break
+   }
+  }
  }
 
  /**
@@ -281,6 +282,7 @@ export default class Balkenelement {
   * @param theorie Berechnungstheorie
   */
  AusgabepunkteBerechnen(theorie: Theorie): void {
+  const settingsStore = useSettingsStore()
   //Stabendgrößen
   /**Normalkraft am linken Rand */
   const Nl = -this.F[0]
@@ -318,24 +320,38 @@ export default class Balkenelement {
   const C = this.C
   /**Integrationskonstante */
   const D = this.D
-  /**
-   * Stabkennzahl
-   * - eta = L * ( |N| / EI ) ^ 0.5
+  /**Stabkennzahl
+   * - epsilon = L * ( |N| / EI ) ^ 0.5
    */
-  const e = this.eta
+  const e = this.epsilon
 
   for (let i = 0; i < this.Ausgabepunkte; i++) {
    const t = i / (this.Ausgabepunkte - 1) //Position im Stab (0 bis 1)
-   const x = t * l //Position in x Richtung des aktuellen Ausgabepunktes
+   /**Position in x Richtung des aktuellen Ausgabepunktes */
+   const x = t * l
 
-   //Grundwert aus Knotenverschiebungen
+   /**
+    * Grundwert aus Knotenverschiebungen
+    */
 
    //Nach Theorie 1 Ordnung
    //Verschiebungen nach Baustatik 3 (Dallmann 2023) - 3.1 (Prinzip der virtuellen Verschiebungen)
    //Dieses Verfahren wird hier für alle Theorien außer der trigonometrischen Theorie 2 Ordnung genutzt.
    this.N[i] = Nl
    this.V[i] = Vl
+   // this.V[i] =
+   //  EI * uzl * (-12 / l ** 3) +
+   //  EI * phil * (6 / l ** 2) +
+   //  EI * uzr * (12 / l ** 3) +
+   //  EI * phir * (6 / l ** 2)
+
    this.M[i] = Ml + Vl * x
+   // this.M[i] =
+   //  EI * uzl * (6 / l ** 2 - (12 * x) / l ** 3) +
+   //  EI * phil * (-4 / l + (6 * x) / l ** 2) +
+   //  EI * uzr * (-6 / l ** 2 + (12 * x) / l ** 3) +
+   //  EI * phir * ((-2 / l + (6 * x) / l) ^ 2)
+
    this.ux[i] = uxl * (1 - x / l) + (uxr * x) / l
    //this.ux[i] = uxl + (Nl * x) / EA //Ich: uxl + (uxr - uxl) * t //Rothe: uxl + (Nl * x) / EA
    this.uz[i] =
@@ -343,6 +359,7 @@ export default class Balkenelement {
     phil * (-x + (2 * x ** 2) / l - x ** 3 / l ** 2) +
     uzr * ((3 * x ** 2) / l ** 2 - (2 * x ** 3) / l ** 3) +
     phir * (x ** 2 / l - x ** 3 / l ** 2)
+
    //alt //this.uz[i] = uzl - phil * x - ((Ml * x * x) / 2 + (Vl * x * x * x) / 6) / EI //funktioniert nur für Th1
    this.phi[i] =
     uzl * ((6 * x) / l ** 2 - (6 * x ** 2) / l ** 3) +
@@ -356,6 +373,8 @@ export default class Balkenelement {
    }
 
    //Nach Theorie 2 Ordnung - trigonometrisch
+   //TODO: Ab einem bestimmter Stabkennzahl ergeben sich bei der exakten Theorie 2 Ordnung
+   //Numerische Probleme. Dies sollte etwas sauberer abgedeckt werden.
    if (theorie === Theorie.Theorie_2_trig && e > 0.00001) {
     switch (true) {
      //für Drucknormalkraft
@@ -396,6 +415,21 @@ export default class Balkenelement {
     this.uz[i] += Ausgabepunkt[4]
     this.phi[i] += Ausgabepunkt[5]
    })
+
+   //Schnittgrößentransformation auf verformtes System falls so eingestellt.
+   //Per Default sind die Schnittgrößen auf das unverformte System bezogen.
+   if (settingsStore.schnittgrößenAufVerformtesSystemBeziehen) {
+    const tempN = this.N[i]
+    const tempV = this.V[i]
+    const tempPhi = this.phi[i]
+
+    //Genaue Umrechnung
+    this.N[i] = tempV * Math.sin(-tempPhi) + tempN * Math.cos(-tempPhi)
+    this.V[i] = tempV * Math.cos(-tempPhi) - tempN * Math.sin(-tempPhi)
+    //Näherung unter Berücksichtigung kleiner Winkel (sin(phi) = phi und cos(phi) = 1)
+    //this.N[i] = tempV * -tempPhi + tempN
+    //this.V[i] = tempV - tempN * -tempPhi
+   }
   }
  }
 }

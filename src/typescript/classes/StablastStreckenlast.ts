@@ -6,7 +6,12 @@ import { matMultiplyMat, matMultiplyVec, matTrans } from "../matrix"
 import type Balkenelement from "./Balkenelement"
 import { Theorie } from "../enumerations"
 
-//Stabtrapezlast
+/**### Trapezlast
+ * In dieser Klasse befinden sich Informationen zu:
+ * - Berechnung der Knotenersatzlasten
+ * - Ermittlung der Schnittgrößen entlang des Stabes aus der Trapezlast
+ * - Aus- und Eingabesteuerung der Trapezlast in der Eingabetabelle
+ */
 export default class StablastStreckenlast implements isStatikobjekt, isStablast {
  Nummer: number
  Typ: string = "StablastStreckenlast"
@@ -14,17 +19,33 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
  Stabnummer: number
  Stab: Stab | null
  Element: Balkenelement | null
- Koordinatensystem: string //Ob auf globale Richtung oder lokale Richtung bezogen.
+ /**Bezugssystem für Last. Kann folgende Werte annehmen
+  * - "lokal"
+  * - "global"
+  */
+ Koordinatensystem: string
+ /**Richtung der Last im jeweiligen Bezugssystem. Kann folgende Werte annehmen.
+  * - "x"
+  * - "z"
+  */
  Richtung: string //ob x- oder z-Richtung
+ /**True wenn Last auf projzierte Länge wirkt. False wenn Last auf wahre Länge wirkt.
+  * Bei lokalem Bezugssystem hat dieser Wert keine Auswirkung.
+  */
  Projektion: boolean //Ob Projektiert oder auf wahre Stablänge gerechnet.
- pl: number //Lastgröße am Stabanfang
- pr: number //Lastgröße am Stabende
+ /**Lastgröße am Stabanfang */
+ pl: number
+ /**Lastgröße am Stabende */
+ pr: number
  //Berechnungsparameter
  Knotenersatzlasten: number[]
- //Integrationskonstanten
+ /**Integrationskonstanten */
  A: number
+ /**Integrationskonstanten */
  B: number
+ /**Integrationskonstanten */
  C: number
+ /**Integrationskonstanten */
  D: number
 
  constructor(Nummer: number = 1) {
@@ -75,18 +96,23 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   this.pr = pr
  }
 
+ /**
+  * Rechnet die eingegebene Last in ein allgemeines System mit einer Trapezlast in lokal x und einer Trapezlast in lokal z um.
+  * Somit muss später nur noch dieser eine Fall betrachtet werden.
+  * @returns Array(4) "p[ ]"
+  * - p[0]: Lastwert links von Streckenlast lokal in x
+  * - p[1]: Lastwert rechts von Streckenlast lokal in x
+  * - p[2]: Lastwert links von Streckenlast lokal in z
+  * - p[3]: Lastwert rechts von Streckenlast lokal in z
+  */
  get lokaleLastwerte(): number[] {
-  //Rechnet die eingegebene Last in eine Kombination aus einer Trapezlast in lokaler z-Achse
-  //und einer Trapezlast in lokaler x-Achse.
-  //Somit können Schneider-Formeln angewandt werden.
   const sina = Math.sin(this.Stab!.Winkel)
   const cosa = Math.cos(this.Stab!.Winkel)
 
-  const p = [0, 0, 0, 0] //[pxAnfang, pxEnde, pzAnfang,  pzEnde]
-  //p[0]: Lastwert links von Streckenlast lokal in x
-  //p[1]: Lastwert rechts von Streckenlast lokal in x
-  //p[2]: Lastwert links von Streckenlast lokal in z
-  //p[3]: Lastwert rechts von Streckenlast lokal in z
+  /**
+
+   */
+  const p = [0, 0, 0, 0]
 
   if (this.Koordinatensystem === "global" && this.Richtung === "x") {
    //global x
@@ -132,8 +158,12 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   return p
  }
 
+ /**
+  * Bestimmt und speichert die Integrationskonstanten, die für Ermittlung der Knotenersatzlasten nach der exakten Lösung nach Th2 benötigt werden.
+  * @param theorie Berechnungstheorie
+  */
  integrationskonstantenBestimmen(theorie: Theorie): void {
-  const e = this.Element!.eta
+  const e = this.Element!.epsilon
   const N = this.Element!.Nmean
   const sine = Math.sin(e)
   const cose = Math.cos(e)
@@ -150,7 +180,6 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
    //Drucknormalkraft
    if (N < 0) {
     const nenner = 6 * e ** 3 * EI * (1 + sine * (sine - e) + cose * (cose - 2))
-
     this.A =
      -(L ** 4 * (-3 * (dp + 2 * pL) * sine + e * ((dp + 3 * pL) * cose + 2 * dp + 3 * pL))) / nenner
     this.B =
@@ -184,7 +213,7 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   const EI = this.Element!.EI
   const EA = this.Element!.EA
   const N = this.Element!.Nmean
-  const e = this.Element!.eta
+  const e = this.Element!.epsilon
 
   let lokKräfte: number[] = []
   //Auflager und Einspannmomente für beidseitig eingespannten Träger
@@ -200,7 +229,7 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
     ((pzL + 1.5 * pzR) * l * l) / 30, //Rechtes Auflagermoment für Last in z
    ]
   } else if (theorie === Theorie.Theorie_2_trig) {
-   const e = this.Element!.eta
+   const e = this.Element!.epsilon
    const A = this.A
    const B = this.B
    const C = this.C
@@ -239,29 +268,51 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   this.Knotenersatzlasten = erslast
  }
 
+ /**Berechnet die Stabgrößen an einem bestimmten Ausgabepunkt x entlang des Stabes durch die Trapezlast.
+  * Grundlage bietet ein beidseitig eingespannter Stab.
+  * @return [ N , V , M , ux , uz , phi ]
+  */
  Ausgabepunkt(x: number, theorie: Theorie): number[] {
+  /**Normalkraft an der betrachteten Stelle. */
   let N: number = 0
+  /**Querkraft an der betrachteten Stelle. */
   let V: number = 0
+  /**Moment an der betrachteten Stelle. */
   let M: number = 0
+  /**Verschiebung in lokal in an der betrachteten Stelle. */
   let ux: number = 0
+  /**Verschiebung in lokal z an der betrachteten Stelle. */
   let uz: number = 0
+  /**Verdrehung an der betrachteten Stelle. */
   let phi: number = 0
 
   const p = this.lokaleLastwerte
-  const pxl = p[0] //Linker Lastwert der Trapezlast in Richtung parallel zum Stab
-  const pxr = p[1] //Rechter Lastwert... parallel...
-  const pzl = p[2] //Linker Lastwert der Trapezlast in Richtung senkrecht zum Stab
-  const pzr = p[3] //Rechter Lastwert... senkrecht...
+  /**Linker Lastwert der Trapezlast in Richtung parallel zum Stab */
+  const pxl = p[0]
+  /**Rechter Lastwert der Trapezlast in Richtung parallel zum Stab */
+  const pxr = p[1]
+  /**Linker Lastwert der Trapezlast in Richtung senkrecht zum Stab */
+  const pzl = p[2]
+  /**Rechter Lastwert der Trapezlast in Richtung senkrecht zum Stab */
+  const pzr = p[3]
+  /**pxr - pxl */
   const dpx = pxr - pxl
+  /**pzr - pzl */
   const dpz = pzr - pzl
+  /**Stablänge */
   const l = this.Stab?.Länge!
+  /**Verhältnis der aktuellen Stelle x zum Stabende (0<=t<=1) */
   const t = x / l
-  const Nmean = this.Element!.Nmean //Mit diesem N wird entschieden ob der Stab gedrückt oder gezogen ist (Th2O)
-  const e = this.Element!.eta
+  /**Mit diesem N wird ermittelt ob der Stab gedrückt oder gezogen ist (Th2O) */
+  const Nmean = this.Element!.Nmean
+  /**Stabkennzahl epsilon */
+  const e = this.Element!.epsilon
+  /**Biegesteifigkeit */
   const EI = this.Stab?.Querschnitt?.Material?.E! * this.Stab?.Querschnitt?.I!
+  /**Dehnsteifigkeit */
   const EA = this.Stab?.Querschnitt?.Material?.E! * this.Stab?.Querschnitt?.A!
 
-  //N und V werden unabhängig von der THeorie immer gleich berechnet
+  //N und V werden unabhängig von der Theorie immer gleich berechnet
   N = -pxl * x - ((pxr - pxl) / (2 * l)) * x * x
   V = -pzl * x - ((pzr - pzl) / (2 * l)) * x * x
 
@@ -312,6 +363,7 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   return [N, V, M, ux, uz, phi]
  }
 
+ /**Definiert den Aufbau einer Trapezlast in der Eingabetabelle. */
  get header() {
   const systemStore = useSystemStore()
   return [

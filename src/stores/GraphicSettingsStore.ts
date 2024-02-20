@@ -1,5 +1,15 @@
 import { defineStore } from "pinia"
 
+/**
+ * In diesem Speicher befinden sich Variablen, die die grafische Darstellung des Systems steuern.
+ * Hierzu gehören:
+ * - Liniendicken
+ * - Farben
+ * - Abstände
+ * - Schrifteinstellungen
+ * - Nachkommastellen
+ * - Skalierungsfaktoren
+ */
 export const useGraphicSettingsStore = defineStore("graphicSettingsStore", {
  state: () => ({
   //Liniendicken

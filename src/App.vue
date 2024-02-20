@@ -10,10 +10,11 @@
    <v-tab value="lasteingabe">Lasteingabe</v-tab>
    <v-tab value="grafikausgabe">Grafikausgabe</v-tab>
    <v-tab value="handbuch">Handbuch</v-tab>
+   <v-tab value="einstellungen">Einstellungen</v-tab>
    <v-tab value="dev">Dev-Ausgabe</v-tab>
   </v-tabs>
   <span><v-btn @click="systemStore.system.berechnen()">Rechnen</v-btn></span>
-  <span style="color: rgb(128, 128, 128); margin: 0px">current Commit: 12.02.2024 18:13</span>
+  <span style="color: rgb(128, 128, 128); margin: 0px">current Commit: 20.02.2024 17:07</span>
 
   <v-card-text>
    <v-window
@@ -27,6 +28,7 @@
     >
      <ViewStart />
     </v-window-item>
+
     <v-window-item
      value="systemeingabe"
      transition="false"
@@ -34,6 +36,7 @@
     >
      <ViewSystemeingabe />
     </v-window-item>
+
     <v-window-item
      value="systemausgabe"
      transition="false"
@@ -41,6 +44,7 @@
     >
      <ViewSystemausgabe />
     </v-window-item>
+
     <v-window-item
      value="lasteingabe"
      transition="false"
@@ -48,6 +52,7 @@
     >
      <ViewLasteingabe />
     </v-window-item>
+
     <v-window-item
      value="grafikausgabe"
      transition="false"
@@ -55,6 +60,7 @@
     >
      <ViewGrafikausgabe />
     </v-window-item>
+
     <v-window-item
      value="handbuch"
      transition="false"
@@ -62,6 +68,15 @@
     >
      <ViewHandbuch />
     </v-window-item>
+
+    <v-window-item
+     value="einstellungen"
+     transition="false"
+     reverse-transition="false"
+    >
+     <ViewEinstellungen />
+    </v-window-item>
+
     <v-window-item
      value="dev"
      transition="false"
@@ -84,6 +99,7 @@
  import ViewHandbuch from "./components/views/ViewHandbuch.vue"
  import ViewDevAusgabe from "./components/views/ViewDevAusgabe.vue"
  import ViewSystemausgabe from "./components/views/ViewSystemausgabe.vue"
+ import ViewEinstellungen from "./components/views/ViewEinstellungen.vue"
  import System from "./typescript/classes/System"
  import { Theorie } from "./typescript/enumerations"
 
@@ -154,7 +170,7 @@
 
  //Setup eines vorgeladenen Modells
  //QS+Mat: IPE360 - Stahl
- //System Kragarm 10m waagrecht
+ //System Kragarm 10m waagrecht ein Zwischenpunkt
  //Trapezlast in lokal x: 50kN/m->100kN/m
 
  systemStore.system = new System()

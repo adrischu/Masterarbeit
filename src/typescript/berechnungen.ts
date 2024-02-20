@@ -6,6 +6,7 @@ import { gauss } from "./gauss"
 import { Theorie } from "./enumerations"
 import type { isStablast } from "./classes/InterfaceStablast"
 import Knotenlast from "./classes/Knotenlast"
+import { useSettingsStore } from "@/stores/SettingsStore"
 //-------------------------------------------------------------------------------
 /**
  * ### ABLAUF DER BERECHNUNGEN
@@ -26,17 +27,18 @@ import Knotenlast from "./classes/Knotenlast"
  */
 export function startBerechnungen(system: System): void {
  console.log("Berechnungen werden gestartet.")
+
+ const settingsStore = useSettingsStore()
  ergebnisseLöschen(system)
  freiheitsgradeDefinieren(system)
  console.log(`Gesamte Freiheitsgrade: ${system.Freiheitsgrade}`)
 
  system.Lastfallliste.forEach((lastfall) => {
   /**Maximale Anzahl an Iterationen */
-  const maxIterationen: number = lastfall.Theorie === Theorie.Theorie_1 ? 1 : 50
-  /**Maximal erlaubter Fehler zwischen Iterationen (Euklidische Abstandsformel) */
-  const maxIterationsfehler: number = 10 ** -5
+  const maxIterationen: number =
+   lastfall.Theorie === Theorie.Theorie_1 ? 1 : settingsStore.maxIterationen
   /**Fehler zur letzten Iteration (euklidische Abstandsformel) */
-  let iterationsFehler: number = maxIterationsfehler + 1 //Muss am Anfang größer als maxIterationsfehler sein
+  let iterationsFehler: number
   /**Aktuelle Iteration */
   let iteration: number = 0
 
@@ -69,10 +71,10 @@ export function startBerechnungen(system: System): void {
    )
    console.log("Absoluter Fehler in Iteration " + iteration + ": " + iterationsFehler)
    lastfall.letzerVerformungsvektor_kurz = lastfall.Verformungsvektor_kurz.slice()
-  } while (iteration + 1 <= maxIterationen && iterationsFehler > maxIterationsfehler)
+  } while (iteration + 1 <= maxIterationen && iterationsFehler > settingsStore.maxIterationsFehler)
 
   //Gibt Fehlermeldung aus, wenn nach max Iterationen noch keine Konvergenz gefunden wurde.
-  if (iteration === maxIterationen && iterationsFehler > maxIterationsfehler) {
+  if (iteration === maxIterationen && iterationsFehler > settingsStore.maxIterationsFehler) {
    //TODO: Ordentliche Fehlerausgabe in Website implementieren.
    console.log("Es wurde nach " + iteration + " Iteration noch keine Konvergenz gefunden.")
   }

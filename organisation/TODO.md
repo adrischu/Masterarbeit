@@ -7,9 +7,9 @@ asdf $ a = b \* c$
 ## Statik
 
 - Schnittgrößenermittlung nach TH2 (trig) für Zugnormalkraft implementieren
-
 - Reduktionsverfahren in Baustatik 3 148 3.3
-
+- Überprüfen inwiefern eine Stablast in lokal x Einfluss auf die Theorie 2 Ordnung hat. Mit welchem N wird die Stabkennzahl ermittet?
+- Ermittlung der Knotenersatzlasten nach kubischem oder p-Delta Ansatz recherchieren und implementieren.
 - Vorverformungen Finite Elemente Mewthoden im Stahlbau kindmann kraus
 
 ## Knotentabelle, Stabtabelle usw.
