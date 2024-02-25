@@ -15,12 +15,13 @@ import { useSettingsStore } from "@/stores/SettingsStore"
  * #### Punkte 3-6 werden für jeden Lastfall wiederholt:
  * - 3. Elemente werden aus den Stäben erstellt.
  * - 4. Wird bis zur Konvergenz wiederholt (Abbruchkriterium über maxIterationen und maxIterationsfehler).
- *    - 4.1 Lastvektor aufstellen.
- *    - 4.2 Globale Gesamtsteifigkeitsmatrix aufbauen.
- *    - 4.3 Randbedingungen einarbeiten (Zeilen und Spalten streichen).
- *    - 4.4 Gleichungssystem lösen (Gauss-Algorithmus).
- *    - 4.5 Stabendkräfte aus Verformungen rückrechnen (f = k * w).
- *    - 4.6 Fehler zu vergangener Iteration bestimmen (Euklidische Abstandsformel).
+ *    - 4.1 Stabtheorie für jedes Element ermitteln (genauere Beschreibung in Funktion)
+ *    - 4.2 Lastvektor aufstellen.
+ *    - 4.3 Globale Gesamtsteifigkeitsmatrix aufbauen.
+ *    - 4.4 Randbedingungen einarbeiten (Zeilen und Spalten streichen).
+ *    - 4.5 Gleichungssystem lösen (Gauss-Algorithmus).
+ *    - 4.6 Stabendkräfte aus Verformungen rückrechnen (f = k * w).
+ *    - 4.7 Fehler zu vergangener Iteration bestimmen (Euklidische Abstandsformel).
  * - 5. Schnittgrößen entlang des Stabes berechnen.
  * - 6. Lagerkräfte bestimmen (F = K * W).
  * @param system Systemobjekt.
@@ -47,11 +48,13 @@ export function startBerechnungen(system: System): void {
   do {
    iteration++
 
-   lastvektorAufstellen(system, lastfall, lastfall.Theorie)
+   ermittleStabtheorien(lastfall)
+
+   lastvektorAufstellen(system, lastfall)
    console.log("\n\nLastvektor")
    console.table(matTrans(lastfall.Lastvektor))
 
-   steifigkeitsmatrixAufstellen(system, lastfall, lastfall.Theorie)
+   steifigkeitsmatrixAufstellen(system, lastfall)
    console.log("\n\nNicht-kondensierte Gesamtsteifigkeitsmatrix (Th1)")
    console.table(lastfall.M_K_lang)
 
@@ -63,7 +66,7 @@ export function startBerechnungen(system: System): void {
    gleichungssystemLösen(system, lastfall)
    console.log("\n\nVerformungsvektor")
    console.table(matTrans(lastfall.Verformungsvektor_kurz))
-   elementkräfteBestimmen(system, lastfall, lastfall.Theorie)
+   elementkräfteBestimmen(system, lastfall)
 
    iterationsFehler = verformungsDifferenz(
     lastfall.Verformungsvektor_kurz,
@@ -79,7 +82,7 @@ export function startBerechnungen(system: System): void {
    console.log("Es wurde nach " + iteration + " Iteration noch keine Konvergenz gefunden.")
   }
 
-  schnittgrößenBestimmen(system, lastfall, lastfall.Theorie)
+  schnittgrößenBestimmen(system, lastfall)
   lagerkräfteBestimmen(system, lastfall)
   lastfall.istBerechnet = true
  })
@@ -202,14 +205,26 @@ function elementeAufstellen(system: System, lastfall: Lastfall) {
 }
 
 /**
+ * Bestimmt Stabtheorien für jedes einzelne Element:
+ * - Zunächst wird die Theorie des Lastfalls übernommen.
+ * - Bei der trigonometrischen Theorie wird für sehr kleine Stabkennzahlen für dieses Element zur
+ * kubischen Theorie gewechselt.
+ */
+
+function ermittleStabtheorien(lastfall: Lastfall): void {
+ lastfall.Elementliste.forEach((element) => {
+  element.ermittleTheorie(lastfall.Theorie)
+ })
+}
+
+/**
  * Stellt Lastvektor (nicht gehaltene Freiheitsgrade) auf aus:
  * - Knotenlasten
  * - Knotenersatzlasten aus Elementlasten
  * @param system Systemobjekt.
  * @param lastfall Aktuelles Lastfallobjekt.
- * @param theorie Berechnungstheorie.
  */
-function lastvektorAufstellen(system: System, lastfall: Lastfall, theorie: Theorie) {
+function lastvektorAufstellen(system: System, lastfall: Lastfall) {
  const tempLastvektor: number[] = Array(system.Freiheitsgrade).fill(0)
  //Knotenlasten
  lastfall.Knotenlastliste.forEach((knotenlast) => {
@@ -221,8 +236,8 @@ function lastvektorAufstellen(system: System, lastfall: Lastfall, theorie: Theor
  //Knotenersatzlasten aus Stablasten
  lastfall.Elementliste.forEach((element) => {
   element.Stablasten.forEach((stablast) => {
-   stablast.integrationskonstantenBestimmen(theorie)
-   stablast.knotenersatzlastenBestimmen(theorie)
+   stablast.integrationskonstantenBestimmen()
+   stablast.knotenersatzlastenBestimmen()
    console.log("Knotenersatzlasten")
    console.table(stablast.Knotenersatzlasten)
    stablast.Knotenersatzlasten.forEach((lastterm, index) => {
@@ -239,9 +254,8 @@ function lastvektorAufstellen(system: System, lastfall: Lastfall, theorie: Theor
  * - Addiert Federkräfte zu den Steifigkeiten der jeweiligen Freiheitsgrade.
  * @param system Systemobjekt.
  * @param lastfall Aktuelles Lastfallobjekt.
- * @param theorie Berechnungstheorie
  */
-function steifigkeitsmatrixAufstellen(system: System, lastfall: Lastfall, theorie: Theorie) {
+function steifigkeitsmatrixAufstellen(system: System, lastfall: Lastfall) {
  //Nicht-kondensierte Steifigkeitsmatrix  zu Nullmatrix initialisieren
  lastfall.M_K_lang = Array.from({ length: system.Freiheitsgrade }, () =>
   Array(system.Freiheitsgrade).fill(0),
@@ -252,7 +266,7 @@ function steifigkeitsmatrixAufstellen(system: System, lastfall: Lastfall, theori
   for (let rows: number = 0; rows <= 5; rows++) {
    for (let cols: number = 0; cols <= 5; cols++) {
     lastfall.M_K_lang[element.Inzidenzen[rows]][element.Inzidenzen[cols]] +=
-     element.k_glob(theorie)[rows][cols]
+     element.k_glob()[rows][cols]
    }
   }
  })
@@ -328,12 +342,11 @@ function gleichungssystemLösen(system: System, lastfall: Lastfall) {
  * Ermittelt aus den Stabendverformungen die Stabendkräfte.
  * @param system Systemobjekt.
  * @param lastfall Aktuelles Lastfallobjekt.
- * @param theorie Berechnungstheorie.
  */
-function elementkräfteBestimmen(system: System, lastfall: Lastfall, theorie: Theorie) {
+function elementkräfteBestimmen(system: System, lastfall: Lastfall) {
  lastfall.Elementliste.forEach((element) => {
   //StabendKräfte aus Knotenverschiebungen ermitteln
-  element.F = matMultiplyVec(element.k_lok(theorie), element.Verformungen)!
+  element.F = matMultiplyVec(element.k_lok(), element.Verformungen)!
   //Knotenersatzlasten aus Stablasten abziehen
   //Knotenersatzlasten müssen erst ins lokale System transformiert werden.
   element.Stablasten.forEach((stablast) => {
@@ -379,11 +392,10 @@ function verformungsDifferenz(u: number[], u_last: number[]): number {
  * Berechnet für jeden Stab die Ausgabegrößen über die Stabachse.
  * @param system Systemobjekt.
  * @param lastfall Aktuelles Lastfallobjekt.
- * @param theorie Berechnungstheorie.
  */
-function schnittgrößenBestimmen(system: System, lastfall: Lastfall, theorie: Theorie) {
+function schnittgrößenBestimmen(system: System, lastfall: Lastfall) {
  lastfall.Elementliste.forEach((element) => {
-  element.AusgabepunkteBerechnen(theorie)
+  element.AusgabepunkteBerechnen()
  })
 }
 

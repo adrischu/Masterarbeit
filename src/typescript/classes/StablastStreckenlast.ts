@@ -160,9 +160,8 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
 
  /**
   * Bestimmt und speichert die Integrationskonstanten, die für Ermittlung der Knotenersatzlasten nach der exakten Lösung nach Th2 benötigt werden.
-  * @param theorie Berechnungstheorie
   */
- integrationskonstantenBestimmen(theorie: Theorie): void {
+ integrationskonstantenBestimmen(): void {
   const e = this.Element!.epsilon
   const N = this.Element!.Nmean
   const sine = Math.sin(e)
@@ -176,14 +175,16 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   const pR = p[3]
   const dp = pR - pL
 
-  if (theorie === Theorie.Theorie_2_trig) {
+  if (this.Element!.Theorie === Theorie.Theorie_2_trig) {
    //Drucknormalkraft
    if (N < 0) {
     const nenner = 6 * e ** 3 * EI * (1 + sine * (sine - e) + cose * (cose - 2))
     this.A =
-     -(L ** 4 * (-3 * (dp + 2 * pL) * sine + e * ((dp + 3 * pL) * cose + 2 * dp + 3 * pL))) / nenner
+     (pL * L ** 4 * (3 * sine - 2 * e * cose - e)) / nenner +
+     (pR * L ** 4 * (3 * sine - e * cose - 2 * e)) / nenner
     this.B =
-     -(L ** 4 * ((dp + 3 * pL) * e * sine - 3 * (dp - (dp + 2 * pL) * cose + 2 * pL))) / nenner
+     (pL * L ** 4 * (-2 * e * sine - 3 * cose + 3)) / nenner +
+     (pR * L ** 4 * (-e * sine - 3 * cose + 3)) / nenner
     this.C = -this.B
     this.D = -this.A
    }
@@ -191,18 +192,19 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
    else if (N > 0) {
     const nenner = 6 * e ** 3 * EI * (1 + (coshe - sinhe) * (coshe + sinhe) - 2 * coshe + e * sinhe)
     this.A =
-     (L ** 4 * (-3 * (dp + 2 * pL) * sinhe + e * ((dp + 3 * pL) * coshe + 2 * dp + 3 * pL))) /
-     nenner
+     (pL * L ** 4 * (-3 * sinhe + 2 * e * coshe + e)) / nenner +
+     (pR * L ** 4 * (-3 * sinhe + e * coshe + 2 * e)) / nenner
     this.B =
-     (-(L ** 4) * ((dp + 3 * pL) * e * sinhe + 3 * (dp - (dp + 2 * pL) * coshe + 2 * pL))) / nenner
-    //(-(L ** 4) * ((dp + 3 * pL) * e * sinhe + 3 * (pL - (dp + 2 * pL) * coshe + 2 ** pL))) / nenner
+     (pL * L ** 4 * (-2 * e * sinhe + 3 * coshe - 3)) / nenner +
+     (pR * L ** 4 * (-e * sinhe + 3 * coshe - 3)) / nenner
     this.C = -this.B
     this.D = -this.A
    }
   }
  }
 
- knotenersatzlastenBestimmen(theorie: Theorie): void {
+ /**Bestimmt die Auflagerlasten der Stablast, die dann als Knotenlast für das Weggrößenverfahren angesetzt werden können. */
+ knotenersatzlastenBestimmen(): void {
   const p = this.lokaleLastwerte //[pxAnfang, pxEnde, pzAnfang,  pzEnde]
   const pxL = p[0]
   const pxR = p[1]
@@ -214,22 +216,22 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   const EA = this.Element!.EA
   const N = this.Element!.Nmean
   const e = this.Element!.epsilon
+  const l = this.Stab!.Länge
 
   let lokKräfte: number[] = []
+
   //Auflager und Einspannmomente für beidseitig eingespannten Träger
   //Schneider Auflager 23 4.8
-  const l = this.Stab!.Länge
-  if (theorie === Theorie.Theorie_1 || e <= 0.00001) {
-   lokKräfte = [
-    (pxL / 3 + pxR / 6) * l, //Linke Auflagerkraft für Last in x
-    (0.35 * pzL + 0.15 * pzR) * l, //Linke Auflagerkraft für Last in z
-    -((1.5 * pzL + pzR) * l * l) / 30, //Linkes Auflagermoment für Last in z
-    (pxL / 6 + pxR / 3) * l, //Rechte Auflagerkraft für Last in x
-    (0.15 * pzL + 0.35 * pzR) * l, //Rechte Auflagerkraft für Last in z
-    ((pzL + 1.5 * pzR) * l * l) / 30, //Rechtes Auflagermoment für Last in z
-   ]
-  } else if (theorie === Theorie.Theorie_2_trig) {
-   const e = this.Element!.epsilon
+  //Default Werte für Th1 und Th2Kubisch und Th2PDelta werden gesetzt.
+  //Falls nach trigonometrischer Theorie gerechnet wird werden diese Werte später überschrieben
+  const NL = (pxL / 3 + pxR / 6) * l //Linke AUflagerlast in lokal x
+  let VL = (0.35 * pzL + 0.15 * pzR) * l //Linke Auflagerlast in lokal z
+  let ML = -((1.5 * pzL + pzR) * l * l) / 30 //Linkes Auflagermoment
+  const NR = (pxL / 6 + pxR / 3) * l //Rechte Auflagerlast in lokal x
+  let VR = (0.15 * pzL + 0.35 * pzR) * l //Rechte Auflagerlast in lokal z
+  let MR = ((pzL + 1.5 * pzR) * l * l) / 30 //Rechtes Auflagermoment
+
+  if (this.Element!.Theorie === Theorie.Theorie_2_trig) {
    const A = this.A
    const B = this.B
    const C = this.C
@@ -238,30 +240,22 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
    if (N < 0) {
     const cose = Math.cos(e)
     const sine = Math.sin(e)
-    lokKräfte = [
-     (pxL / 3 + pxR / 6) * l, //Wie bei Th1
-     (EI * B * e ** 3) / l ** 3 - (dpZ * l) / e / e, //bei Zug gleich wie bei Druck
-     (EI * A * e ** 2) / l ** 2 - (pzL * l * l) / e / e, //bei Zug gleich wie bei Druck
-     (p[0] / 6 + p[1] / 3) * l, //Wie bei Th1
-     ((EI * e ** 3) / l ** 3) * (A * sine - B * cose) + (dpZ * l) / e / e,
-     -((EI * e ** 2) / l ** 2) * (A * cose + B * sine) + (l / e) ** 2 * (dpZ + pzL),
-    ]
+    VL = EI * (e / l) ** 3 * B - (dpZ * l) / e / e
+    ML = EI * (e / l) ** 2 * A - (pzL * l * l) / e / e
+    VR = EI * (e / l) ** 3 * (A * sine - B * cose) + (dpZ * l) / e / e
+    MR = -EI * (e / l) ** 2 * (A * cose + B * sine) + (l / e) ** 2 * (dpZ + pzL)
    }
    //Zurnormalkraft
    else if (N > 0) {
     const coshe = Math.cosh(e)
     const sinhe = Math.sinh(e)
-    lokKräfte = [
-     (pxL / 3 + pxR / 6) * l, //Wie bei Th1
-     -(EI * B * e ** 3) / l ** 3 + (dpZ * l) / e / e, //bei Zug gleich wie bei Druck
-     -(EI * A * e ** 2) / l ** 2 + (pzL * l * l) / e / e, //bei Zug gleich wie bei Druck
-     (p[0] / 6 + p[1] / 3) * l, //Wie bei Th1
-     ((EI * e ** 3) / l ** 3) * (A * sinhe + B * coshe) - (dpZ * l) / e / e,
-     ((EI * e ** 2) / l ** 2) * (A * coshe + B * sinhe) - (l / e) ** 2 * (dpZ + pzL),
-    ]
+    VL = -EI * (e / l) ** 3 * B + (dpZ * l) / e / e
+    ML = -EI * (e / l) ** 2 * A + (pzL * l * l) / e / e
+    VR = EI * (e / l) ** 3 * (A * sinhe + B * coshe) - (dpZ * l) / e / e
+    MR = EI * (e / l) ** 2 * (A * coshe + B * sinhe) - (l / e) ** 2 * (dpZ + pzL)
    }
   }
-
+  lokKräfte = [NL, VL, ML, NR, VR, MR]
   //Umrechnung von lokalem Koordinatensystem in globales Koordinatensystem
   const erslast = matMultiplyVec(matTrans(this.Stab!.T), lokKräfte)!
 
@@ -272,11 +266,15 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   * Grundlage bietet ein beidseitig eingespannter Stab.
   * @return [ N , V , M , ux , uz , phi ]
   */
- Ausgabepunkt(x: number, theorie: Theorie): number[] {
+ Ausgabepunkt(x: number): number[] {
+  /**Berechnungstheorie */
+  const stabtheorie = this.Element!.Theorie
   /**Normalkraft an der betrachteten Stelle. */
   let N: number = 0
   /**Querkraft an der betrachteten Stelle. */
   let V: number = 0
+  /**Transversalkraft an der betrachteten Stelle. */
+  let T: number = 0
   /**Moment an der betrachteten Stelle. */
   let M: number = 0
   /**Verschiebung in lokal in an der betrachteten Stelle. */
@@ -303,7 +301,10 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   const l = this.Stab?.Länge!
   /**Verhältnis der aktuellen Stelle x zum Stabende (0<=t<=1) */
   const t = x / l
-  /**Mit diesem N wird ermittelt ob der Stab gedrückt oder gezogen ist (Th2O) */
+  /**
+   * Nmean = (Nlinks + Nrechts)/2
+   * - Mit diesem N wird ermittelt ob der Stab gedrückt oder gezogen ist (Th2O)
+   */
   const Nmean = this.Element!.Nmean
   /**Stabkennzahl epsilon */
   const e = this.Element!.epsilon
@@ -312,16 +313,22 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   /**Dehnsteifigkeit */
   const EA = this.Stab?.Querschnitt?.Material?.E! * this.Stab?.Querschnitt?.A!
 
-  //N und V werden unabhängig von der Theorie immer gleich berechnet
+  //N und ux werden unabhängig von der Theorie immer gleich berechnet
   N = -pxl * x - ((pxr - pxl) / (2 * l)) * x * x
-  V = -pzl * x - ((pzr - pzl) / (2 * l)) * x * x
+  ux = -(pxl * x * x) / 2 / EA - ((pxr - pxl) * x * x * x) / 6 / l / EA
 
-  if (theorie === Theorie.Theorie_1) {
+  //prettier-ignore
+  if (stabtheorie === Theorie.Theorie_1 || stabtheorie === Theorie.Theorie_2_kub || stabtheorie === Theorie.Theorie_2_pDelta) {
+   const nenner = 120 * EI * l
+   uz =
+    (pzl * (3 * x ** 2 * l ** 3 - 7 * x ** 3 * l ** 2 + 5 * x ** 4 * l - x ** 5)) / nenner +
+    (pzr * (2 * x ** 2 * l ** 3 - 3 * x ** 3 * l ** 2 + x ** 5)) / nenner
+   phi =
+    (pzl * (-6 * x * l ** 3 + 21 * x ** 2 * l ** 2 - 20 * x ** 3 * l + 5 * x ** 4)) / nenner +
+    (pzr * (-4 * x * l ** 3 + 9 * x ** 2 * l ** 2 - 5 * x ** 4)) / nenner
+   T = -pzl * x - ((pzr - pzl) / (2 * l)) * x * x
    M = (-pzl / 2) * x ** 2 - ((pzr - pzl) / (6 * l)) * x ** 3
-   ux = -(pxl * x * x) / 2 / EA - ((pxr - pxl) * x * x * x) / 6 / l / EA //Ich :(((pxl - pxr) * x ** 3) / l - 3 * pxl * x ** 2 + l * (2 * pxl + pxr) * x) / (6 * EA) //Rothe: -(pxl * x * x) / 2 / EA - ((pxr - pxl) * x * x * x) / 6 / l / EA
-   uz = ((pzl * x ** 4) / 24 + (((pzr - pzl) / l) * x ** 5) / 120) / EI
-   phi = -((pzl * x ** 3) / 6 + (((pzr - pzl) / l) * x ** 4) / 24) / EI
-  } else if (theorie === Theorie.Theorie_2_trig) {
+  } else if (stabtheorie === Theorie.Theorie_2_trig) {
    const A = this.A
    const B = this.B
    const C = this.C
@@ -331,36 +338,25 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
    if (Nmean < 0) {
     const cos = Math.cos((e * x) / l)
     const sin = Math.sin((e * x) / l)
-    uz =
-     A * cos +
-     B * sin +
-     ((C * e) / l) * x +
-     D +
-     (l / 6 / EI / e / e) * (x ** 3 * dpz + x * x * 3 * pzl * l)
-    phi =
-     (e / l) * (A * sin - B * cos - C) - (l / 6 / EI / e / e) * (3 * x * x * dpz + 6 * x * pzl * l)
-    M = ((EI * e * e) / l / l) * (A * cos + B * sin) - (l / 6 / e / e) * (6 * x * dpz + 6 * pzl * l)
+    uz = A * cos + B * sin + ((C * e) / l) * x + D + (l / 6 / EI / e / e) * (x ** 3 * dpz + x * x * 3 * pzl * l)
+    phi = (e / l) * (A * sin - B * cos - C) - (l / 6 / EI / e / e) * (3 * x * x * dpz + 6 * x * pzl * l)
+    V = EI * (e / l) ** 3 * (-A * sin + B * cos) - (l / 6 / e / e) * (-6 * pzl + 6 * pzr)
+    T = V - Nmean * phi
+    M = EI * (e / l) ** 2 * (A * cos + B * sin) - (l / 6 / e / e) * (6 * x * dpz + 6 * pzl * l)
    }
    //Zugnormalkraft
    else if (Nmean > 0) {
     const cosh = Math.cosh((e * x) / l)
     const sinh = Math.sinh((e * x) / l)
-
-    uz =
-     A * cosh +
-     B * sinh +
-     ((C * e) / l) * x +
-     D -
-     (l / 6 / EI / e / e) * (x ** 3 * dpz + x * x * 3 * pzl * l)
-    phi =
-     (e / l) * (A * sinh + B * cosh + C) -
-     (l / 6 / EI / e / e) * (3 * x * x * dpz + 6 * x * pzl * l)
-    M =
-     -((EI * e * e) / l / l) * (A * cosh + B * sinh) + (l / 6 / e / e) * (6 * x * dpz + 6 * pzl * l)
+    uz = A * cosh + B * sinh + ((C * e) / l) * x + D - (l / 6 / EI / e / e) * (x ** 3 * dpz + x * x * 3 * pzl * l)
+    phi = -(e / l) * (A * sinh + B * cosh + C) + (l / 6 / EI / e / e) * (3 * x * x * dpz + 6 * x * pzl * l)
+    V = -EI * (e / l) ** 3 * (A*sinh + B * cosh) + (l / 6 / e / e) * (-6 * pzl + 6 * pzr )
+    T = V - Nmean * phi
+    M = -((EI * e * e) / l / l) * (A * cosh + B * sinh) + (l / 6 / e / e) * (6 * x * dpz + 6 * pzl * l)
    }
   }
 
-  return [N, V, M, ux, uz, phi]
+  return [N, T, M, ux, uz, phi]
  }
 
  /**Definiert den Aufbau einer Trapezlast in der Eingabetabelle. */

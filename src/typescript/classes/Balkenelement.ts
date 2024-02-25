@@ -20,6 +20,9 @@ export default class Balkenelement {
  Ausgabepunkte: number //Anzahl an Ausgabepunkten entlang des Stabs
  F: number[] //lokale Stabendschnittgrößen nach WGV-Vorzeichen [Nl,Vl,Ml,Nr,Vr,Mr]
  Verformungen: number[]
+ /**Die Berechnungstheorie für dieses Element. Allgemein wird die Theorie des Lastfalls übernommen.
+  * Im Falle von sehr kleinen Stabkennzahlen wird von der trigonometrischen Theorie zur kubischen Theorie gewechselt.
+  */
  Theorie: Theorie
 
  //Integrationskonstanten der Nichtlinearen DGL (trigonometrische Funktionen)
@@ -29,11 +32,17 @@ export default class Balkenelement {
  D: number
 
  //Schnittgrößen ("normale" Vorzeichenkonvention) entlang des Stabs
+ /**Normalkraft entlang des Stabes */
  N: number[]
+ /**Querkraft oder Transversalkraft entlang des Stabes (je nach Programmeinstellung) */
  V: number[]
+ /**Moment entlang des Stabes */
  M: number[]
+ /**Verformung in lokal x entlang des Stabes */
  ux: number[]
+ /**Verformung in lokal z entlang des Stabes */
  uz: number[]
+ /**Verdrehung entlang des Stabes */
  phi: number[]
 
  /**
@@ -82,6 +91,14 @@ export default class Balkenelement {
  }
 
  /**
+  * Gibt einen Vektor (6) zurück der die Verformungsinzidenzen (bezogen auf das Gesamtsystem)
+  * der Stabverformungen ui,wi,phii,uk,wk,phik enthält.
+  */
+ get Inzidenzen() {
+  return this.Stab.Inzidenzen
+ }
+
+ /**
   * Berechnet und gibt die Stabkennzahl des Stabes zurück.
   * @note Sowohl für N<0 als auch für N>0 ist epsilon positiv.
   */
@@ -111,6 +128,19 @@ export default class Balkenelement {
   */
  get Nmean(): number {
   return (-this.F[0] + this.F[3]) / 2
+ }
+
+ /**Ermittelt die Berechnungstheorie für dieses Element.
+  * Normalerweise wird die Theorie des Lastfalls übernommen.
+  * Bei der trigonometrischen Theorie wird für sehr kleine Stabkennzahlen zur kubischen Theorie gewechselt.
+  * */
+ ermittleTheorie(lastfalltheorie: Theorie): void {
+  const settingsStore = useSettingsStore()
+  if (lastfalltheorie === Theorie.Theorie_2_trig && this.epsilon <= settingsStore.minEpsilon) {
+   this.Theorie = Theorie.Theorie_2_kub
+  } else {
+   this.Theorie = lastfalltheorie
+  }
  }
 
  /**
@@ -155,7 +185,6 @@ export default class Balkenelement {
     break
    }
    default: {
-    //TODO: Fall einfügen, sodass numerische Probleme durch N=0 vermieden werden.
     break
    }
   }
@@ -163,49 +192,59 @@ export default class Balkenelement {
 
  /**
   * Berechnet und gibt die globale Elementsteifigkeitsmatrix (6x6) zurück.
-  * @param theorie Berechnungstheorie.
   * @returns globale Elementsteifigkeitsmatrix
   */
- public k_glob(theorie: Theorie): number[][] {
+ public k_glob(): number[][] {
   // k_glob = Ttrans * k_lok * T
   //TODO: Abfrage, ob Matrix null ist -> Fehler
-  return matMultiplyMat(matMultiplyMat(matTrans(this.T), this.k_lok(theorie))!, this.T)!
+  return matMultiplyMat(matMultiplyMat(matTrans(this.T), this.k_lok())!, this.T)!
  }
 
  /**
   * Berechnet und gibt die lokale Elementsteifigkeitsmatrix (6x6) zurück.
-  * @param theorie Berechnungstheorie.
   * @returns lokale Elementsteifigkeitsmatrix.
   */
- public k_lok(theorie: Theorie): number[][] {
+ public k_lok(): number[][] {
   //Steifigkeitswerte
+  /**Biegesteifigkeit */
   const EI = this.EI
+  /**Dehnsteifigkeit */
   const EA = this.EA
+  /**Stablänge */
   const L = this.Stab.Länge
+  /**Gemittelte Normalkraft */
   const N = (-this.F[0] + this.F[3]) / 2 //im Falle einer veränderlichen Normalkraft wird hier der Mittelwert genommen TODO: Überprüfen ob korrekt?
 
   //Default-Parameter-Werte für Theorie I. Ordnung
-  let a: number = 4 //Parameter alpha
-  let b: number = 2 //Parameter beta
-  let c: number = 6 //Parameter gamma
-  let d: number = 12 //Parameter delta
+  /**Kindmann-Parameter alpha */
+  let a: number = 4
+  /**Kindmann-Parameter beta */
+  let b: number = 2
+  /**Kindmann-Parameter gamma */
+  let c: number = 6
+  /**Kindmann-Parameter delta */
+  let d: number = 12
+  /**Stabkennzahl */
   const e: number = L * Math.sqrt(Math.abs(N) / EI) //Stabkennzahl epsilon
+
   //Abkürzung von sin und cos
+  /**sin(epsilon) */
   const sine = Math.sin(e)
+  /**cos(epsilon) */
   const cose = Math.cos(e)
+  /**sinh(epsilon) */
   const sinhe = Math.sinh(e)
+  /**cosh(epsilon) */
   const coshe = Math.cosh(e)
 
-  switch (theorie) {
+  switch (true) {
    //Steifigkeitsmatrix nach Theorie 1. Ordnung
-   case Theorie.Theorie_1: {
-    //Hier muss nichts gemacht werden. Werte sind schon gesetzt.
+   case this.Theorie === Theorie.Theorie_1: {
+    //Hier muss nichts gemacht werden. Default-Werte sind schon gesetzt.
     break
    }
    //Steifigkeitsmatrix nach Theorie 2. Ordnung (trigonometrische Funktionen)
-   case Theorie.Theorie_2_trig: {
-    //TODO: ab einem niedrigen epsilon (irgendwo unter 0,001) verhalten sich diese Funktionen komisch.
-    //eventuell eine Abfrage einbauen, dass unter einem gewissen THreshold die Werte gleich 4,2,6,12 gesetzt werden.
+   case this.Theorie === Theorie.Theorie_2_trig: {
     if (N < 0) {
      //Druck
      a = (e * (sine - e * cose)) / (2 * (1 - cose) - e * sine)
@@ -221,33 +260,22 @@ export default class Balkenelement {
     }
     break
    }
-   case Theorie.Theorie_2_kub: {
-    if (N < 0) {
-     //Druck
-     a = 4 - (2 / 15) * e ** 2
-     b = 2 + (1 / 30) * e ** 2
-     c = 6 - (1 / 10) * e ** 2
-     d = 12 - (6 / 5) * e ** 2
-    } else if (N > 0) {
-     a = 4 + (2 / 15) * e ** 2
-     b = 2 - (1 / 30) * e ** 2
-     c = 6 + (1 / 10) * e ** 2
-     d = 12 + (6 / 5) * e ** 2
-    }
+   //Steifigkeitsmatrix nach Theorie 2. Ordnung (kubischer Ansatz)
+   case this.Theorie === Theorie.Theorie_2_kub: {
+    //Der e-Term muss mit dem Vorzeichen von N geändert werden.
+    a = 4 + (2 / 15) * e ** 2 * Math.sign(N)
+    b = 2 - (1 / 30) * e ** 2 * Math.sign(N)
+    c = 6 + (1 / 10) * e ** 2 * Math.sign(N)
+    d = 12 + (6 / 5) * e ** 2 * Math.sign(N)
     break
    }
-   case Theorie.Theorie_2_pDelta: {
-    if (N < 0) {
-     a = 4
-     b = 2
-     c = 6
-     d = 12 - e ** 2
-    } else if (N > 0) {
-     a = 4
-     b = 2
-     c = 6
-     d = 12 + e ** 2
-    }
+   //Steifigkeitsmatrix nach Theorie 2. Ordnung (p-Delta Ansatz)
+   case this.Theorie === Theorie.Theorie_2_pDelta: {
+    //Der e-Term muss mit dem Vorzeichen von N geändert werden.
+    a = 4
+    b = 2
+    c = 6
+    d = 12 + e ** 2 * Math.sign(N)
     break
    }
    default: {
@@ -267,21 +295,12 @@ export default class Balkenelement {
  }
 
  /**
-  * Gibt einen Vektor (6) zurück der die Verformungsinzidenzen (bezogen auf das Gesamtsystem)
-  * der Stabverformungen ui,wi,phii,uk,wk,phik enthält.
-  */
- get Inzidenzen() {
-  return this.Stab.Inzidenzen
- }
-
- /**
   * Berechnet für die Ausgabepunkte entlang des Stabes die Größen N,V,M,ux,uz,phi.
   * @note Hier werden nur die Größen für einen unbelasteten Stab mit Stabendverformungen
   * wi,phii,wk,phik ermittelt.
   * @note Die Größen aus den Stabblasten werden aus dieser Funktion aus aufgerufen und sind in der jeweiligen Stablastklasse zu finden.
-  * @param theorie Berechnungstheorie
   */
- AusgabepunkteBerechnen(theorie: Theorie): void {
+ AusgabepunkteBerechnen(): void {
   const settingsStore = useSettingsStore()
   //Stabendgrößen
   /**Normalkraft am linken Rand */
@@ -311,7 +330,7 @@ export default class Balkenelement {
   /**Biegesteifigkeit */
   const EI = this.EI
 
-  this.berechneIntegrationskonstanten()
+  if (this.Theorie === Theorie.Theorie_2_trig) this.berechneIntegrationskonstanten()
   /**Integrationskonstante */
   const A = this.A
   /**Integrationskonstante */
@@ -326,8 +345,9 @@ export default class Balkenelement {
   const e = this.epsilon
 
   for (let i = 0; i < this.Ausgabepunkte; i++) {
-   const t = i / (this.Ausgabepunkte - 1) //Position im Stab (0 bis 1)
-   /**Position in x Richtung des aktuellen Ausgabepunktes */
+   /**Position im Stab (0 bis 1) */
+   const t = i / (this.Ausgabepunkte - 1)
+   /**aktuelle Position [m] in x Richtung */
    const x = t * l
 
    /**
@@ -337,77 +357,66 @@ export default class Balkenelement {
    //Nach Theorie 1 Ordnung
    //Verschiebungen nach Baustatik 3 (Dallmann 2023) - 3.1 (Prinzip der virtuellen Verschiebungen)
    //Dieses Verfahren wird hier für alle Theorien außer der trigonometrischen Theorie 2 Ordnung genutzt.
+
+   //N und Verschiebung durch N werden unabhängig der Theorie gleich berechnet
    this.N[i] = Nl
-   this.V[i] = Vl
-   // this.V[i] =
-   //  EI * uzl * (-12 / l ** 3) +
-   //  EI * phil * (6 / l ** 2) +
-   //  EI * uzr * (12 / l ** 3) +
-   //  EI * phir * (6 / l ** 2)
-
-   this.M[i] = Ml + Vl * x
-   // this.M[i] =
-   //  EI * uzl * (6 / l ** 2 - (12 * x) / l ** 3) +
-   //  EI * phil * (-4 / l + (6 * x) / l ** 2) +
-   //  EI * uzr * (-6 / l ** 2 + (12 * x) / l ** 3) +
-   //  EI * phir * ((-2 / l + (6 * x) / l) ^ 2)
-
    this.ux[i] = uxl * (1 - x / l) + (uxr * x) / l
-   //this.ux[i] = uxl + (Nl * x) / EA //Ich: uxl + (uxr - uxl) * t //Rothe: uxl + (Nl * x) / EA
-   this.uz[i] =
-    uzl * (1 - (3 * x ** 2) / l ** 2 + (2 * x ** 3) / l ** 3) +
-    phil * (-x + (2 * x ** 2) / l - x ** 3 / l ** 2) +
-    uzr * ((3 * x ** 2) / l ** 2 - (2 * x ** 3) / l ** 3) +
-    phir * (x ** 2 / l - x ** 3 / l ** 2)
 
-   //alt //this.uz[i] = uzl - phil * x - ((Ml * x * x) / 2 + (Vl * x * x * x) / 6) / EI //funktioniert nur für Th1
-   this.phi[i] =
-    uzl * ((6 * x) / l ** 2 - (6 * x ** 2) / l ** 3) +
-    phil * (1 - (4 * x) / l + (3 * x ** 2) / l ** 2) +
-    uzr * ((6 * x ** 2) / l ** 3 - (6 * x) / l ** 2) +
-    phir * ((3 * x ** 2) / l ** 2 - (2 * x) / l)
-   //this.phi[i] = phil + (Ml * x + (Vl * x * x) / 2) / EI //funktioniert nur bei Th1
+   //Für Th1 und die beiden Näherungsansätze wird der Polynomverschiebungsansatz gewählt.
+   //Bei den Näherungsansätzen kommt ein Zusatzmoment aus N dazu.
+   if (
+    this.Theorie === Theorie.Theorie_1 ||
+    this.Theorie === Theorie.Theorie_2_kub ||
+    this.Theorie === Theorie.Theorie_2_pDelta
+   ) {
+    this.V[i] = Vl
+    this.M[i] = Ml + Vl * x
+    this.uz[i] =
+     uzl * (1 - (3 * x ** 2) / l ** 2 + (2 * x ** 3) / l ** 3) +
+     phil * (-x + (2 * x ** 2) / l - x ** 3 / l ** 2) +
+     uzr * ((3 * x ** 2) / l ** 2 - (2 * x ** 3) / l ** 3) +
+     phir * (x ** 2 / l - x ** 3 / l ** 2)
+    this.phi[i] =
+     uzl * ((6 * x) / l ** 2 - (6 * x ** 2) / l ** 3) +
+     phil * (1 - (4 * x) / l + (3 * x ** 2) / l ** 2) +
+     uzr * ((6 * x ** 2) / l ** 3 - (6 * x) / l ** 2) +
+     phir * ((3 * x ** 2) / l ** 2 - (2 * x) / l)
 
-   if (theorie === Theorie.Theorie_2_kub || theorie === Theorie.Theorie_2_pDelta) {
-    this.M[i] = Ml + Vl * x - Nl * (this.uz[i] - uzl)
+    //Zusatzmoment aus N für Theorie 2. Ordnung
+    if (this.Theorie === Theorie.Theorie_2_kub || this.Theorie === Theorie.Theorie_2_pDelta) {
+     this.M[i] = Ml + Vl * x - Nl * (this.uz[i] - uzl)
+    }
    }
 
-   //Nach Theorie 2 Ordnung - trigonometrisch
-   //TODO: Ab einem bestimmter Stabkennzahl ergeben sich bei der exakten Theorie 2 Ordnung
-   //Numerische Probleme. Dies sollte etwas sauberer abgedeckt werden.
-   if (theorie === Theorie.Theorie_2_trig && e > 0.00001) {
-    switch (true) {
-     //für Drucknormalkraft
-     case N < 0: {
-      const sin = Math.sin((e / l) * x)
-      const cos = Math.cos((e / l) * x)
-      this.M[i] = (((A * e ** 2) / l ** 2) * cos + ((B * e ** 2) / l ** 2) * sin) * EI
-      this.uz[i] = A * cos + B * sin + ((C * e) / l) * x + D
-      this.phi[i] = ((A * e) / l) * sin - ((B * e) / l) * cos - (C * e) / l
-      break
-     }
-     //für Zugnormalkraft
-     case N > 0: {
-      const sinh = Math.sinh((e / l) * x)
-      const cosh = Math.cosh((e / l) * x)
-      this.M[i] = -(e ** 2 / l ** 2) * (A * cosh + B * sinh) * EI
-      this.uz[i] = A * cosh + B * sinh + ((C * e) / l) * x + D
-      this.phi[i] = -(e / l) * (A * sinh + B * cosh + C)
-      break
-     }
-
-     default: {
-      //
-      break
-     }
+   //Nach Theorie 2 Ordnung - trigonometrischer exakter Ansatz
+   if (this.Theorie === Theorie.Theorie_2_trig) {
+    //für Drucknormalkraft
+    if (N < 0) {
+     const sin = Math.sin((e / l) * x)
+     const cos = Math.cos((e / l) * x)
+     this.uz[i] = A * cos + B * sin + ((C * e) / l) * x + D
+     this.phi[i] = (e / l) * (A * sin - B * cos - C)
+     //Nachfolgend wird eigentlich die Transversalkraft berechnet, für die Bezeichnung wurde trotzdem V gewählt
+     this.V[i] = EI * (e / l) ** 3 * (-A * sin + B * cos) - N * this.phi[i]
+     this.M[i] = EI * (e / l) ** 2 * (A * cos + B * sin)
     }
-   } else if (theorie === Theorie.Theorie_2_pDelta || theorie === Theorie.Theorie_2_kub) {
-    //this.M[i] -= this.N[i] * (this.uz[i] - uzl)
+    //für Zugnormalkraft
+    else {
+     const sinh = Math.sinh((e / l) * x)
+     const cosh = Math.cosh((e / l) * x)
+     this.uz[i] = A * cosh + B * sinh + ((C * e) / l) * x + D
+     this.phi[i] = -(e / l) * (A * sinh + B * cosh + C)
+     //Nachfolgend wird eigentlich die Transversalkraft berechnet, für die Bezeichnung wurde trotzdem V gewählt
+     this.V[i] = -EI * (e / l) ** 3 * (A * sinh + B * cosh) - N * this.phi[i]
+     this.M[i] = -EI * (e / l) ** 2 * (A * cosh + B * sinh)
+    }
    }
 
    //Additive Werte aus Stablasten
+   //Durchläuft für den aktuellen Ausgabepunkt jede dem Stab zugehörige Stablast
+   //und addiert die zusätzlichen Stabgrößen dazu.
    this.Stablasten.forEach((stablast) => {
-    const Ausgabepunkt = stablast.Ausgabepunkt(x, theorie)
+    const Ausgabepunkt = stablast.Ausgabepunkt(x)
     this.N[i] += Ausgabepunkt[0]
     this.V[i] += Ausgabepunkt[1]
     this.M[i] += Ausgabepunkt[2]
@@ -426,9 +435,12 @@ export default class Balkenelement {
     //Genaue Umrechnung
     this.N[i] = tempV * Math.sin(-tempPhi) + tempN * Math.cos(-tempPhi)
     this.V[i] = tempV * Math.cos(-tempPhi) - tempN * Math.sin(-tempPhi)
+
     //Näherung unter Berücksichtigung kleiner Winkel (sin(phi) = phi und cos(phi) = 1)
-    //this.N[i] = tempV * -tempPhi + tempN
-    //this.V[i] = tempV - tempN * -tempPhi
+    //Eigentlich macht Theorie 2. Ordnung diese Vereinfachung, aber ich sehe hier
+    //keinen Grund ungenauer zu rechnen, da der Aufwand der Gleiche ist.
+    //this.N[i] = tempV * (-tempPhi) + tempN
+    //this.V[i] = tempV - tempN * (-tempPhi)
    }
   }
  }

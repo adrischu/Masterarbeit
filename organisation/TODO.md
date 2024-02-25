@@ -11,6 +11,7 @@ asdf $ a = b \* c$
 - Überprüfen inwiefern eine Stablast in lokal x Einfluss auf die Theorie 2 Ordnung hat. Mit welchem N wird die Stabkennzahl ermittet?
 - Ermittlung der Knotenersatzlasten nach kubischem oder p-Delta Ansatz recherchieren und implementieren.
 - Vorverformungen Finite Elemente Mewthoden im Stahlbau kindmann kraus
+- Evtl System einbauen, dass es erlaubt, Lasten automatisch zu steigern (von x bis xx in xxx abständen o.Ä.). Es könnten hier jeweils alle Theorien berechnet werden und dann Last-Verformungskurven anhand der Ergebnisse erstellt werden können.
 
 ## Knotentabelle, Stabtabelle usw.
 
@@ -19,8 +20,6 @@ asdf $ a = b \* c$
 - Eingabefelder in den Tabellen personalisieren (zB nur positive Werte über 0 annehmen für Nummern..E-Modul..Fläche..)
 
 ## Optik
-
-- Library für Vuetify Icons runterladen, integrieren und in die Buttons zum hinzufügen oder löschen von Objekten (Knoten, Stäbe usw...) Icons hinzufügen
 
 # EXTRAS
 

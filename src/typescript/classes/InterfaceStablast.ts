@@ -9,7 +9,7 @@ export interface isStablast {
  Typ: string
  Knotenersatzlasten: number[] //[Nl, Vl, Ml, Nr, Vr, Mr]
 
- knotenersatzlastenBestimmen(theorie: Theorie): void
- integrationskonstantenBestimmen(theorie: Theorie): void
- Ausgabepunkt(x: number, theorie: Theorie): number[] //[N,V,M,ux,uz,phi]
+ knotenersatzlastenBestimmen(): void
+ integrationskonstantenBestimmen(): void
+ Ausgabepunkt(x: number): number[] //[N,V,M,ux,uz,phi]
 }

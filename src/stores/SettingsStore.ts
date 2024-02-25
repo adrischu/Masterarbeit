@@ -17,6 +17,6 @@ export const useSettingsStore = defineStore("settingsStore", {
    *  - Wenn false: Schnittgrößen werden auf das unverformte System bezogen.
    *  - Hat keinen Einfluss auf die Berechnung.
    */
-  schnittgrößenAufVerformtesSystemBeziehen: true as boolean,
+  schnittgrößenAufVerformtesSystemBeziehen: false as boolean,
  }),
 })
