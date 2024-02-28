@@ -20,7 +20,7 @@ import { useSettingsStore } from "@/stores/SettingsStore"
  *    - 4.3 Globale Gesamtsteifigkeitsmatrix aufbauen.
  *    - 4.4 Randbedingungen einarbeiten (Zeilen und Spalten streichen).
  *    - 4.5 Gleichungssystem lösen (Gauss-Algorithmus).
- *    - 4.6 Stabendkräfte aus Verformungen rückrechnen (f = k * w).
+ *    - 4.6 Stabendkräfte aus Verformungen rückrechnen (f = k * w). Mittlere Normalkraft für Stabkenzahl ermitteln.
  *    - 4.7 Fehler zu vergangener Iteration bestimmen (Euklidische Abstandsformel).
  * - 5. Schnittgrößen entlang des Stabes berechnen.
  * - 6. Lagerkräfte bestimmen (F = K * W).
@@ -66,6 +66,7 @@ export function startBerechnungen(system: System): void {
    gleichungssystemLösen(system, lastfall)
    console.log("\n\nVerformungsvektor")
    console.table(matTrans(lastfall.Verformungsvektor_kurz))
+
    elementkräfteBestimmen(system, lastfall)
 
    iterationsFehler = verformungsDifferenz(
@@ -189,6 +190,11 @@ function elementeAufstellen(system: System, lastfall: Lastfall) {
  lastfall.StablastListeStreckenlast.forEach((last) => {
   stablasten.push(last)
  })
+ if (lastfall.Theorie !== Theorie.Theorie_1) {
+  lastfall.StablastListeVorverformung.forEach((last) => {
+   stablasten.push(last)
+  })
+ }
 
  system.Stabliste.forEach((stab) => {
   const neuesElement = new Balkenelement(stab.Nummer, stab)
@@ -356,6 +362,9 @@ function elementkräfteBestimmen(system: System, lastfall: Lastfall) {
   })
   console.log(`Stabendkräfte Stab ${element.Stab.Nummer}`)
   console.table(matTrans(element.F))
+
+  //Ermittelt mittlere Normalkraft des Elements für Stabkennzahl
+  element.ermittleMittlereNormalkraft()
  })
 }
 

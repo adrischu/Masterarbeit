@@ -2,14 +2,9 @@
 
 - Lizenzen einfügen?
 
-asdf $ a = b \* c$
-
 ## Statik
 
-- Schnittgrößenermittlung nach TH2 (trig) für Zugnormalkraft implementieren
-- Reduktionsverfahren in Baustatik 3 148 3.3
-- Überprüfen inwiefern eine Stablast in lokal x Einfluss auf die Theorie 2 Ordnung hat. Mit welchem N wird die Stabkennzahl ermittet?
-- Ermittlung der Knotenersatzlasten nach kubischem oder p-Delta Ansatz recherchieren und implementieren.
+- Ermittlung der Knotenersatzlasten nach kubischem oder p-Delta Ansatz recherchieren und implementieren. -> aktuell nach Th1. So richtig?
 - Vorverformungen Finite Elemente Mewthoden im Stahlbau kindmann kraus
 - Evtl System einbauen, dass es erlaubt, Lasten automatisch zu steigern (von x bis xx in xxx abständen o.Ä.). Es könnten hier jeweils alle Theorien berechnet werden und dann Last-Verformungskurven anhand der Ergebnisse erstellt werden können.
 

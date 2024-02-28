@@ -4,6 +4,7 @@ import type { isStablast } from "./InterfaceStablast"
 import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 import type Knotenlast from "./Knotenlast"
 import type StablastStreckenlast from "./StablastStreckenlast"
+import type StablastVorverformung from "./StablastVorverformung"
 
 export default class Lastfall implements isStatikobjekt {
  //folgende Werte werden bei Erstellung eines Knotens definiert.
@@ -13,6 +14,7 @@ export default class Lastfall implements isStatikobjekt {
  Theorie: Theorie
  Knotenlastliste: Knotenlast[]
  StablastListeStreckenlast: StablastStreckenlast[]
+ StablastListeVorverformung: StablastVorverformung[]
  //folgende Werte werden erst bei Berechnung definiert.
  Elementliste: Balkenelement[]
  /**Globaler Lastvektor aller gehaltenen und nicht-gehaltenen Freiheitsgrade */
@@ -38,6 +40,7 @@ export default class Lastfall implements isStatikobjekt {
   this.Theorie = Theorie.Theorie_1
   this.Knotenlastliste = []
   this.StablastListeStreckenlast = []
+  this.StablastListeVorverformung = []
   this.Lastvektor = []
   this.Verformungsvektor_kurz = []
   this.letzerVerformungsvektor_kurz = []

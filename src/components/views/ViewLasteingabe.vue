@@ -13,6 +13,11 @@
   :key="lastfall.Nummer"
   :lastfall="lastfall"
  />
+ <TabelleStablastVorverformung
+  v-for="lastfall in system.Lastfallliste"
+  :key="lastfall.Nummer"
+  :lastfall="lastfall"
+ />
 </template>
 
 <script setup lang="ts">
@@ -20,6 +25,7 @@
  import TabelleLastfall from "../tabellen/TabelleLastfall.vue"
  import TabelleKnotenlast from "../tabellen/TabelleKnotenlast.vue"
  import TabelleStablastStreckenlast from "../tabellen/TabelleStablastStreckenlast.vue"
+ import TabelleStablastVorverformung from "../tabellen/TabelleStablastVorverformung.vue"
  import { useSystemStore } from "@/stores/SystemStore"
 
  const systemStore = useSystemStore()

@@ -9,6 +9,7 @@ import Knotenlast from "./Knotenlast"
 import Gelenk from "./Gelenk"
 import { startBerechnungen, ergebnisseLöschen } from "../berechnungen"
 import StablastStreckenlast from "./StablastStreckenlast"
+import StablastVorverformung from "./StablastVorverformung"
 
 export default class System {
  Knotenliste: Knoten[]
@@ -109,6 +110,14 @@ export default class System {
      lastfallnummer,
      this.Lastfallliste,
     )!.StablastListeStreckenlast
+    break
+   }
+   case "StablastVorverformung": {
+    statikobjekt = new StablastVorverformung()
+    statikobjektArray = this.searchObjectByNummer(
+     lastfallnummer,
+     this.Lastfallliste,
+    )!.StablastListeVorverformung
     break
    }
    default: {
@@ -214,6 +223,10 @@ export default class System {
     streckenlast.Stab = this.searchObjectByNummer(streckenlast.Stabnummer, this.Stabliste)
     streckenlast.Lastfallnummer = lastfall.Nummer
    })
+   lastfall.StablastListeVorverformung.forEach((vorferformung) => {
+    vorferformung.Stab = this.searchObjectByNummer(vorferformung.Stabnummer, this.Stabliste)
+    vorferformung.Lastfallnummer = lastfall.Nummer
+   })
   })
  }
 
@@ -226,6 +239,10 @@ export default class System {
  searchObjectByNummer(key: number, objektindex: Lastfall[]): Lastfall | null
  searchObjectByNummer(key: number, objektindex: Knotenlast[]): Knotenlast | null
  searchObjectByNummer(key: number, objektindex: StablastStreckenlast[]): StablastStreckenlast | null
+ searchObjectByNummer(
+  key: number,
+  objektindex: StablastVorverformung[],
+ ): StablastVorverformung | null
  searchObjectByNummer(key: number, objectArray: isStatikobjekt[]): isStatikobjekt | null {
   let returnObject = null
   objectArray.forEach(function (statikobjekt) {

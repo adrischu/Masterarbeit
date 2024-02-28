@@ -302,7 +302,7 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   /**Verhältnis der aktuellen Stelle x zum Stabende (0<=t<=1) */
   const t = x / l
   /**
-   * Nmean = (Nlinks + Nrechts)/2
+   * mittleres N über Stab.
    * - Mit diesem N wird ermittelt ob der Stab gedrückt oder gezogen ist (Th2O)
    */
   const Nmean = this.Element!.Nmean
@@ -313,10 +313,16 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   /**Dehnsteifigkeit */
   const EA = this.Stab?.Querschnitt?.Material?.E! * this.Stab?.Querschnitt?.A!
 
-  //N und ux werden unabhängig von der Theorie immer gleich berechnet
-  N = -pxl * x - ((pxr - pxl) / (2 * l)) * x * x
-  ux = -(pxl * x * x) / 2 / EA - ((pxr - pxl) * x * x * x) / 6 / l / EA
+  //Der Anteil des Fachwerkstabes wird unabhängig der Theorie gleich berechnet
+  N =
+   (pxl * (3 * x ** 2 - 6 * x * l + 2 * l ** 2)) / (6 * l) +
+   (pxr * (-3 * x ** 2 + l ** 2)) / (6 * l)
+  ux =
+   (pxl * (2 * x * l ** 2 - 3 * x ** 2 * l + x ** 3)) / (6 * EA * l) +
+   (pxr * (x * l ** 2 - x ** 3)) / (6 * EA * l)
 
+  //Anteil des Biegebalkens abhängig von der Berechnungstheorie
+  //Theorie 1 und Näherungsansätze für Theorie 2
   //prettier-ignore
   if (stabtheorie === Theorie.Theorie_1 || stabtheorie === Theorie.Theorie_2_kub || stabtheorie === Theorie.Theorie_2_pDelta) {
    const nenner = 120 * EI * l
@@ -328,7 +334,9 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
     (pzr * (-4 * x * l ** 3 + 9 * x ** 2 * l ** 2 - 5 * x ** 4)) / nenner
    T = -pzl * x - ((pzr - pzl) / (2 * l)) * x * x
    M = (-pzl / 2) * x ** 2 - ((pzr - pzl) / (6 * l)) * x ** 3
-  } else if (stabtheorie === Theorie.Theorie_2_trig) {
+  } 
+  //Theorie 2 Trigonometrischer Ansatz
+  else if (stabtheorie === Theorie.Theorie_2_trig) {
    const A = this.A
    const B = this.B
    const C = this.C

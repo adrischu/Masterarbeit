@@ -32,6 +32,8 @@ export default class Balkenelement {
  D: number
 
  //Schnittgrößen ("normale" Vorzeichenkonvention) entlang des Stabs
+ /**mittere Normalkraft. Wird für die Ermittlung der Stabkennzahl verwendet. */
+ Nmean: number
  /**Normalkraft entlang des Stabes */
  N: number[]
  /**Querkraft oder Transversalkraft entlang des Stabes (je nach Programmeinstellung) */
@@ -56,6 +58,7 @@ export default class Balkenelement {
   this.Stablasten = []
   this.Ausgabepunkte = Stab.Stababschnitte + 1
   this.Theorie = Theorie.Theorie_1
+  this.Nmean = 0
   this.F = Array(6).fill(0)
   this.Verformungen = Array(6).fill(0)
   this.N = Array(this.Ausgabepunkte)
@@ -123,13 +126,6 @@ export default class Balkenelement {
   return this.Stab.Querschnitt!.A * this.Stab.Querschnitt!.Material!.E
  }
 
- /**
-  * Gibt die Normalkraft gemittelt aus Stabanfang und Stabende in [N] zurück.
-  */
- get Nmean(): number {
-  return (-this.F[0] + this.F[3]) / 2
- }
-
  /**Ermittelt die Berechnungstheorie für dieses Element.
   * Normalerweise wird die Theorie des Lastfalls übernommen.
   * Bei der trigonometrischen Theorie wird für sehr kleine Stabkennzahlen zur kubischen Theorie gewechselt.
@@ -150,7 +146,6 @@ export default class Balkenelement {
  berechneIntegrationskonstanten() {
   const L = this.Stab.Länge
   //const EI = this.EI
-  const N = this.Nmean
   const e = this.epsilon
 
   const phii = this.Verformungen[2]
@@ -167,7 +162,7 @@ export default class Balkenelement {
   //prettier-ignore
   switch (true) {
    //Fall für Drucknormalkraft
-   case N < 0: {
+   case this.Nmean < 0: {
     const nenner = (e / L) * (e * sine + 2 * cose - 2)
     this.A = ((sine - e) * (phii - phik) + (e / L - (e / L) * cose) * (wk - wi + phii * L)) / nenner
     this.B = ((1 - cose) * (phii - phik) + (-e / L) * sine * (wk - wi + phii * L)) / nenner
@@ -176,7 +171,7 @@ export default class Balkenelement {
     break
    }
    //Fall für Zugnormalkraft
-   case N > 0: {
+   case this.Nmean > 0: {
     const nenner = e * (e * sinhe + 2 - 2 * coshe)
     this.A = (-wi * e * (coshe - 1) + phii * L * (e * coshe - sinhe) + wk * e * (coshe - 1) - phik * L * (e - sinhe)) / nenner
     this.B = (+wi * e * sinhe - phii * L * (e * sinhe + 1 - coshe) - wk * e * sinhe - phik * L * (coshe - 1)) / nenner
@@ -213,7 +208,7 @@ export default class Balkenelement {
   /**Stablänge */
   const L = this.Stab.Länge
   /**Gemittelte Normalkraft */
-  const N = (-this.F[0] + this.F[3]) / 2 //im Falle einer veränderlichen Normalkraft wird hier der Mittelwert genommen TODO: Überprüfen ob korrekt?
+  const N = this.Nmean
 
   //Default-Parameter-Werte für Theorie I. Ordnung
   /**Kindmann-Parameter alpha */
@@ -221,7 +216,7 @@ export default class Balkenelement {
   /**Kindmann-Parameter beta */
   let b: number = 2
   /**Kindmann-Parameter gamma */
-  let c: number = 6
+  let c: number = a + b
   /**Kindmann-Parameter delta */
   let d: number = 12
   /**Stabkennzahl */
@@ -265,16 +260,14 @@ export default class Balkenelement {
     //Der e-Term muss mit dem Vorzeichen von N geändert werden.
     a = 4 + (2 / 15) * e ** 2 * Math.sign(N)
     b = 2 - (1 / 30) * e ** 2 * Math.sign(N)
-    c = 6 + (1 / 10) * e ** 2 * Math.sign(N)
+    c = a + b
     d = 12 + (6 / 5) * e ** 2 * Math.sign(N)
     break
    }
    //Steifigkeitsmatrix nach Theorie 2. Ordnung (p-Delta Ansatz)
    case this.Theorie === Theorie.Theorie_2_pDelta: {
     //Der e-Term muss mit dem Vorzeichen von N geändert werden.
-    a = 4
-    b = 2
-    c = 6
+    //Alpha, beta und gamma sind nach Th1 schon vorberechnet.
     d = 12 + e ** 2 * Math.sign(N)
     break
    }
@@ -322,7 +315,7 @@ export default class Balkenelement {
   /**Verdrehung am rechten Rand (phik) */
   const phir = this.Verformungen[5]
   /**Mittlere Normalkraft */
-  const N = (-this.F[0] + this.F[3]) / 2
+  const Nmean = this.Nmean
   /**Stablänge */
   const l = this.Stab.Länge
   /**Dehnsteifigkeit */
@@ -345,25 +338,19 @@ export default class Balkenelement {
   const e = this.epsilon
 
   for (let i = 0; i < this.Ausgabepunkte; i++) {
-   /**Position im Stab (0 bis 1) */
-   const t = i / (this.Ausgabepunkte - 1)
    /**aktuelle Position [m] in x Richtung */
-   const x = t * l
+   const x = (i / (this.Ausgabepunkte - 1)) * l
 
    /**
-    * Grundwert aus Knotenverschiebungen
+    * Grundwerte aus Knotenverschiebungen
     */
 
-   //Nach Theorie 1 Ordnung
-   //Verschiebungen nach Baustatik 3 (Dallmann 2023) - 3.1 (Prinzip der virtuellen Verschiebungen)
-   //Dieses Verfahren wird hier für alle Theorien außer der trigonometrischen Theorie 2 Ordnung genutzt.
-
-   //N und Verschiebung durch N werden unabhängig der Theorie gleich berechnet
-   this.N[i] = Nl
+   //Der Anteil des Fachwerkstabes wird unabhängig der Theorie gleich berechnet
+   this.N[i] = (EA * (uxr - uxl)) / l
    this.ux[i] = uxl * (1 - x / l) + (uxr * x) / l
 
    //Für Th1 und die beiden Näherungsansätze wird der Polynomverschiebungsansatz gewählt.
-   //Bei den Näherungsansätzen kommt ein Zusatzmoment aus N dazu.
+   //Bei den Näherungsansätzen für Th2 kommt ein Zusatzmoment aus N dazu. Der Verschiebungsansatz bleibt gleich.
    if (
     this.Theorie === Theorie.Theorie_1 ||
     this.Theorie === Theorie.Theorie_2_kub ||
@@ -391,13 +378,13 @@ export default class Balkenelement {
    //Nach Theorie 2 Ordnung - trigonometrischer exakter Ansatz
    if (this.Theorie === Theorie.Theorie_2_trig) {
     //für Drucknormalkraft
-    if (N < 0) {
+    if (Nmean < 0) {
      const sin = Math.sin((e / l) * x)
      const cos = Math.cos((e / l) * x)
      this.uz[i] = A * cos + B * sin + ((C * e) / l) * x + D
      this.phi[i] = (e / l) * (A * sin - B * cos - C)
      //Nachfolgend wird eigentlich die Transversalkraft berechnet, für die Bezeichnung wurde trotzdem V gewählt
-     this.V[i] = EI * (e / l) ** 3 * (-A * sin + B * cos) - N * this.phi[i]
+     this.V[i] = EI * (e / l) ** 3 * (-A * sin + B * cos) - Nmean * this.phi[i]
      this.M[i] = EI * (e / l) ** 2 * (A * cos + B * sin)
     }
     //für Zugnormalkraft
@@ -407,7 +394,7 @@ export default class Balkenelement {
      this.uz[i] = A * cosh + B * sinh + ((C * e) / l) * x + D
      this.phi[i] = -(e / l) * (A * sinh + B * cosh + C)
      //Nachfolgend wird eigentlich die Transversalkraft berechnet, für die Bezeichnung wurde trotzdem V gewählt
-     this.V[i] = -EI * (e / l) ** 3 * (A * sinh + B * cosh) - N * this.phi[i]
+     this.V[i] = -EI * (e / l) ** 3 * (A * sinh + B * cosh) - Nmean * this.phi[i]
      this.M[i] = -EI * (e / l) ** 2 * (A * cosh + B * sinh)
     }
    }
@@ -437,11 +424,20 @@ export default class Balkenelement {
     this.V[i] = tempV * Math.cos(-tempPhi) - tempN * Math.sin(-tempPhi)
 
     //Näherung unter Berücksichtigung kleiner Winkel (sin(phi) = phi und cos(phi) = 1)
-    //Eigentlich macht Theorie 2. Ordnung diese Vereinfachung, aber ich sehe hier
+    //Eigentlich gilt diese Vereinfachung für Theorie 2. Ordnung, aber ich sehe hier
     //keinen Grund ungenauer zu rechnen, da der Aufwand der Gleiche ist.
     //this.N[i] = tempV * (-tempPhi) + tempN
     //this.V[i] = tempV - tempN * (-tempPhi)
    }
-  }
+  } //Schleife über Ausgabepunkte endet hier.
+ }
+
+ /**Ermittelt die mittlere Normalkraft, die dann in der nächsten Iteration
+  * für Theorie 2. Ordnung verwendet wird.
+  */
+ ermittleMittlereNormalkraft() {
+  /**Normalkraft am linken Rand */
+  const Nl = -this.F[0]
+  this.Nmean = Nl
  }
 }
