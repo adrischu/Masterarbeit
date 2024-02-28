@@ -226,8 +226,7 @@
 <script setup lang="ts">
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
  import type Knoten from "@/typescript/classes/Knoten"
- import { computed, ref } from "vue"
- const scale = ref(0.05)
+ import { computed } from "vue"
  const graphicSettings = useGraphicSettingsStore()
 
  const props = defineProps<{
@@ -253,10 +252,6 @@
   let lagerRef: string = ""
 
   let tempLager: boolean[] = props.knoten.Lager!.Lagerung.slice()
-
-  const x = props.knoten.Lager?.Lagerung[0]
-  const z = props.knoten.Lager?.Lagerung[1]
-  const phi = props.knoten.Lager?.Lagerung[2]
 
   //Falls Federn vorhanden sind, wird das Lagerzeichen so reduziert als ob in diese Richtung
   //keine Lagerung vorhanden ist. Das Federsymbol wird dann zusätzlich eingefügt.

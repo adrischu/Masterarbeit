@@ -9,7 +9,7 @@
 
 import type Stab from "./Stab"
 import { Theorie } from "../enumerations"
-import { matAdd, matMultiplyMat, matMultiplyVec, matSub, matTrans } from "../matrix"
+import { matMultiplyMat, matTrans } from "../matrix"
 import type { isStablast } from "./InterfaceStablast"
 import { useSettingsStore } from "../../stores/SettingsStore"
 

@@ -15,6 +15,10 @@ export const useGraphicSettingsStore = defineStore("graphicSettingsStore", {
   //Liniendicken
   LINIENDICKE_GESTRICHELTELINIE: 2 as number,
   LINIENDICKE_STAB: 6 as number,
+  //Werte für gestrichelte Linien
+  //Erster Wert ist Strichlänge (px) Zweiter Wert ist Abstand zwischen den Strichen
+  GESTRICHELT_VORVERFORMUNG: "3,2" as string,
+  GESTRICHELT_GESTRICHELTELINIE: "10,10" as string,
   //Farben
   FARBE_STAB: "rgb(0,0,0)" as string,
   FARBE_SCHNITTGROESSE_POSITIV: "rgb(0,0,255)" as string, //Zählt auch für ux uz und phi

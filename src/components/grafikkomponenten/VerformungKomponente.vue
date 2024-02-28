@@ -37,13 +37,13 @@
   )
  })
 
- let uGes = computed(() => {
-  let uGes: number[] = []
-  for (let i = 0; i <= props.element.ux.length; i++) {
-   uGes.push(Math.sqrt(props.element.ux[i] ** 2 + props.element.uz[i] ** 2))
-  }
-  return uGes
- })
+ //  let uGes = computed(() => {
+ //   let uGes: number[] = []
+ //   for (let i = 0; i <= props.element.ux.length; i++) {
+ //    uGes.push(Math.sqrt(props.element.ux[i] ** 2 + props.element.uz[i] ** 2))
+ //   }
+ //   return uGes
+ //  })
 
  let points = computed(() => {
   let points: string = ""

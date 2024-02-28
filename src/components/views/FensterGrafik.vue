@@ -46,7 +46,8 @@
    />
 
    <!-- Stablasten -->
-   <g v-if="lastfall.Stablastliste.length">
+   <!-- <g v-if="stablasten.length"> -->
+   <g v-if="stablasten.length">
     <StablastKomponente
      v-for="stab in systemStore.system.Stabliste"
      :key="stab.Nummer"
@@ -54,11 +55,12 @@
      :lasten="stablasten.filter((stablast) => stablast.Stab === stab)"
      :transform="transform"
      :scaleLasten="scaleStablasten"
+     :scaleVorverformungen="scaleVorverformungen"
     />
    </g>
 
    <!-- Knotenlasten -->
-   <g v-if="lastfall.Knotenlastliste.length">
+   <g v-if="knotenlasten.length">
     <KnotenlastKomponente
      v-for="knoten in systemStore.system.Knotenliste"
      :key="knoten.Nummer"
@@ -107,6 +109,7 @@
  import Balkenelement from "@/typescript/classes/Balkenelement"
  import Lastfall from "@/typescript/classes/Lastfall"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
+ import type { isStablast } from "@/typescript/classes/InterfaceStablast"
 
  const props = defineProps<{
   lastfall: Lastfall
@@ -120,7 +123,9 @@
  })
 
  const stablasten = computed(() => {
-  return props.lastfall.Stablastliste
+  const streckenlasten = props.lastfall.StablastListeStreckenlast as isStablast[]
+  const vorverformungen = props.lastfall.StablastListeVorverformung as isStablast[]
+  return streckenlasten.concat(vorverformungen)
  })
 
  const knotenlasten = computed(() => {
@@ -225,9 +230,20 @@
  })
 
  const scaleStablasten = computed(() => {
-  let max = Math.abs(props.lastfall.StablastListeStreckenlast[0].pl)
+  if (props.lastfall.StablastListeStreckenlast.length === 0) return 0
+  let max = 0
   props.lastfall.StablastListeStreckenlast.forEach((last) => {
    max = Math.max(max, Math.abs(last.pl), Math.abs(last.pr))
+  })
+  return max === 0 ? 0 : (graphicSettings.SKALIERUNG_STABLASTEN * 60) / max
+ })
+
+ const scaleVorverformungen = computed(() => {
+  if (props.lastfall.StablastListeVorverformung.length === 0) return 0
+  let max = 0
+  props.lastfall.StablastListeVorverformung.forEach((last) => {
+   const L = last.Stab!.Länge
+   max = Math.max(max, Math.abs(last.phi0 * L), Math.abs(last.w0zuL * L))
   })
   return max === 0 ? 0 : (graphicSettings.SKALIERUNG_STABLASTEN * 60) / max
  })

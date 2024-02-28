@@ -2,7 +2,7 @@ import { useSystemStore } from "@/stores/SystemStore"
 import type { isStablast } from "./InterfaceStablast"
 import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 import Stab from "./Stab"
-import { matMultiplyMat, matMultiplyVec, matTrans } from "../matrix"
+import { matMultiplyVec, matTrans } from "../matrix"
 import type Balkenelement from "./Balkenelement"
 import { Theorie } from "../enumerations"
 

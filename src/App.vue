@@ -231,5 +231,10 @@
  systemStore.system.addStatikobjekt("Stab", [1, 1, 2, 1, 0, 0, 4], -1)
  systemStore.system.addStatikobjekt("Lastfall", [1, "EG", Theorie.Theorie_2_trig], -1)
  systemStore.system.addStatikobjekt("Knotenlast", [1, 2, -100000, 0, 0], 1)
- systemStore.system.addStatikobjekt("StablastVorverformung", [1, 1, 0, 0.01], 1)
+ systemStore.system.addStatikobjekt("StablastVorverformung", [1, 1, 0.04, 0.02], 1)
+ systemStore.system.addStatikobjekt(
+  "StablastStreckenlast",
+  [1, 1, "global", "z", true, 50000, 100000],
+  1,
+ )
 </script>

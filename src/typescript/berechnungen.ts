@@ -1,11 +1,10 @@
 import type System from "./classes/System"
-import { matMultiplyMat, matMultiplyVec, matTrans } from "./matrix"
+import { matMultiplyVec, matTrans } from "./matrix"
 import Balkenelement from "./classes/Balkenelement"
 import Lastfall from "./classes/Lastfall"
 import { gauss } from "./gauss"
 import { Theorie } from "./enumerations"
 import type { isStablast } from "./classes/InterfaceStablast"
-import Knotenlast from "./classes/Knotenlast"
 import { useSettingsStore } from "@/stores/SettingsStore"
 //-------------------------------------------------------------------------------
 /**

@@ -2,7 +2,7 @@ import { useSystemStore } from "@/stores/SystemStore"
 import type { isStablast } from "./InterfaceStablast"
 import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 import Stab from "./Stab"
-import { matMultiplyMat, matMultiplyVec, matTrans } from "../matrix"
+import { matMultiplyVec, matTrans } from "../matrix"
 import type Balkenelement from "./Balkenelement"
 import { Theorie } from "../enumerations"
 
@@ -173,7 +173,6 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   const p = this.lokaleLastwerte //[pxAnfang, pxEnde, pzAnfang,  pzEnde]
   const pL = p[2]
   const pR = p[3]
-  const dp = pR - pL
 
   if (this.Element!.Theorie === Theorie.Theorie_2_trig) {
    //Drucknormalkraft
@@ -210,13 +209,11 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   const pxR = p[1]
   const pzL = p[2]
   const pzR = p[3]
-  const dpX = pxR - pxL
   const dpZ = pzR - pzL
   const EI = this.Element!.EI
-  const EA = this.Element!.EA
   const N = this.Element!.Nmean
   const e = this.Element!.epsilon
-  const l = this.Stab!.Länge
+  const L = this.Stab!.Länge
 
   let lokKräfte: number[] = []
 
@@ -224,35 +221,33 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   //Schneider Auflager 23 4.8
   //Default Werte für Th1 und Th2Kubisch und Th2PDelta werden gesetzt.
   //Falls nach trigonometrischer Theorie gerechnet wird werden diese Werte später überschrieben
-  const NL = (pxL / 3 + pxR / 6) * l //Linke AUflagerlast in lokal x
-  let VL = (0.35 * pzL + 0.15 * pzR) * l //Linke Auflagerlast in lokal z
-  let ML = -((1.5 * pzL + pzR) * l * l) / 30 //Linkes Auflagermoment
-  const NR = (pxL / 6 + pxR / 3) * l //Rechte Auflagerlast in lokal x
-  let VR = (0.15 * pzL + 0.35 * pzR) * l //Rechte Auflagerlast in lokal z
-  let MR = ((pzL + 1.5 * pzR) * l * l) / 30 //Rechtes Auflagermoment
+  const NL = (pxL / 3 + pxR / 6) * L //Linke AUflagerlast in lokal x
+  let VL = (0.35 * pzL + 0.15 * pzR) * L //Linke Auflagerlast in lokal z
+  let ML = -((1.5 * pzL + pzR) * L * L) / 30 //Linkes Auflagermoment
+  const NR = (pxL / 6 + pxR / 3) * L //Rechte Auflagerlast in lokal x
+  let VR = (0.15 * pzL + 0.35 * pzR) * L //Rechte Auflagerlast in lokal z
+  let MR = ((pzL + 1.5 * pzR) * L * L) / 30 //Rechtes Auflagermoment
 
   if (this.Element!.Theorie === Theorie.Theorie_2_trig) {
    const A = this.A
    const B = this.B
-   const C = this.C
-   const D = this.D
    //Drucknormalkraft
    if (N < 0) {
     const cose = Math.cos(e)
     const sine = Math.sin(e)
-    VL = EI * (e / l) ** 3 * B - (dpZ * l) / e / e
-    ML = EI * (e / l) ** 2 * A - (pzL * l * l) / e / e
-    VR = EI * (e / l) ** 3 * (A * sine - B * cose) + (dpZ * l) / e / e
-    MR = -EI * (e / l) ** 2 * (A * cose + B * sine) + (l / e) ** 2 * (dpZ + pzL)
+    VL = EI * (e / L) ** 3 * B - (dpZ * L) / e / e
+    ML = EI * (e / L) ** 2 * A - (pzL * L * L) / e / e
+    VR = EI * (e / L) ** 3 * (A * sine - B * cose) + (dpZ * L) / e / e
+    MR = -EI * (e / L) ** 2 * (A * cose + B * sine) + (L / e) ** 2 * (dpZ + pzL)
    }
    //Zurnormalkraft
    else if (N > 0) {
     const coshe = Math.cosh(e)
     const sinhe = Math.sinh(e)
-    VL = -EI * (e / l) ** 3 * B + (dpZ * l) / e / e
-    ML = -EI * (e / l) ** 2 * A + (pzL * l * l) / e / e
-    VR = EI * (e / l) ** 3 * (A * sinhe + B * coshe) - (dpZ * l) / e / e
-    MR = EI * (e / l) ** 2 * (A * coshe + B * sinhe) - (l / e) ** 2 * (dpZ + pzL)
+    VL = -EI * (e / L) ** 3 * B + (dpZ * L) / e / e
+    ML = -EI * (e / L) ** 2 * A + (pzL * L * L) / e / e
+    VR = EI * (e / L) ** 3 * (A * sinhe + B * coshe) - (dpZ * L) / e / e
+    MR = EI * (e / L) ** 2 * (A * coshe + B * sinhe) - (L / e) ** 2 * (dpZ + pzL)
    }
   }
   lokKräfte = [NL, VL, ML, NR, VR, MR]
@@ -293,16 +288,11 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   const pzl = p[2]
   /**Rechter Lastwert der Trapezlast in Richtung senkrecht zum Stab */
   const pzr = p[3]
-  /**pxr - pxl */
-  const dpx = pxr - pxl
   /**pzr - pzl */
   const dpz = pzr - pzl
   /**Stablänge */
   const l = this.Stab?.Länge!
-  /**Verhältnis der aktuellen Stelle x zum Stabende (0<=t<=1) */
-  const t = x / l
-  /**
-   * mittleres N über Stab.
+  /**Mittleres N über Stab.
    * - Mit diesem N wird ermittelt ob der Stab gedrückt oder gezogen ist (Th2O)
    */
   const Nmean = this.Element!.Nmean

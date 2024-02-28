@@ -1,6 +1,5 @@
 import { Theorie } from "../enumerations"
 import type Balkenelement from "./Balkenelement"
-import type { isStablast } from "./InterfaceStablast"
 import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 import type Knotenlast from "./Knotenlast"
 import type StablastStreckenlast from "./StablastStreckenlast"
@@ -52,9 +51,14 @@ export default class Lastfall implements isStatikobjekt {
   this.istBerechnet = false
  }
 
- get Stablastliste() {
-  return this.StablastListeStreckenlast as isStablast[]
- }
+ //  /**Gibt eine Liste aller Stablasten dieses Lastfalls zurück. */
+ //  get Stablastliste() {
+ //   const streckenlasten = this.StablastListeStreckenlast as isStablast[]
+ //   const vorverformungen = this.StablastListeVorverformung as isStablast[]
+ //   const alleLasten = streckenlasten.concat(vorverformungen)
+ //   return alleLasten
+ //   //return this.StablastListeStreckenlast as isStablast[]
+ //  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein
  //wie 'set values' und 'get header'

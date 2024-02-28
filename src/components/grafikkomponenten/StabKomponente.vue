@@ -16,7 +16,7 @@
   :y2="endeGestrichelt.z"
   :stroke="graphicSettings.FARBE_GESTRICHELTELINIE"
   :stroke-width="graphicSettings.LINIENDICKE_GESTRICHELTELINIE"
-  stroke-dasharray="9"
+  :stroke-dasharray="graphicSettings.GESTRICHELT_GESTRICHELTELINIE"
  />
 </template>
 

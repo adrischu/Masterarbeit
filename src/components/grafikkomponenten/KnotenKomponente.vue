@@ -8,10 +8,7 @@
 </template>
 
 <script setup lang="ts">
- import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
  import type Knoten from "@/typescript/classes/Knoten"
-
- const graphicSettings = useGraphicSettingsStore()
 
  defineProps<{
   knoten: Knoten

@@ -50,15 +50,11 @@
 
 <script setup lang="ts">
  import Vector from "@/typescript/classes/Vector"
- import { computed, ref, type Ref } from "vue"
+ import { computed } from "vue"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
- import { useSystemStore } from "@/stores/SystemStore"
  import type Knoten from "@/typescript/classes/Knoten"
- import type Knotenlast from "@/typescript/classes/Knotenlast"
- import Lastfall from "@/typescript/classes/Lastfall"
 
  const graphicSettings = useGraphicSettingsStore()
- const systemStore = useSystemStore()
 
  const props = defineProps<{
   knoten: Knoten
