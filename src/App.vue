@@ -14,7 +14,7 @@
    <v-tab value="dev">Dev-Ausgabe</v-tab>
   </v-tabs>
   <span><v-btn @click="systemStore.system.berechnen()">Rechnen</v-btn></span>
-  <span style="color: rgb(128, 128, 128); margin: 0px">current Commit: 25.02.2024 16:42</span>
+  <span style="color: rgb(128, 128, 128); margin: 0px">current Commit: 28.02.2024 17:32</span>
 
   <v-card-text>
    <v-window
