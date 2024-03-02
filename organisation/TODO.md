@@ -5,7 +5,6 @@
 ## Statik
 
 - Ermittlung der Knotenersatzlasten nach kubischem oder p-Delta Ansatz recherchieren und implementieren. -> aktuell nach Th1. So richtig?
-- Vorverformungen Finite Elemente Mewthoden im Stahlbau kindmann kraus
 - Evtl System einbauen, dass es erlaubt, Lasten automatisch zu steigern (von x bis xx in xxx abständen o.Ä.). Es könnten hier jeweils alle Theorien berechnet werden und dann Last-Verformungskurven anhand der Ergebnisse erstellt werden können.
 
 ## Knotentabelle, Stabtabelle usw.

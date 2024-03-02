@@ -371,7 +371,7 @@ export default class Balkenelement {
 
     //Zusatzmoment aus N für Theorie 2. Ordnung
     if (this.Theorie === Theorie.Theorie_2_kub || this.Theorie === Theorie.Theorie_2_pDelta) {
-     this.M[i] = Ml + Vl * x - Nl * (this.uz[i] - uzl)
+     this.M[i] -= Nl * (this.uz[i] - uzl)
     }
    }
 

@@ -8,9 +8,10 @@ import { Theorie } from "../enumerations"
 
 /**INFORMATION
  * Aus der Vorverkrümmung ergibt sich eigentlich eine gedachte Gleichstreckenlast.
- * Da allerdings die Lösung für eine Trapezlast bereits vorhanden ist, wurde dieser Ansatz hier einfach übernommen.
- * Die Terme wurden nicht gekürzt, für dieses Modul gilt also pL=pR.
+ * Da allerdings die Lösung für eine Trapezlast bereits vorhanden ist, wurde der Code aus dem entsprechenden Modul übernommen.
+ * Die Terme wurden nicht gekürzt, für dieses Modul gilt also p=pL=pR.
  * Never change a running system.
+ * Die Knotenersazlasten wurden geändert. Die Schnittgrößenberechnung wurde auch leicht angepasst (zusätzliche Querkraft).
  */
 
 /**### Vorverformung
@@ -18,6 +19,7 @@ import { Theorie } from "../enumerations"
  * - Berechnung der Knotenersatzlasten der Vorverformung (Verdrehung + Verkrümmung)
  * - Ermittlung der Schnittgrößen entlang des Stabes aus der Vorverformung
  * - Aus- und Eingabesteuerung der Vorverformung in der Eingabetabelle
+ * Das Modul basiert fast komplett auf dem Modul "StablastStreckenlast"
  */
 export default class StablastVorverformung implements isStatikobjekt, isStablast {
  Nummer: number
@@ -85,8 +87,9 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
   const EI = this.Element!.EI
   const L = this.Element!.Stab!.Länge
   //Bei negativem N (Druck) soll eine positive Last entstehen. Daher "-Nmean*..."
-  const pL = -(Nmean * 8 * this.w0zuL) / L
-  const pR = -(Nmean * 8 * this.w0zuL) / L
+  const p = -(Nmean * 8 * this.w0zuL) / L
+  const pL = p
+  const pR = p
 
   if (this.Element!.Theorie === Theorie.Theorie_2_trig) {
    //Drucknormalkraft
@@ -123,8 +126,9 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
   const e = this.Element!.epsilon
   const L = this.Stab!.Länge
   //Bei negativem N (Druck) soll eine positive Last entstehen. Daher "-Nmean*..."
-  const pzL = -(Nmean * 8 * this.w0zuL) / L
-  const pzR = -(Nmean * 8 * this.w0zuL) / L
+  const p = -(Nmean * 8 * this.w0zuL) / L
+  const pzL = p
+  const pzR = p
   const dpZ = 0
 
   let lokKräfte: number[] = []
@@ -143,8 +147,6 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
   if (this.Element!.Theorie === Theorie.Theorie_2_trig) {
    const A = this.A
    const B = this.B
-   //const C = this.C
-   //const D = this.D
    //Drucknormalkraft
    if (Nmean < 0) {
     const cose = Math.cos(e)
@@ -218,8 +220,17 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
     (pzl * (-6 * x * L ** 3 + 21 * x ** 2 * L ** 2 - 20 * x ** 3 * L + 5 * x ** 4)) / nenner +
     (pzr * (-4 * x * L ** 3 + 9 * x ** 2 * L ** 2 - 5 * x ** 4)) / nenner
    T = -pzl * x - ((pzr - pzl) / (2 * L)) * x * x
-   M = (-pzl / 2) * x ** 2 - ((pzr - pzl) / (6 * L)) * x ** 3
-  } 
+   M = -(pzl / 2) * x ** 2 - ((pzr - pzl) / (6 * L)) * x ** 3
+   //Bei der Theorie 2 Ordnung kommt das extra Moment aus N dazu
+   if(stabtheorie === Theorie.Theorie_2_kub || stabtheorie === Theorie.Theorie_2_pDelta){
+    M -= Nmean * uz
+   }
+   //Vl ist die Last, die der gedachten Streckenlast entgegenwirkt, sodass die Stabenden keine Querkraft weiterleiten.
+   //Diese Querkraft muss in der Schnittgrößenermittlung zusätzlich berücksichtigt werden.
+   const Vl= 4 * Nmean * this.w0zuL + Nmean * this.phi0
+   T -= Vl
+   M -= Vl * x
+  }
   //Theorie 2 Trigonometrischer Ansatz
   else if (stabtheorie === Theorie.Theorie_2_trig) {
    const A = this.A

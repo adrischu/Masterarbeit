@@ -10,6 +10,8 @@ export default class Knoten implements isStatikobjekt {
  Koordinaten: Vector
  Lagernummer: number
  Lager: Lager | null
+ //Lagerdrehung gegen den Uhrzeigersinn
+ Drehung: number
  //folgende Werte werden erst bei der Berechnung definiert.
  Inzidenzen: number[]
 
@@ -18,26 +20,28 @@ export default class Knoten implements isStatikobjekt {
   this.Koordinaten = new Vector(0, 0)
   this.Lagernummer = 0
   this.Lager = null
-
+  this.Drehung = 0
   this.Inzidenzen = []
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein
  //wie 'set values' und 'get header'
  get values() {
-  return [this.Nummer, this.Koordinaten!.x, this.Koordinaten!.z, this.Lagernummer]
+  return [this.Nummer, this.Koordinaten!.x, this.Koordinaten!.z, this.Lagernummer, this.Drehung]
  }
 
- set values([Nummer, x, z, Lagernummer]: [
+ set values([Nummer, x, z, Lagernummer, Drehung]: [
   Nummer: number,
   x: number,
   z: number,
   Lagernummer: number,
+  Drehung: number,
  ]) {
   this.Nummer = Nummer
   this.Koordinaten.x = x
   this.Koordinaten.z = z
   this.Lagernummer = Lagernummer
+  this.Drehung = Drehung
  }
 
  get header() {
@@ -65,6 +69,13 @@ export default class Knoten implements isStatikobjekt {
     inputFormat: "number",
     selectListKeys: systemStore.system.Lagerliste.map((lager) => `Lager ${lager.Nummer}`),
     selectListValues: systemStore.system.Lagerliste.map((lager) => lager.Nummer),
+   },
+   {
+    title: "Drehung",
+    unit: "rad",
+    value: this.Drehung,
+    inputType: "input",
+    inputFormat: "number",
    },
   ]
  }

@@ -324,6 +324,10 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
     (pzr * (-4 * x * l ** 3 + 9 * x ** 2 * l ** 2 - 5 * x ** 4)) / nenner
    T = -pzl * x - ((pzr - pzl) / (2 * l)) * x * x
    M = (-pzl / 2) * x ** 2 - ((pzr - pzl) / (6 * l)) * x ** 3
+   //Bei der Theorie 2 Ordnung kommt das extra Moment aus N dazu
+   if(stabtheorie === Theorie.Theorie_2_kub || stabtheorie === Theorie.Theorie_2_pDelta){
+    M -= Nmean * uz
+   }
   } 
   //Theorie 2 Trigonometrischer Ansatz
   else if (stabtheorie === Theorie.Theorie_2_trig) {
