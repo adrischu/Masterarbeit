@@ -268,10 +268,12 @@ function steifigkeitsmatrixAufstellen(system: System, lastfall: Lastfall) {
 
  lastfall.Elementliste.forEach((element) => {
   //Elemente der Elementsteifigkeitsmatrix zu Gesamtsteifigkeitsmatrix (unkondensiert) addieren
+  const k_glob = element.k_glob()
+  console.log(`Element ${element.Nummer}: k_lok`)
+  console.table(k_glob)
   for (let rows: number = 0; rows <= 5; rows++) {
    for (let cols: number = 0; cols <= 5; cols++) {
-    lastfall.M_K_lang[element.Inzidenzen[rows]][element.Inzidenzen[cols]] +=
-     element.k_glob()[rows][cols]
+    lastfall.M_K_lang[element.Inzidenzen[rows]][element.Inzidenzen[cols]] += k_glob[rows][cols]
    }
   }
  })

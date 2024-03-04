@@ -130,3 +130,52 @@ export function matSub(...matrices: number[][][]): number[][] | null {
 
  return result
 }
+
+export function matInv(matrix: number[][]): number[][] {
+ const n: number = Math.sqrt(matrix.length)
+ if (!Number.isInteger(n) || n % 1 !== 0) {
+  throw new Error("Matrix must be square.")
+ }
+
+ const augmentedMatrix: number[][] = matrix.map((row) => [
+  ...row,
+  ...identityMatrix(n)[matrix.indexOf(row)],
+ ])
+ const numCols: number = 2 * n
+
+ // Gauss-Jordan Elimination
+ for (let i = 0; i < n; i++) {
+  const pivot: number = augmentedMatrix[i][i]
+  if (pivot === 0) {
+   throw new Error("Matrix is singular, it cannot be inverted.")
+  }
+  for (let j = 0; j < numCols; j++) {
+   augmentedMatrix[i][j] /= pivot
+  }
+  for (let k = 0; k < n; k++) {
+   if (k !== i) {
+    const factor: number = augmentedMatrix[k][i]
+    for (let j = 0; j < numCols; j++) {
+     augmentedMatrix[k][j] -= factor * augmentedMatrix[i][j]
+    }
+   }
+  }
+ }
+
+ // Rückgabe der inversen Matrix
+ const inverse: number[][] = augmentedMatrix.map((row) => row.slice(n))
+ return inverse
+}
+
+// Funktion zur Erstellung einer Identitätsmatrix der Größe n x n
+function identityMatrix(n: number): number[][] {
+ const identity: number[][] = []
+ for (let i = 0; i < n; i++) {
+  const row: number[] = []
+  for (let j = 0; j < n; j++) {
+   row.push(i === j ? 1 : 0)
+  }
+  identity.push(row)
+ }
+ return identity
+}
