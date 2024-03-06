@@ -2,6 +2,14 @@
 
 - Lizenzen einfügen?
 
+- Überprüfen ob alle Keys von v-for Schleifen einzigartig sind-
+
+- Versionsabfrage beim Einlesen einer Systemdatei implementieren
+
+- Recherchieren, ob es irgendwie zu legalen Problemen beim SPeichern von Dateien oder dem Upload von Dateien kommen kann. Wegen Datenschutz oder so....
+
+- in d2beam wird bevor man die Seite verlässt ein Fenster aufgeploppt, das warnt dass nicht gespeichert ist. Implementieren!
+
 ## Statik
 
 - Ermittlung der Knotenersatzlasten nach kubischem oder p-Delta Ansatz recherchieren und implementieren. -> aktuell nach Th1. So richtig?
@@ -18,6 +26,8 @@
 # EXTRAS
 
 - In Eingabetabellen veränderbare (anklickbar) Parameter "Einheit" in den Tabellenkopf einbauen, mit denen man die Einheit mit der Werte eingelesen und ausgegeben werden, dynamisch ändern kann. (Soll am gespeicherten Objekt nichts ändern!!)
+
+- Name für Programm
 
 - Bei Eingabetabellen: Bisher wird editEvent immer dann getriggert, wenn der Fokus von einer Zelle genommen wird. Ändern, sodass nur getriggert wird wenn zusätzhlich der Wert sich verändert hat. (tempWert einführen)
 

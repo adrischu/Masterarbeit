@@ -31,6 +31,7 @@ export default class System {
  Verformungsinzidenzen: number[]
 
  constructor() {
+  //Die folgenden Listen bilden das System
   this.Knotenliste = []
   this.Stabliste = []
   this.Lagerliste = []
@@ -39,8 +40,8 @@ export default class System {
   this.Materialliste = []
   this.Lastfallliste = []
 
+  //Die folgenden Variablen verändern sich über die Berechnung
   this.istBerechnet = false
-
   this.Freiheitsgrade = 0
   this.Verformungsinzidenzen = []
  }
@@ -135,7 +136,12 @@ export default class System {
   return { statikobjekt: statikobjekt!, statikobjektArray: statikobjektArray! }
  }
 
- addStatikobjekt(objektTyp: string, statikobjektdaten: any[], lastfallnummer: number): void {
+ addStatikobjekt(
+  objektTyp: string,
+  statikobjektdaten: any[],
+  lastfallnummer: number = 0,
+  buildSystem: boolean = true,
+ ): void {
   const statikobjekt: isStatikobjekt = this.determineObjectClass(
    objektTyp,
    lastfallnummer,
@@ -147,7 +153,7 @@ export default class System {
 
   statikobjekt!.values = statikobjektdaten
   statikobjektArray!.push(statikobjekt!)
-  this.buildSystem()
+  if (buildSystem) this.buildSystem()
   ergebnisseLöschen(this)
  }
 
