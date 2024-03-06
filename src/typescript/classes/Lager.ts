@@ -80,7 +80,7 @@ export default class Lager implements isStatikobjekt {
    },
    {
     title: "Feder in phi",
-    unit: "N/m",
+    unit: "Nm/rad",
     value: this.Feder[2],
     inputType: "input",
     inputFormat: "number",

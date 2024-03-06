@@ -111,6 +111,7 @@
        :type="objectlist[objectIndex].header[itemIndex].inputFormat"
        v-model="data[objectIndex][itemIndex]"
        @focusout="handleEdit(object, objectIndex)"
+       :disabled="objectlist[objectIndex].header[itemIndex].disabled"
       />
       <!-- Falls DropDownBox vorhanden -->
       <select

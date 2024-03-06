@@ -6,6 +6,10 @@ import { gauss } from "./gauss"
 import { Theorie } from "./enumerations"
 import type { isStablast } from "./classes/InterfaceStablast"
 import { useSettingsStore } from "@/stores/SettingsStore"
+import Stab from "./classes/Stab"
+import Starrelement from "./classes/Starrelement"
+import { validateHeaderName } from "http"
+import { toValue } from "vue"
 //-------------------------------------------------------------------------------
 /**
  * ### ABLAUF DER BERECHNUNGEN
@@ -32,6 +36,8 @@ export function startBerechnungen(system: System): void {
  ergebnisseLöschen(system)
  freiheitsgradeDefinieren(system)
  console.log(`Gesamte Freiheitsgrade: ${system.Freiheitsgrade}`)
+ console.log("Verformungsinzidenzen")
+ console.table(system.Verformungsinzidenzen)
 
  system.Lastfallliste.forEach((lastfall) => {
   /**Maximale Anzahl an Iterationen */
@@ -43,6 +49,8 @@ export function startBerechnungen(system: System): void {
   let iteration: number = 0
 
   elementeAufstellen(system, lastfall)
+  console.log("Elemente")
+  console.table(lastfall.Elementliste)
 
   do {
    iteration++
@@ -77,7 +85,11 @@ export function startBerechnungen(system: System): void {
   } while (iteration + 1 <= maxIterationen && iterationsFehler > settingsStore.maxIterationsFehler)
 
   //Gibt Fehlermeldung aus, wenn nach max Iterationen noch keine Konvergenz gefunden wurde.
-  if (iteration === maxIterationen && iterationsFehler > settingsStore.maxIterationsFehler) {
+  if (
+   lastfall.Theorie !== Theorie.Theorie_1 &&
+   iteration === maxIterationen &&
+   iterationsFehler > settingsStore.maxIterationsFehler
+  ) {
    //TODO: Ordentliche Fehlerausgabe in Website implementieren.
    console.log("Es wurde nach " + iteration + " Iteration noch keine Konvergenz gefunden.")
   }
@@ -112,6 +124,9 @@ export function ergebnisseLöschen(system: System): void {
   lastfall.M_K_lang = []
   lastfall.istBerechnet = false
  })
+ system.Stabliste.forEach((stab) => {
+  stab.Inzidenzen = Array(6)
+ })
 }
 
 /**
@@ -128,24 +143,32 @@ function freiheitsgradeDefinieren(system: System): void {
   }
  })
 
- //Zusätzliche Freiheitsgrade aus Gelenkdefinitionen
- //Zwei for Schleifen damit erst alle Gelenke vom Anfang und dann
- //alle Gelenk vom Ende hinzugefügt werden (um Struktur beizubehalten)
+ //Freiheitsgrade den Stäben zuordnen
  system.Stabliste.forEach((stab) => {
-  for (let i = 0; i <= 2; i++) {
-   if (stab.Anfangsgelenk?.Gelenke[i]) {
+  for (let i = 0; i < 3; i++) {
+   stab.Inzidenzen[i + 0] = stab.Anfangsknoten!.Inzidenzen[i]
+   stab.Inzidenzen[i + 3] = stab.Endknoten!.Inzidenzen[i]
+  }
+ })
+
+ /**
+  * Zusätzliche Freiheitsgrade aus Gelenkdefinitionen
+  * Wenn am Anfang(Ende) eine Gelenkdefinition vorhanden ist,
+  * werden drei Freiheitsgrade hinzugefügt, unabhängig vom genauen Aufbau des Gelenks.
+  * Zwei for Schleifen damit erst alle Gelenke vom Anfang und dann
+  * alle Gelenk vom Ende hinzugefügt werden (um Struktur beizubehalten)
+  */
+ system.Stabliste.forEach((stab) => {
+  if (stab.Anfangsgelenknummer) {
+   for (let i = 0; i <= 2; i++) {
     stab.Inzidenzen[i + 0] = freiheitsgrade
     freiheitsgrade++
-   } else {
-    stab.Inzidenzen[i + 0] = stab.Anfangsknoten!.Inzidenzen[i]
    }
   }
-  for (let i = 0; i <= 2; i++) {
-   if (stab.Endgelenk?.Gelenke[i]) {
+  if (stab.Endgelenknummer) {
+   for (let i = 0; i <= 2; i++) {
     stab.Inzidenzen[i + 3] = freiheitsgrade
     freiheitsgrade++
-   } else {
-    stab.Inzidenzen[i + 3] = stab.Endknoten!.Inzidenzen[i]
    }
   }
  })
@@ -162,16 +185,16 @@ function freiheitsgradeDefinieren(system: System): void {
   }
  })
 
- //Nicht-gehaltene Inzidenzen aus Gelenkdefinitionen
+ //Inzidenzen aus Gelenkdefinitionen
  system.Stabliste.forEach((stab) => {
-  for (let i = 0; i <= 2; i++) {
-   if (stab.Anfangsgelenk?.Gelenke[i]) {
-    verformungsInzidenzen.push(stab.Inzidenzen[i + 0])
+  if (stab.Anfangsgelenknummer) {
+   for (let i = 0; i < 3; i++) {
+    verformungsInzidenzen.push(stab.Inzidenzen[i])
    }
   }
-  for (let i = 0; i <= 2; i++) {
-   if (stab.Endgelenk?.Gelenke[i]) {
-    verformungsInzidenzen.push(stab.Inzidenzen[i + 3])
+  if (stab.Endgelenknummer) {
+   for (let i = 3; i < 6; i++) {
+    verformungsInzidenzen.push(stab.Inzidenzen[i])
    }
   }
  })
@@ -206,6 +229,33 @@ function elementeAufstellen(system: System, lastfall: Lastfall) {
     neuesElement.Stablasten.push(stablast)
    }
   })
+ })
+
+ system.Stabliste.forEach((stab) => {
+  if (stab.Anfangsgelenknummer) {
+   //Neuen Starrstab zwischen Anfangsknoten und Stab erstellen
+   const starrelement: Starrelement = new Starrelement(
+    lastfall.Elementliste.length,
+    stab,
+    stab.Anfangsgelenk!,
+    stab.Anfangsknoten!.Inzidenzen.concat(
+     stab.Inzidenzen[0],
+     stab.Inzidenzen[1],
+     stab.Inzidenzen[2],
+    ),
+   )
+   lastfall.Elementliste.push(starrelement)
+  }
+  if (stab.Endgelenknummer) {
+   //Neuen Starrstab zwischen Stab und Endknoten erstellen
+   const starrelement: Starrelement = new Starrelement(
+    lastfall.Elementliste.length,
+    stab,
+    stab.Endgelenk!,
+    [stab.Inzidenzen[3], stab.Inzidenzen[4], stab.Inzidenzen[5]].concat(stab.Endknoten!.Inzidenzen),
+   )
+   lastfall.Elementliste.push(starrelement)
+  }
  })
 }
 
@@ -266,16 +316,20 @@ function steifigkeitsmatrixAufstellen(system: System, lastfall: Lastfall) {
   Array(system.Freiheitsgrade).fill(0),
  )
 
+ //Elemente der Elementsteifigkeitsmatrix zu Gesamtsteifigkeitsmatrix (unkondensiert) addieren
  lastfall.Elementliste.forEach((element) => {
-  //Elemente der Elementsteifigkeitsmatrix zu Gesamtsteifigkeitsmatrix (unkondensiert) addieren
-  const k_glob = element.k_glob()
-  console.log(`Element ${element.Nummer}: k_lok`)
-  console.table(k_glob)
-  for (let rows: number = 0; rows <= 5; rows++) {
-   for (let cols: number = 0; cols <= 5; cols++) {
-    lastfall.M_K_lang[element.Inzidenzen[rows]][element.Inzidenzen[cols]] += k_glob[rows][cols]
-   }
-  }
+  console.log(`kglob Element${element.Nummer}`)
+  console.table(element.k_glob())
+  element.k_glob().forEach((row, rowIndex) => {
+   row.forEach((val, colIndex) => {
+    lastfall.M_K_lang[element.Inzidenzen[rowIndex]][element.Inzidenzen[colIndex]] += val
+   })
+  })
+  // for (let rows: number = 0; rows < element.nGleichungen; rows++) {
+  //  for (let cols: number = 0; cols < element.nGleichungen; cols++) {
+  //   lastfall.M_K_lang[element.Inzidenzen[rows]][element.Inzidenzen[cols]] += k_glob[rows][cols]
+  //  }
+  // }
  })
 
  //Federkräfte addieren
@@ -337,7 +391,7 @@ function gleichungssystemLösen(system: System, lastfall: Lastfall) {
 
  //Verformungen den Einzelnen Stäben zuweisen
  lastfall.Elementliste.forEach((element) => {
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < element.nGleichungen; i++) {
    element.Verformungen[i] = lastfall.Verformungsvektor_lang[element.Inzidenzen[i]]
   }
   //Elementverformungen ins lokale System transformieren
@@ -361,7 +415,7 @@ function elementkräfteBestimmen(system: System, lastfall: Lastfall) {
     element.F[index] -= lastterm
    })
   })
-  console.log(`Stabendkräfte Stab ${element.Stab.Nummer}`)
+  console.log(`Stabendkräfte Stab ${element.Nummer}`)
   console.table(matTrans(element.F))
 
   //Ermittelt mittlere Normalkraft des Elements für Stabkennzahl
@@ -421,7 +475,7 @@ function lagerkräfteBestimmen(system: System, lastfall: Lastfall) {
  //Kräfte aus Stabenden
  lastfall.Elementliste.forEach((element) => {
   const kräfte_global = matMultiplyVec(matTrans(element.T), element.F)!
-  for (let i = 0; i <= 5; i++) {
+  for (let i = 0; i <= element.nGleichungen; i++) {
    lastfall.Lagerkräfte[element.Inzidenzen[i]] -= kräfte_global[i]
   }
  })

@@ -12,9 +12,21 @@ import { Theorie } from "../enumerations"
 import { matMultiplyMat, matTrans } from "../matrix"
 import type { isStablast } from "./InterfaceStablast"
 import { useSettingsStore } from "../../stores/SettingsStore"
+import type { isElement } from "./InterfaceElement"
 
-export default class Balkenelement {
+/**
+ * ### Klasse Starrelement
+ * - Biegesteifes, dehnsteifes, schubstarres Balkenelement
+ * - Unterliegt Bernoulli-Hypothese
+ * - Unterliegt Normalenhypothese
+ * #### Enhält Funktionen zu:
+ * - Ermittlung Transformationsmatrix
+ * - Ermittlung Elementsteifigkeitsmatrix
+ * - Ermittlung Schnittgrößen
+ */
+export default class Balkenelement implements isElement {
  Nummer: number
+ Typ: string = "Balkenelement"
  Stab: Stab //Zugehöriger Stab
  Stablasten: isStablast[]
  Ausgabepunkte: number //Anzahl an Ausgabepunkten entlang des Stabs
@@ -25,6 +37,10 @@ export default class Balkenelement {
   */
  Theorie: Theorie
 
+ /**Die Anzahl an Gleichungen für dieses Element. (Spalten und Zeilen der Steifigkeitsmatrix).
+  * Für das Balkenemenet sind das 6.
+  */
+ nGleichungen: number = 6
  //Integrationskonstanten der Nichtlinearen DGL (trigonometrische Funktionen)
  A: number
  B: number
@@ -75,66 +91,11 @@ export default class Balkenelement {
  }
 
  /**
-  * Berechnet und gibt die 6x6 Transformationsmatrix für das Element
-  * mit der Stabdrehung alpha[rad] zurück.
+  * Gibt die 6x6 Transformationsmatrix für das Element zurück.
+  * Die eigentliche Ermittlung befindet sich in der Klasse "Stab"
   */
  get T(): number[][] {
-  const alpha = this.Stab.Winkel
-  const sina = Math.sin(alpha)
-  const cosa = Math.cos(alpha)
-
-  //Gelenke
-  const NL = this.Stab.Anfangsgelenk?.Gelenke[0]
-  const VL = this.Stab.Anfangsgelenk?.Gelenke[1]
-  const ML = this.Stab.Anfangsgelenk?.Gelenke[2]
-  const NR = this.Stab.Endgelenk?.Gelenke[0]
-  const VR = this.Stab.Endgelenk?.Gelenke[1]
-  const MR = this.Stab.Endgelenk?.Gelenke[2]
-  const T: [number, number, number, number, number, number][] = Array(6)
-  console.log(`Gelenke: [${[NL, VL, ML, NR, VR, MR]}]`)
-  //Linke Seite zeigt Transformation mit Gelenken
-  //Rechte Seite zeigt Transformation ohne Gelenke
-  //Bei den Momenten gibt es keine Transformation. Hier lediglich der Übersicht halber dargestellt.
-  // prettier-ignore
-  {
-  T[0] = NL ? [1, 0, 0, 0, 0, 0] : [ cosa, sina,  0  ,   0   ,   0 ,  0  ]
-  T[1] = VL ? [0, 1, 0, 0, 0, 0] : [-sina, cosa,  0  ,   0   ,   0 ,  0  ]
-  T[2] = ML ? [0, 0, 1, 0, 0, 0] : [  0  ,  0  ,  1  ,   0   ,   0 ,  0  ]
-  T[3] = NR ? [0, 0, 0, 1, 0, 0] : [  0  ,  0  ,  0  ,  cosa , sina,  0  ]
-  T[4] = VR ? [0, 0, 0, 0, 1, 0] : [  0  ,  0  ,  0  , -sina , cosa,  0  ]
-  T[5] = MR ? [0, 0, 0, 0, 0, 1] : [  0  ,  0  ,  0  ,   0   ,   0 ,  1  ]
-  }
-  return T
- }
-
- /**Ermittelt die Inverse der Transformationsmatrix.
-  * Die Inverse wurde vorab mit SMath bestimmt für eine Matrix der Form:
-  * -   | a   b   0   0   0   0 |
-  * -   | c   d   0   0   0   0 |
-  * -   | 0   0   1   0   0   0 |
-  * -   | 0   0   0   e   f   0 |
-  * -   | 0   0   0   g   h   0 |
-  * -   | 0   0   0   0   0   1 |
-  */
- get TInv(): number[][] {
-  const T = this.T
-
-  const a = T[0][0]
-  const b = T[0][1]
-  const c = T[1][0]
-  const d = T[1][1]
-  const e = T[3][3]
-  const f = T[3][4]
-  const g = T[4][3]
-  const h = T[4][4]
-  return [
-   [-d / (b * c - a * d), b / (b * c - a * d), 0, 0, 0, 0],
-   [c / (b * c - a * d), -a / (b * c - a * d), 0, 0, 0, 0],
-   [0, 0, 1, 0, 0, 0],
-   [0, 0, 0, -h / (f * g - e * h), f / (f * g - e * h), 0],
-   [0, 0, 0, g / (f * g - e * h), -e / (f * g - e * h), 0],
-   [0, 0, 0, 0, 0, 1],
-  ]
+  return this.Stab.T
  }
 
  /**
@@ -236,10 +197,6 @@ export default class Balkenelement {
  public k_glob(): number[][] {
   // k_glob = Ttrans * k_lok * T
   //TODO: Abfrage, ob Matrix null ist -> Fehler
-  console.log(`Element ${this.Nummer}: T_Inv`)
-  console.table(this.TInv)
-  console.log(`Element ${this.Nummer}: k:glob`)
-  console.table(matMultiplyMat(matMultiplyMat(this.TInv, this.k_lok())!, this.T)!)
   return matMultiplyMat(matMultiplyMat(matTrans(this.T), this.k_lok())!, this.T)!
  }
 

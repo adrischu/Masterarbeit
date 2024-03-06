@@ -18,6 +18,22 @@
   :stroke-width="graphicSettings.LINIENDICKE_GESTRICHELTELINIE"
   :stroke-dasharray="graphicSettings.GESTRICHELT_GESTRICHELTELINIE"
  />
+
+ <!-- Gelenke -->
+ <!-- Anfangsgelenk -->
+ <GelenkKomponente
+  v-if="stab.Anfangsgelenknummer"
+  :gelenk="stab.Anfangsgelenk!"
+  :lage="anfangsgelenkLage"
+  :rotation="stab.Winkel"
+ />
+ <!-- Endgelenk -->
+ <GelenkKomponente
+  v-if="stab.Endgelenknummer"
+  :gelenk="stab.Endgelenk!"
+  :lage="endgelenkLage"
+  :rotation="stab.Winkel"
+ />
 </template>
 
 <script setup lang="ts">
@@ -25,6 +41,7 @@
  import Vector from "@/typescript/classes/Vector"
  import { computed } from "vue"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
+ import GelenkKomponente from "./GelenkKomponente.vue"
 
  const graphicSettings = useGraphicSettingsStore()
 
@@ -44,6 +61,20 @@
   return new Vector(
    props.stab.Endknoten!.Koordinaten.x * props.transform.scale + props.transform.x,
    props.stab.Endknoten!.Koordinaten.z * props.transform.scale + props.transform.y,
+  )
+ })
+
+ let anfangsgelenkLage = computed(() => {
+  return anfang.value.movePolar(
+   graphicSettings.RADIUS_GELENK + graphicSettings.RADIUS_KNOTEN,
+   props.stab.Stabvektor.direction,
+  )
+ })
+
+ let endgelenkLage = computed(() => {
+  return ende.value.movePolar(
+   graphicSettings.RADIUS_GELENK + graphicSettings.RADIUS_KNOTEN,
+   props.stab.Stabvektor.direction - Math.PI,
   )
  })
 

@@ -67,8 +67,10 @@ export default class Knoten implements isStatikobjekt {
     value: this.Lagernummer,
     inputType: "select",
     inputFormat: "number",
-    selectListKeys: systemStore.system.Lagerliste.map((lager) => `Lager ${lager.Nummer}`),
-    selectListValues: systemStore.system.Lagerliste.map((lager) => lager.Nummer),
+    selectListKeys: ["kein Lager"].concat(
+     systemStore.system.Lagerliste.map((lager) => `Lager ${lager.Nummer}`),
+    ),
+    selectListValues: [0].concat(systemStore.system.Lagerliste.map((lager) => lager.Nummer)),
    },
    {
     title: "Drehung",

@@ -132,15 +132,19 @@ export default class Stab implements isStatikobjekt {
     title: "Anfangsgelenk",
     value: this.Anfangsgelenknummer,
     inputType: "select",
-    selectListKeys: systemStore.system.Gelenkliste.map((gelenk) => `Gelenk ${gelenk.Nummer}`),
-    selectListValues: systemStore.system.Gelenkliste.map((gelenk) => gelenk.Nummer),
+    selectListKeys: ["kein Gelenk"].concat(
+     systemStore.system.Gelenkliste.map((gelenk) => `Gelenk ${gelenk.Nummer}`),
+    ),
+    selectListValues: [0].concat(systemStore.system.Gelenkliste.map((gelenk) => gelenk.Nummer)),
    },
    {
     title: "Endgelenk",
     value: this.Endgelenknummer,
     inputType: "select",
-    selectListKeys: systemStore.system.Gelenkliste.map((gelenk) => `Gelenk ${gelenk.Nummer}`),
-    selectListValues: systemStore.system.Gelenkliste.map((gelenk) => gelenk.Nummer),
+    selectListKeys: ["kein Gelenk"].concat(
+     systemStore.system.Gelenkliste.map((gelenk) => `Gelenk ${gelenk.Nummer}`),
+    ),
+    selectListValues: [0].concat(systemStore.system.Gelenkliste.map((gelenk) => gelenk.Nummer)),
    },
    {
     title: "Stababschnitte",
@@ -153,40 +157,28 @@ export default class Stab implements isStatikobjekt {
   ]
  }
 
- //Gibt die 6x6 Transformationsmatrix für ein Element
- //mit der Stabdrehung alpha[rad] zurück.
+ /**
+  * RECHENFUNKTIONEN
+  */
+
+ /**
+  * Berechnet und gibt die 6x6 Transformationsmatrix für das Element
+  * mit der Stabdrehung alpha[rad]
+  */
  get T(): number[][] {
-  const sin = Math.sin
-  const cos = Math.cos
+  /**Stabdrehwinkel */
   const alpha = this.Winkel
-  return [
-   [cos(alpha), sin(alpha), 0, 0, 0, 0],
-   [-sin(alpha), cos(alpha), 0, 0, 0, 0],
-   [0, 0, 1, 0, 0, 0],
-   [0, 0, 0, cos(alpha), sin(alpha), 0],
-   [0, 0, 0, -sin(alpha), cos(alpha), 0],
-   [0, 0, 0, 0, 0, 1],
-  ]
- }
+  const sina = Math.sin(alpha)
+  const cosa = Math.cos(alpha)
 
- get TInv(): number[][] {
-  const T = this.T
-
-  const a = T[0][0]
-  const b = T[0][1]
-  const c = T[1][0]
-  const d = T[1][1]
-  const e = T[3][3]
-  const f = T[3][4]
-  const g = T[4][3]
-  const h = T[4][4]
+  // prettier-ignore
   return [
-   [-d / (b * c - a * d), b / (b * c - a * d), 0, 0, 0, 0],
-   [c / (b * c - a * d), -a / (b * c - a * d), 0, 0, 0, 0],
-   [0, 0, 1, 0, 0, 0],
-   [0, 0, 0, -h / (f * g - e * h), f / (f * g - e * h), 0],
-   [0, 0, 0, g / (f * g - e * h), -e / (f * g - e * h), 0],
-   [0, 0, 0, 0, 0, 1],
+   [  cosa , sina , 0 ,   0   ,   0  , 0 ],
+   [ -sina , cosa , 0 ,   0   ,   0  , 0 ],
+   [   0   ,   0  , 1 ,   0   ,   0  , 0 ],
+   [   0   ,   0  , 0 ,  cosa , sina , 0 ],
+   [   0   ,   0  , 0 , -sina , cosa , 0 ],
+   [   0   ,   0  , 0 ,   0   ,   0  , 1 ],
   ]
  }
 }

@@ -22,8 +22,13 @@ export default class System {
 
  istBerechnet: boolean
 
+ /**Anzahl an Freiheitsgraden (gehalten oder nicht gehalten)
+  * Ergebt sich zu:
+  * - Knoten * 3 + Gelenkdefinitionen * 3
+  */
  Freiheitsgrade: number
- Verformungsinzidenzen: number[] //Indizenzen der NICHT-gehaltenen Freiheitsgrade
+ /**Inzidenznummern der nicht-gehaltenen Freiheitsgrade */
+ Verformungsinzidenzen: number[]
 
  constructor() {
   this.Knotenliste = []
@@ -200,13 +205,13 @@ export default class System {
     stab.Anfangsgelenk = this.searchObjectByNummer(stab.Anfangsgelenknummer, this.Gelenkliste)
    } else {
     stab.Anfangsgelenk = new Gelenk(0)
-    stab.Anfangsgelenk.values = [0, false, false, false]
+    stab.Anfangsgelenk.values = [0, false, false, false, 0, 0, 0]
    }
    if (stab.Endgelenknummer !== 0) {
     stab.Endgelenk = this.searchObjectByNummer(stab.Endgelenknummer, this.Gelenkliste)
    } else {
     stab.Endgelenk = new Gelenk(0)
-    stab.Endgelenk.values = [0, false, false, false]
+    stab.Endgelenk.values = [0, false, false, false, 0, 0, 0]
    }
   })
   //Querschnitt bekommt Material-Objekt

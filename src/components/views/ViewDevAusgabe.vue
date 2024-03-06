@@ -46,7 +46,7 @@
 
  <h2>Ergebnisse</h2>
  <v-table
-  v-for="element in systemStore.system.Lastfallliste[0].Elementliste"
+  v-for="element in systemStore.system.Lastfallliste[0].Balkenelementliste"
   :key="element.Nummer.valueOf"
  >
   <thead>
@@ -87,6 +87,9 @@
 
 <script setup lang="ts">
  import { useSystemStore } from "@/stores/SystemStore"
+ import type Balkenelement from "@/typescript/classes/Balkenelement"
+ import type { isElement } from "@/typescript/classes/InterfaceElement"
+ import { computed } from "vue"
 
  const systemStore = useSystemStore()
 </script>

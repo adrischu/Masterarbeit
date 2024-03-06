@@ -11,6 +11,7 @@ export interface isStatikobjekt {
   unit?: string //Angezeigte Einheit im Tabellenkopf
   value: string | number | boolean //Angezeigter Wert im Tabellenkörper
   inputType: string | "fixed" | "input" | "select" | "checkbox" //Eingabetyp
+  disabled?: boolean //Ein Boolean der mitgegeben werden kann und die Eingabe verhindert
   tooltip?: string //Tooltip im HTML Format
   //Für inputType = 'input'
   inputFormat?: string //Eingabeformat, (nur für inputType=input)

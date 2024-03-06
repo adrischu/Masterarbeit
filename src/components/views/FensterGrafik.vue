@@ -15,7 +15,7 @@
    <!-- Ergebnisgrößen -->
    <g v-if="lastfall.istBerechnet">
     <ErgebnisKomponente
-     v-for="element in lastfall.Elementliste"
+     v-for="element in lastfall.Balkenelementliste"
      :key="element.Nummer"
      :element="element"
      :transform="transform"
@@ -84,7 +84,7 @@
    <!-- Verformtes System -->
    <g v-if="lastfall.istBerechnet">
     <VerformungKomponente
-     v-for="element in lastfall.Elementliste"
+     v-for="element in lastfall.Balkenelementliste"
      :key="element.Nummer"
      :element="element"
      :transform="transform"
@@ -119,7 +119,7 @@
  const graphicSettings = useGraphicSettingsStore()
 
  const elementliste = computed(() => {
-  return props.lastfall.Elementliste
+  return props.lastfall.Balkenelementliste
  })
 
  const stablasten = computed(() => {

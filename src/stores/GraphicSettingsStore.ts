@@ -15,6 +15,7 @@ export const useGraphicSettingsStore = defineStore("graphicSettingsStore", {
   //Liniendicken
   LINIENDICKE_GESTRICHELTELINIE: 2 as number,
   LINIENDICKE_STAB: 6 as number,
+  LINIENDICKE_GELENK: 1.5 as number,
   //Werte für gestrichelte Linien
   //Erster Wert ist Strichlänge (px) Zweiter Wert ist Abstand zwischen den Strichen
   GESTRICHELT_VORVERFORMUNG: "3,2" as string,
@@ -44,5 +45,8 @@ export const useGraphicSettingsStore = defineStore("graphicSettingsStore", {
   SKALIERUNG_VERFORMUNGEN: 1 as number,
   SKALIERUNG_SCHNITTGROESSEN: 1 as number,
   SKALIERUNG_KNOTENLASTEN: 1 as number,
+
+  RADIUS_KNOTEN: 4 as number,
+  RADIUS_GELENK: 8 as number,
  }),
 })

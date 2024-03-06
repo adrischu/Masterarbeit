@@ -224,15 +224,17 @@
  systemStore.system = new System()
  systemStore.system.addStatikobjekt("Lager", [1, true, true, true, 0, 0, 0], -1)
  systemStore.system.addStatikobjekt("Knoten", [1, 0, 0, 1], -1)
- systemStore.system.addStatikobjekt("Knoten", [2, 4, 3, 1], -1)
+ systemStore.system.addStatikobjekt("Knoten", [2, 4, 3, 0], -1)
+ systemStore.system.addStatikobjekt("Knoten", [3, 8, 6, 1], -1)
  systemStore.system.addStatikobjekt("Material", [1, "S235", 210000000000], -1)
  systemStore.system.addStatikobjekt("Querschnitt", [1, "IPE360", 1, 0.00721, 0.00016113], -1)
- systemStore.system.addStatikobjekt("Gelenk", [1, false, true, false], -1)
+ systemStore.system.addStatikobjekt("Gelenk", [1, true, true, true, 0, 0, 0], -1)
  systemStore.system.addStatikobjekt("Stab", [1, 1, 2, 1, 0, 1, 4], -1)
+ systemStore.system.addStatikobjekt("Stab", [2, 2, 3, 1, 0, 0, 4], -1)
  systemStore.system.addStatikobjekt("Lastfall", [1, "EG", Theorie.Theorie_1], -1)
  systemStore.system.addStatikobjekt(
   "StablastStreckenlast",
-  [1, 1, "lokal", "z", false, 1000, 1000],
+  [1, 1, "global", "z", false, 1000000, 1000000],
   1,
  )
 </script>

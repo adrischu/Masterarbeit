@@ -4,7 +4,7 @@
   <marker
    id="arrowVert"
    viewBox="0 0 10 10"
-   refX="5"
+   refX="10"
    refY="5"
    markerWidth="15"
    markerHeight="15"

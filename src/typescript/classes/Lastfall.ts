@@ -1,9 +1,11 @@
 import { Theorie } from "../enumerations"
 import type Balkenelement from "./Balkenelement"
+import type { isElement } from "./InterfaceElement"
 import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 import type Knotenlast from "./Knotenlast"
 import type StablastStreckenlast from "./StablastStreckenlast"
 import type StablastVorverformung from "./StablastVorverformung"
+import type Starrelement from "./Starrelement"
 
 export default class Lastfall implements isStatikobjekt {
  //folgende Werte werden bei Erstellung eines Knotens definiert.
@@ -15,7 +17,7 @@ export default class Lastfall implements isStatikobjekt {
  StablastListeStreckenlast: StablastStreckenlast[]
  StablastListeVorverformung: StablastVorverformung[]
  //folgende Werte werden erst bei Berechnung definiert.
- Elementliste: Balkenelement[]
+ Elementliste: isElement[]
  /**Globaler Lastvektor aller gehaltenen und nicht-gehaltenen Freiheitsgrade */
  Lastvektor: number[]
  /**Globaler Verformungsvektor aller nicht-gehaltenen Freiheitsgrade */
@@ -70,6 +72,10 @@ export default class Lastfall implements isStatikobjekt {
   this.Nummer = Nummer
   this.Name = Name
   this.Theorie = Theorie
+ }
+
+ get Balkenelementliste() {
+  return this.Elementliste.filter((element) => element.Typ === "Balkenelement") as Balkenelement[]
  }
 
  get header() {
