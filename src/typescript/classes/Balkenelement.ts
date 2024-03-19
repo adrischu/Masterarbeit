@@ -113,7 +113,6 @@ export default class Balkenelement implements isElement {
  get epsilon(): number {
   const L = this.Stab.Länge
   const N = this.Nmean
-  //Laut Kindmann (2020) ist für eine Zugnormalkraft das Vorzeichen von epsilon zu ändern.
   return L * Math.sqrt(Math.abs(N) / this.EI)
  }
 

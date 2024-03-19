@@ -1,28 +1,25 @@
-# Stabteilung
+- Relativ viel ist inhaltlich sehr änlich zu NL-Statik Skript geschrieben, allerdings ohne Herleitungen. Ist das zweckmäßig?
+  Wie soll in diesem Falle die Referenz ausschauen? Einmal am Anfang "nach (Böhme....)" oder jedesmal wenn eine Gleichung verwendet wird?
+  -> Gleichungen aus Skript können übernommen werden! Einmal am Anfang des Kapitels auf Quelle verweisen ist ok!
 
-- Ist es normal einen Stab in mehrere Elemente aufzuteilen? REMFEM und Prog. Rothe verwenden Stabteilung nur im Sinne von Ausgabe-Teilung. RStab verwendet tatsächlich Stabteilung -> aus einem Stab werden zB 10 Elemente.
+- Sind Verweise auf Herleitungen oder genauere Untersuchung in anderen Bücher ok?
+  -> Ist ok! es kann gern kompakt gehalten werden. Sachen die schon existieren müssen nicht hergeleitet werden und können einfach so genommen wrden.
 
-  - Eine Verallgemeinerung der Frage wäre: Wo genau ist der Unterschied zwischen dem WGV und der FEM
+- Dürfen Ihre Skripte zitiert werden, oder sollt eich immer die Literatur die in Ihren Skripten zitiert werden zitieren?
 
-- Wie sehen die DGL für die Näherungsansätze aus?
+- Ab wann muss man zitieren bzw auf Quellen verweisen? Müssen Sachen die in der Vorlesung gelehrt wurden verwiesen werden? Beispiel: Vorgehen des WGV (computerbasiert).
+  -> Muss nicht unbedingt zitiert wedn kann einfach aus dem Kopf hergeleitet werden.
 
-- Gibt es eine Formatvorlage für Masterarbeiten für MSWord?
+- Wie zitiere ich ein Programm? Beispiel: Der Quellcode für den Gauß-Algorithmus ist von (Rothe d2beam) entnommen.
+  -> Kann genauso übernommen werden wie Zitat aus einem Buch. (google "Richtig zitieren im Ingenieurbereich.")
 
-- Formatvorlage für Plakat?
+- Was bei sehr großen Formeln machen?
+  -> große Formeln sind ok. Es gibt Regelungen für die Formatierung von Formeln. -> eveneutell Herr Kuntsche Fragen.
 
-- Wozu ist die mehrfache Iteration der Berechnung bei Theorie 2 Ordnung nötig. FÜr mich sieht es so aus als ob sich in den einzelnen Berechnungsschritten nichts mehr ändert.
+- Chat GPT eventuell zitieren. Kann gern verwendet werden.
 
-- Schnittgrößenermittlung bei Näherungsansätzen?
+Besprechung mit Herrn Böhme:
 
-- Spezifische Ausgabe?
+- Untersuchung soll mit den verschiedenen Ansätzen geschehen an verschiedenen Systemen und mit verschiedenen Lasten. An welchen Systemen spielen die Näherungsansätze eine große Rolle und wo nicht. Kleine Beispiele (2 bis 3).
 
-  - Steifigkeitsmatrizen?
-  - Iterationsschritte?
-
-- Als weitere Lastoptionen bisher nur Vorverformungen geplant. (Vorverkrümmung, Schiefstellung)
-  - Vorverformung über Eigenform?
-
-# Gelöst
-
-- Ist es normal einen Stab in mehrere Elemente aufzuteilen? REMFEM und Prog. Rothe verwenden Stabteilung nur im Sinne von Ausgabe-Teilung. RStab verwendet tatsächlich Stabteilung -> aus einem Stab werden zB 10 Elemente.
-  -> Für die exakte Lösung ist dies egal, für Näherungsansaätze wird das Verfahren genauer je mehr Elemente
+- Untersuchung zu Stabilitätsuntersuchung: Ermittlung alpha Crit der veschiedenen Ansätze. zB. Verformung bezogen auf einen Punkt-> Last-Verformungskurve.

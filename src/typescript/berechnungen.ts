@@ -412,6 +412,7 @@ function elementkräfteBestimmen(system: System, lastfall: Lastfall) {
   //Knotenersatzlasten müssen erst ins lokale System transformiert werden.
   element.Stablasten.forEach((stablast) => {
    matMultiplyVec(element.T, stablast.Knotenersatzlasten)!.forEach((lastterm, index) => {
+    console.log(`${index}: ${element.F[index]} - ${lastterm}`)
     element.F[index] -= lastterm
    })
   })

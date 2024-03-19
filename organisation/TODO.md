@@ -53,3 +53,12 @@ Aufbau Masterarbeittext:
 - Vergleichsbeispiel mit RSTAB
 - Herleitung der Formeln
 -
+
+# Ganz am Ende
+
+- Rahmen von den FOrmeltabellen entfernen.
+- Bei Literaturverweisen eckige Klammern statt runden Klammern verwendeen.
+- Oberen und unteren Rand von FOrmeln einheitlich noch einmal überprüfen.
+- Rechtschreibcheck
+- Zeichensetzungscheck
+- Alle Verweise checken.

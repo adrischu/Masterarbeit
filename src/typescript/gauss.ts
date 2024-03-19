@@ -1,11 +1,17 @@
-//Funktion wurde von Prof. Dr. Detlef Rothe (hda) übernommen.
-export function gauss(n: number, a: number[][], b: number[]) {
- //***********************************************************************
- //                                                                      *
- // Funktion GAUSS zur Lösung linearer Gleichungen A*x=B                 *
- //                                                                      *
- //***********************************************************************
+//Funktion wurde mit Einverständnis von Prof. Dr. Detlef Rothe (hda) übernommen.
 
+/** ### Gauss-Algorithmus
+ * Funktion zur Lösung linearer Gleichungen der Form "A*x=b". Es wird x gesucht.
+ * In unserem Fall:
+ * - A: Steifigkeitsmatrix
+ * - x: Verformungsvektor
+ * - b: Lastvektor
+ * @param n Anzahl der Gleichungen
+ * @param a Quadratische Matrix A der Form nxn
+ * @param b Vektor b der Länge n. Der Vektor wird in der Funktion zur Lösung x umgeformt.
+ * @returns 0 für erfolgreiche Lösung | 1 für unlösbares System
+ */
+export function gauss(n: number, a: number[][], b: number[]): 0 | 1 {
  let i: number, mem: number, iz: number, k: number, j: number
  let c: number, aji: number
 

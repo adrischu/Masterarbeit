@@ -106,7 +106,7 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
    }
    //Zugnormalkraft
    else if (Nmean > 0) {
-    const nenner = 6 * e ** 3 * EI * (1 + (coshe - sinhe) * (coshe + sinhe) - 2 * coshe + e * sinhe)
+    const nenner = 6 * e ** 3 * EI * (1 + coshe * (coshe - 2) + sinhe * (e - sinhe))
     this.A =
      (pL * L ** 4 * (-3 * sinhe + 2 * e * coshe + e)) / nenner +
      (pR * L ** 4 * (-3 * sinhe + e * coshe + 2 * e)) / nenner
@@ -129,7 +129,6 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
   const p = -(Nmean * 8 * this.w0zuL) / L
   const pzL = p
   const pzR = p
-  const dpZ = 0
 
   let lokKräfte: number[] = []
 
@@ -151,15 +150,15 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
    if (Nmean < 0) {
     const cose = Math.cos(e)
     const sine = Math.sin(e)
-    ML = EI * (e / L) ** 2 * A - (pzL * L * L) / e / e
-    MR = -EI * (e / L) ** 2 * (A * cose + B * sine) + (L / e) ** 2 * (dpZ + pzL)
+    ML = EI * (e / L) ** 2 * A - pzL * (L / e) ** 2
+    MR = -EI * (e / L) ** 2 * (A * cose + B * sine) + pzR * (L / e) ** 2
    }
    //Zurnormalkraft
    else if (Nmean > 0) {
     const coshe = Math.cosh(e)
     const sinhe = Math.sinh(e)
-    ML = -EI * (e / L) ** 2 * A + (pzL * L * L) / e / e
-    MR = EI * (e / L) ** 2 * (A * coshe + B * sinhe) - (L / e) ** 2 * (dpZ + pzL)
+    ML = -EI * (e / L) ** 2 * A + pzL * (L / e) ** 2
+    MR = EI * (e / L) ** 2 * (A * coshe + B * sinhe) - pzR * (L / e) ** 2
    }
   }
   //Lasten in axialer Richtung werden durch Vorverformungen nicht erzeugt.

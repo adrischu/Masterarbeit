@@ -38,6 +38,7 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
  /**Lastgröße am Stabende */
  pr: number
  //Berechnungsparameter
+ /**Knotenersatzlasten der Stablast für den Lastvektor bezogen auf das globale KS */
  Knotenersatzlasten: number[]
  /**Integrationskonstanten */
  A: number
@@ -189,7 +190,7 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
    }
    //Zugnormalkraft
    else if (N > 0) {
-    const nenner = 6 * e ** 3 * EI * (1 + (coshe - sinhe) * (coshe + sinhe) - 2 * coshe + e * sinhe)
+    const nenner = 6 * e ** 3 * EI * (1 + coshe * (coshe - 2) + sinhe * (e - sinhe))
     this.A =
      (pL * L ** 4 * (-3 * sinhe + 2 * e * coshe + e)) / nenner +
      (pR * L ** 4 * (-3 * sinhe + e * coshe + 2 * e)) / nenner
@@ -209,7 +210,6 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   const pxR = p[1]
   const pzL = p[2]
   const pzR = p[3]
-  const dpZ = pzR - pzL
   const EI = this.Element!.EI
   const N = this.Element!.Nmean
   const e = this.Element!.epsilon
@@ -235,19 +235,19 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
    if (N < 0) {
     const cose = Math.cos(e)
     const sine = Math.sin(e)
-    VL = EI * (e / L) ** 3 * B - (dpZ * L) / e / e
-    ML = EI * (e / L) ** 2 * A - (pzL * L * L) / e / e
-    VR = EI * (e / L) ** 3 * (A * sine - B * cose) + (dpZ * L) / e / e
-    MR = -EI * (e / L) ** 2 * (A * cose + B * sine) + (L / e) ** 2 * (dpZ + pzL)
+    VL = EI * (e / L) ** 3 * B - ((pzR - pzL) * L) / e / e
+    ML = EI * (e / L) ** 2 * A - pzL * (L / e) ** 2
+    VR = EI * (e / L) ** 3 * (A * sine - B * cose) + ((pzR - pzL) * L) / e / e
+    MR = -EI * (e / L) ** 2 * (A * cose + B * sine) + pzR * (L / e) ** 2
    }
    //Zurnormalkraft
    else if (N > 0) {
     const coshe = Math.cosh(e)
     const sinhe = Math.sinh(e)
-    VL = -EI * (e / L) ** 3 * B + (dpZ * L) / e / e
-    ML = -EI * (e / L) ** 2 * A + (pzL * L * L) / e / e
-    VR = EI * (e / L) ** 3 * (A * sinhe + B * coshe) - (dpZ * L) / e / e
-    MR = EI * (e / L) ** 2 * (A * coshe + B * sinhe) - (L / e) ** 2 * (dpZ + pzL)
+    VL = -EI * (e / L) ** 3 * B + ((pzR - pzL) * L) / e / e
+    ML = -EI * (e / L) ** 2 * A + pzL * (L / e) ** 2
+    VR = EI * (e / L) ** 3 * (A * sinhe + B * coshe) - ((pzR - pzL) * L) / e / e
+    MR = EI * (e / L) ** 2 * (A * coshe + B * sinhe) - pzR * (L / e) ** 2
    }
   }
   lokKräfte = [NL, VL, ML, NR, VR, MR]
