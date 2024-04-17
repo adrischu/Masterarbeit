@@ -138,10 +138,10 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
   //Falls nach trigonometrischer Theorie gerechnet wird werden diese Werte später überschrieben
 
   //Die Vorverdrehung erzeugt lediglich Querkräfte und die Vorverkrümmung erzeugt lediglich Momente als Knotenersatzlasten.
-  const VL = Nmean * this.phi0 //Linke Auflagerlast in lokal z
-  let ML = -((1.5 * pzL + pzR) * L * L) / 30 //Linkes Auflagermoment
-  const VR = -Nmean * this.phi0 //Rechte Auflagerlast in lokal z
-  let MR = ((pzL + 1.5 * pzR) * L * L) / 30 //Rechtes Auflagermoment
+  const VL = -Nmean * this.phi0 //Linke Auflagerlast in lokal z
+  let ML = ((1.5 * pzL + pzR) * L * L) / 30 //Linkes Auflagermoment
+  const VR = Nmean * this.phi0 //Rechte Auflagerlast in lokal z
+  let MR = -((pzL + 1.5 * pzR) * L * L) / 30 //Rechtes Auflagermoment
 
   if (this.Element!.Theorie === Theorie.Theorie_2_trig) {
    const A = this.A
@@ -150,15 +150,15 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
    if (Nmean < 0) {
     const cose = Math.cos(e)
     const sine = Math.sin(e)
-    ML = EI * (e / L) ** 2 * A - pzL * (L / e) ** 2
-    MR = -EI * (e / L) ** 2 * (A * cose + B * sine) + pzR * (L / e) ** 2
+    ML = -EI * (e / L) ** 2 * A + pzL * (L / e) ** 2
+    MR = EI * (e / L) ** 2 * (A * cose + B * sine) - pzR * (L / e) ** 2
    }
    //Zurnormalkraft
    else if (Nmean > 0) {
     const coshe = Math.cosh(e)
     const sinhe = Math.sinh(e)
-    ML = -EI * (e / L) ** 2 * A + pzL * (L / e) ** 2
-    MR = EI * (e / L) ** 2 * (A * coshe + B * sinhe) - pzR * (L / e) ** 2
+    ML = EI * (e / L) ** 2 * A - pzL * (L / e) ** 2
+    MR = -EI * (e / L) ** 2 * (A * coshe + B * sinhe) + pzR * (L / e) ** 2
    }
   }
   //Lasten in axialer Richtung werden durch Vorverformungen nicht erzeugt.
@@ -222,7 +222,7 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
    M = -(pzl / 2) * x ** 2 - ((pzr - pzl) / (6 * L)) * x ** 3
    //Bei der Theorie 2 Ordnung kommt das extra Moment aus N dazu
    if(stabtheorie === Theorie.Theorie_2_kub || stabtheorie === Theorie.Theorie_2_pDelta){
-    M -= Nmean * uz
+    M -= Nmean * uz //Eigentlich (uz-ui) aber aufgrund der doppelten Einspannung gilt ui=0
    }
    //Vl ist die Last, die der gedachten Streckenlast entgegenwirkt, sodass die Stabenden keine Querkraft weiterleiten.
    //Diese Querkraft muss in der Schnittgrößenermittlung zusätzlich berücksichtigt werden.
@@ -253,7 +253,7 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
     const sinh = Math.sinh((e * x) / L)
     uz = A * cosh + B * sinh + ((C * e) / L) * x + D - (L / 6 / EI / e / e) * (x ** 3 * dpz + x * x * 3 * pzl * L)
     phi = -(e / L) * (A * sinh + B * cosh + C) + (L / 6 / EI / e / e) * (3 * x * x * dpz + 6 * x * pzl * L)
-    V = -EI * (e / L) ** 3 * (A*sinh + B * cosh) + (L / 6 / e / e) * (-6 * pzl + 6 * pzr )
+    V = -EI * (e / L) ** 3 * (A * sinh + B * cosh) + (L / 6 / e / e) * (-6 * pzl + 6 * pzr )
     T = V - Nmean * phi
     M = -((EI * e * e) / L / L) * (A * cosh + B * sinh) + (L / 6 / e / e) * (6 * x * dpz + 6 * pzl * L)
    }

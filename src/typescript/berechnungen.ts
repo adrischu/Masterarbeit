@@ -296,7 +296,7 @@ function lastvektorAufstellen(system: System, lastfall: Lastfall) {
    console.log("Knotenersatzlasten")
    console.table(stablast.Knotenersatzlasten)
    stablast.Knotenersatzlasten.forEach((lastterm, index) => {
-    tempLastvektor[element.Inzidenzen[index]] += lastterm
+    tempLastvektor[element.Inzidenzen[index]] -= lastterm
    })
   })
  })
@@ -412,8 +412,8 @@ function elementkräfteBestimmen(system: System, lastfall: Lastfall) {
   //Knotenersatzlasten müssen erst ins lokale System transformiert werden.
   element.Stablasten.forEach((stablast) => {
    matMultiplyVec(element.T, stablast.Knotenersatzlasten)!.forEach((lastterm, index) => {
-    console.log(`${index}: ${element.F[index]} - ${lastterm}`)
-    element.F[index] -= lastterm
+    console.log(`${index}: ${element.F[index]} + ${lastterm}`)
+    element.F[index] += lastterm
    })
   })
   console.log(`Stabendkräfte Stab ${element.Nummer}`)

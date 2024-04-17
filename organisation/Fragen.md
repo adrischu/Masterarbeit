@@ -23,3 +23,5 @@ Besprechung mit Herrn Böhme:
 - Untersuchung soll mit den verschiedenen Ansätzen geschehen an verschiedenen Systemen und mit verschiedenen Lasten. An welchen Systemen spielen die Näherungsansätze eine große Rolle und wo nicht. Kleine Beispiele (2 bis 3).
 
 - Untersuchung zu Stabilitätsuntersuchung: Ermittlung alpha Crit der veschiedenen Ansätze. zB. Verformung bezogen auf einen Punkt-> Last-Verformungskurve.
+
+- Lieber Querverweise zu Formeln o.Ä. oder Wiederholungen?

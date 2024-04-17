@@ -170,15 +170,15 @@ export default class Balkenelement implements isElement {
     const nenner = (e / L) * (e * sine + 2 * cose - 2)
     this.A = ((sine - e) * (phii - phik) + (e / L - (e / L) * cose) * (wk - wi + phii * L)) / nenner
     this.B = ((1 - cose) * (phii - phik) + (-e / L) * sine * (wk - wi + phii * L)) / nenner
-    this.C = -phii / (e / L) - this.B
+    this.C = (-phii * L) / e - this.B
     this.D = wi - this.A
     break
    }
    //Fall für Zugnormalkraft
    case this.Nmean > 0: {
-    const nenner = e * (e * sinhe + 2 - 2 * coshe)
-    this.A = (-wi * e * (coshe - 1) + phii * L * (e * coshe - sinhe) + wk * e * (coshe - 1) - phik * L * (e - sinhe)) / nenner
-    this.B = (+wi * e * sinhe - phii * L * (e * sinhe + 1 - coshe) - wk * e * sinhe - phik * L * (coshe - 1)) / nenner
+    const nenner = (e / L) * (e * sinhe - 2 * coshe + 2)
+    this.A = ((e - sinhe) * (phii - phik) + (e / L * coshe - e / L) * (wk - wi + phii * L)) / nenner
+    this.B = ((coshe - 1) * (phii - phik) + (-e / L) * sinhe * (wk - wi + phii * L)) / nenner
     this.C = (-phii * L) / e - this.B
     this.D = wi - this.A
     break

@@ -221,12 +221,12 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   //Schneider Auflager 23 4.8
   //Default Werte für Th1 und Th2Kubisch und Th2PDelta werden gesetzt.
   //Falls nach trigonometrischer Theorie gerechnet wird werden diese Werte später überschrieben
-  const NL = (pxL / 3 + pxR / 6) * L //Linke AUflagerlast in lokal x
-  let VL = (0.35 * pzL + 0.15 * pzR) * L //Linke Auflagerlast in lokal z
-  let ML = -((1.5 * pzL + pzR) * L * L) / 30 //Linkes Auflagermoment
-  const NR = (pxL / 6 + pxR / 3) * L //Rechte Auflagerlast in lokal x
-  let VR = (0.15 * pzL + 0.35 * pzR) * L //Rechte Auflagerlast in lokal z
-  let MR = ((pzL + 1.5 * pzR) * L * L) / 30 //Rechtes Auflagermoment
+  const NL = -(pxL / 3 + pxR / 6) * L //Linke AUflagerlast in lokal x
+  let VL = -(0.35 * pzL + 0.15 * pzR) * L //Linke Auflagerlast in lokal z
+  let ML = ((1.5 * pzL + pzR) * L * L) / 30 //Linkes Auflagermoment
+  const NR = -(pxL / 6 + pxR / 3) * L //Rechte Auflagerlast in lokal x
+  let VR = -(0.15 * pzL + 0.35 * pzR) * L //Rechte Auflagerlast in lokal z
+  let MR = -((pzL + 1.5 * pzR) * L * L) / 30 //Rechtes Auflagermoment
 
   if (this.Element!.Theorie === Theorie.Theorie_2_trig) {
    const A = this.A
@@ -235,19 +235,19 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
    if (N < 0) {
     const cose = Math.cos(e)
     const sine = Math.sin(e)
-    VL = EI * (e / L) ** 3 * B - ((pzR - pzL) * L) / e / e
-    ML = EI * (e / L) ** 2 * A - pzL * (L / e) ** 2
-    VR = EI * (e / L) ** 3 * (A * sine - B * cose) + ((pzR - pzL) * L) / e / e
-    MR = -EI * (e / L) ** 2 * (A * cose + B * sine) + pzR * (L / e) ** 2
+    VL = -EI * (e / L) ** 3 * B + ((pzR - pzL) * L) / e / e
+    ML = -EI * (e / L) ** 2 * A + pzL * (L / e) ** 2
+    VR = -EI * (e / L) ** 3 * (A * sine - B * cose) - ((pzR - pzL) * L) / e / e
+    MR = EI * (e / L) ** 2 * (A * cose + B * sine) - pzR * (L / e) ** 2
    }
    //Zurnormalkraft
    else if (N > 0) {
     const coshe = Math.cosh(e)
     const sinhe = Math.sinh(e)
-    VL = -EI * (e / L) ** 3 * B + ((pzR - pzL) * L) / e / e
-    ML = -EI * (e / L) ** 2 * A + pzL * (L / e) ** 2
-    VR = EI * (e / L) ** 3 * (A * sinhe + B * coshe) - ((pzR - pzL) * L) / e / e
-    MR = EI * (e / L) ** 2 * (A * coshe + B * sinhe) - pzR * (L / e) ** 2
+    VL = EI * (e / L) ** 3 * B - ((pzR - pzL) * L) / e / e
+    ML = EI * (e / L) ** 2 * A - pzL * (L / e) ** 2
+    VR = -EI * (e / L) ** 3 * (A * sinhe + B * coshe) + ((pzR - pzL) * L) / e / e
+    MR = -EI * (e / L) ** 2 * (A * coshe + B * sinhe) + pzR * (L / e) ** 2
    }
   }
   lokKräfte = [NL, VL, ML, NR, VR, MR]
