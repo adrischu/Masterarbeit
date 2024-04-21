@@ -103,7 +103,7 @@
  </div>
 
  <div class="footer">
-  &copy; Adrian Schubert {{ new Date().getFullYear() }} - current Commit: 19.03.2024 10:17
+  &copy; Adrian Schubert {{ new Date().getFullYear() }} - current Commit: 21.04.2024 16:15
  </div>
 </template>
 
