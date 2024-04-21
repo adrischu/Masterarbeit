@@ -20,6 +20,7 @@ export default class Stab implements isStatikobjekt {
  Endgelenknummer: number
  Endgelenk: Gelenk | null
  Stababschnitte: number
+ istZeichenbar: boolean
  //folgende Werte werden bei der Berechnung definiert
  Inzidenzen: number[]
  M_k: number[][] | null
@@ -40,6 +41,7 @@ export default class Stab implements isStatikobjekt {
   this.Endgelenk = null
   this.Stababschnitte = 10
   this.Inzidenzen = []
+  this.istZeichenbar = true
   this.M_k = []
   this.M_T = []
   this.M_K = []

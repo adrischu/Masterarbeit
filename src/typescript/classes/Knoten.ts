@@ -2,6 +2,7 @@ import { useSystemStore } from "@/stores/SystemStore"
 import Lager from "./Lager"
 import Vector from "./Vector"
 import type { isStatikobjekt } from "./InterfaceStatikobjekt"
+import type Stab from "./Stab"
 
 export default class Knoten implements isStatikobjekt {
  //Werte werden bei Erstellung eines Knotens definiert.
@@ -12,7 +13,10 @@ export default class Knoten implements isStatikobjekt {
  Lager: Lager | null
  //Lagerdrehung gegen den Uhrzeigersinn
  Drehung: number
+ /**Liste aller angreifenden Stäbe */
+ Stabliste: Stab[]
  //folgende Werte werden erst bei der Berechnung definiert.
+ /**Inzidenzen des Knoten für u,w,phi */
  Inzidenzen: number[]
 
  constructor(Nummer: number = 0) {
@@ -22,6 +26,7 @@ export default class Knoten implements isStatikobjekt {
   this.Lager = null
   this.Drehung = 0
   this.Inzidenzen = []
+  this.Stabliste = []
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein

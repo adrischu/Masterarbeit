@@ -24,19 +24,28 @@
     />
    </g>
    <!-- Stäbe -->
-   <StabKomponente
+   <g
     v-for="stab in systemStore.system.Stabliste"
     :key="stab.Nummer"
-    :stab="stab"
-    :transform="transform"
-   />
-   <!-- Knoten -->
-   <LagerKomponente
+   >
+    <StabKomponente
+     v-if="stab.istZeichenbar"
+     :stab="stab"
+     :transform="transform"
+    />
+   </g>
+   <!-- Lager -->
+   <g
     v-for="knoten in systemStore.system.Knotenliste"
     :key="knoten.Nummer"
-    :knoten="knoten"
-    :transform="transform"
-   />
+   >
+    <LagerKomponente
+     v-if="knoten.Lager"
+     :knoten="knoten"
+     :transform="transform"
+    />
+   </g>
+
    <!-- Knoten -->
    <KnotenKomponente
     v-for="knoten in systemStore.system.Knotenliste"
@@ -46,17 +55,20 @@
    />
 
    <!-- Stablasten -->
-   <!-- <g v-if="stablasten.length"> -->
    <g v-if="stablasten.length">
-    <StablastKomponente
+    <g
      v-for="stab in systemStore.system.Stabliste"
      :key="stab.Nummer"
-     :stab="stab"
-     :lasten="stablasten.filter((stablast) => stablast.Stab === stab)"
-     :transform="transform"
-     :scaleLasten="scaleStablasten"
-     :scaleVorverformungen="scaleVorverformungen"
-    />
+    >
+     <StablastKomponente
+      v-if="stab.istZeichenbar"
+      :stab="stab"
+      :lasten="stablasten.filter((stablast) => stablast.Stab === stab)"
+      :transform="transform"
+      :scaleLasten="scaleStablasten"
+      :scaleVorverformungen="scaleVorverformungen"
+     />
+    </g>
    </g>
 
    <!-- Knotenlasten -->

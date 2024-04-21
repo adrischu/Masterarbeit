@@ -1,6 +1,17 @@
+# SCHREIBEN
+
+- Absatz zu "Stand der Forschung und Normung" fertig bearbeiten.
+- Teil zur Untersuchung der Näherungsansätze und Stabilitätsuntersuchung schreiben
+- Programmplausibilisierung schreiben
+- Abstract deutsch
+- Abstract englisch
+- Teil für Benutzeroberfläche?
+
 # PROGRAMMIEREN
 
 - Lizenzen einfügen?
+
+- Undefined in Lagerkraftarray untersuchen.
 
 - Überprüfen ob alle Keys von v-for Schleifen einzigartig sind-
 
@@ -18,7 +29,9 @@
 ## Knotentabelle, Stabtabelle usw.
 
 - Mechanismen einbauen, sodass immer automatisch die nächste Knoten/Stabnummer für ein neues Objekt genommen wird.
+
 - Nach Eingabe eines Objektes und bestätigen mit Enter oder Klick auf Button: Fokus immer automatisch wieder auf erstes Zeile der grün hinterlegten Zeile (oder zweite und Nummer automatisch hochzählen?!) legen.
+
 - Eingabefelder in den Tabellen personalisieren (zB nur positive Werte über 0 annehmen für Nummern..E-Modul..Fläche..)
 
 ## Optik

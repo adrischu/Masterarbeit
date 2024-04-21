@@ -1,48 +1,24 @@
 <template>
  <h1>Systemausgabe</h1>
 
- <h2>Knotentabelle</h2>
+ <h2>Fehlerliste</h2>
  <v-table>
   <thead>
    <tr>
-    <th>Nummer</th>
-    <th>x-Koordinate</th>
-    <th>z-Koordinate</th>
+    <th>Typ</th>
+    <th>Beschreibung</th>
    </tr>
   </thead>
   <tbody>
    <tr
-    v-for="Knoten in systemStore.system.Knotenliste"
-    :key="Knoten.Nummer.valueOf"
+    v-for="fehler in systemStore.system.Fehlerliste"
+    :key="fehler.Typ"
    >
-    <td>{{ Knoten.Nummer }}</td>
-    <td>{{ Knoten.Koordinaten.x }}</td>
-    <td>{{ Knoten.Koordinaten.z }}</td>
+    <td>{{ fehler.Typ }}</td>
+    <td>{{ fehler.Nachricht }}</td>
    </tr>
   </tbody>
  </v-table>
-
- <h2>Stabtabelle</h2>
- <!-- <v-table>
-    <thead>
-      <tr>
-        <th>Nummer</th>
-        <th>Anfangsknoten</th>
-        <th>Endknoten</th>
-        <th>Elementanzahl</th>
-        <th>Länge</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="Stab in systemStore.system.Stäbe" :key="Stab.Nummer.valueOf">
-        <td>{{ Stab.Nummer }}</td>
-        <td>{{ Stab.Anfangsknoten.Nummer }}</td>
-        <td>{{ Stab.Endknoten.Nummer }}</td>
-        <td>{{ Stab.Elementabschnitte }}</td>
-        <td>{{ Stab.Länge }}</td>
-      </tr>
-    </tbody>
-  </v-table> -->
 
  <h2>Ergebnisse</h2>
  <v-table

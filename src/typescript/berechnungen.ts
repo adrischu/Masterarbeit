@@ -8,8 +8,7 @@ import type { isStablast } from "./classes/InterfaceStablast"
 import { useSettingsStore } from "@/stores/SettingsStore"
 import Stab from "./classes/Stab"
 import Starrelement from "./classes/Starrelement"
-import { validateHeaderName } from "http"
-import { toValue } from "vue"
+
 //-------------------------------------------------------------------------------
 /**
  * ### ABLAUF DER BERECHNUNGEN

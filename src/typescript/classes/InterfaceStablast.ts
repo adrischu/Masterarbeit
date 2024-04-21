@@ -3,6 +3,7 @@ import type Stab from "./Stab"
 
 export interface isStablast {
  Nummer: number
+ Stabnummer: number
  Stab: Stab | null
  Element: Balkenelement | null
  Typ: string

@@ -22,14 +22,14 @@
  <!-- Gelenke -->
  <!-- Anfangsgelenk -->
  <GelenkKomponente
-  v-if="stab.Anfangsgelenknummer"
+  v-if="stab.Anfangsgelenk"
   :gelenk="stab.Anfangsgelenk!"
   :lage="anfangsgelenkLage"
   :rotation="stab.Winkel"
  />
  <!-- Endgelenk -->
  <GelenkKomponente
-  v-if="stab.Endgelenknummer"
+  v-if="stab.Endgelenk"
   :gelenk="stab.Endgelenk!"
   :lage="endgelenkLage"
   :rotation="stab.Winkel"

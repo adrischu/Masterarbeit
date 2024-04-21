@@ -9,6 +9,7 @@ export default class Knotenlast implements isStatikobjekt {
  Knotennummer: number
  Knoten: Knoten | null
  Lastvektor: [x: number, z: number, phi: number]
+ istZeichenbar: boolean
 
  constructor(Nummer: number = 0) {
   this.Nummer = Nummer
@@ -16,6 +17,7 @@ export default class Knotenlast implements isStatikobjekt {
   this.Knotennummer = 1
   this.Knoten = null
   this.Lastvektor = [0, 0, 0]
+  this.istZeichenbar = true
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein

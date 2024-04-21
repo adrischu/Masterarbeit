@@ -50,4 +50,5 @@
  let lastfallProps = function (lastfall: Lastfall) {
   return { title: `Lastfall ${lastfall.Nummer}`, subtitle: lastfall.Name }
  }
+ //systemStore.system.Lastfallliste[0]
 </script>

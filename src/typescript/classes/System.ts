@@ -10,6 +10,7 @@ import Gelenk from "./Gelenk"
 import { startBerechnungen, ergebnisseLöschen } from "../berechnungen"
 import StablastStreckenlast from "./StablastStreckenlast"
 import StablastVorverformung from "./StablastVorverformung"
+import Fehler from "./Fehler"
 
 export default class System {
  Knotenliste: Knoten[]
@@ -19,6 +20,7 @@ export default class System {
  Gelenkliste: Gelenk[]
  Materialliste: Material[]
  Lastfallliste: Lastfall[]
+ Fehlerliste: Fehler[]
 
  istBerechnet: boolean
 
@@ -39,6 +41,7 @@ export default class System {
   this.Gelenkliste = []
   this.Materialliste = []
   this.Lastfallliste = []
+  this.Fehlerliste = []
 
   //Die folgenden Variablen verändern sich über die Berechnung
   this.istBerechnet = false
@@ -195,6 +198,7 @@ export default class System {
  buildSystem(): void {
   //Knoten bekommt Lager-Objekt
   this.Knotenliste.forEach((knoten) => {
+   knoten.Stabliste = [] //Liste der angreifenden Stäbe wird zunächst geleert
    if (knoten.Lagernummer !== 0) {
     knoten.Lager = this.searchObjectByNummer(knoten.Lagernummer, this.Lagerliste)
    } else {
@@ -202,17 +206,26 @@ export default class System {
     knoten.Lager.values = [0, false, false, false, 0, 0, 0] //neues Lager ohne Lagerung und ohne Federn
    }
   })
+
   //Stab bekommt Anfangsknoten- Endknoten- Querschnitt- und Gelenkobjekt
+  //Gleichzeitig werden den Knoten angreifende Stäbe zugewiesen.
   this.Stabliste.forEach((stab) => {
+   //Anfangsknoten
    stab.Anfangsknoten = this.searchObjectByNummer(stab.Anfangsknotennummer, this.Knotenliste)
+   //if (stab.Anfangsknoten) stab.Anfangsknoten.Stabliste.push(stab)
+   //Endknoten
    stab.Endknoten = this.searchObjectByNummer(stab.Endknotennummer, this.Knotenliste)
+   //if (stab.Endknoten) stab.Endknoten.Stabliste.push(stab)
+   //Querschnitt
    stab.Querschnitt = this.searchObjectByNummer(stab.Querschnittsnummer, this.Querschnittliste)
+   //Anfangsgelenk
    if (stab.Anfangsgelenknummer !== 0) {
     stab.Anfangsgelenk = this.searchObjectByNummer(stab.Anfangsgelenknummer, this.Gelenkliste)
    } else {
     stab.Anfangsgelenk = new Gelenk(0)
     stab.Anfangsgelenk.values = [0, false, false, false, 0, 0, 0]
    }
+   //Endgelenk
    if (stab.Endgelenknummer !== 0) {
     stab.Endgelenk = this.searchObjectByNummer(stab.Endgelenknummer, this.Gelenkliste)
    } else {
@@ -220,10 +233,12 @@ export default class System {
     stab.Endgelenk.values = [0, false, false, false, 0, 0, 0]
    }
   })
+
   //Querschnitt bekommt Material-Objekt
   this.Querschnittliste.forEach((querschnitt) => {
    querschnitt.Material = this.searchObjectByNummer(querschnitt.Materialnummer, this.Materialliste)
   })
+
   //Knotenlasten bekommen Knoten
   this.Lastfallliste.forEach((lastfall) => {
    lastfall.Knotenlastliste.forEach((knotenlast) => {
@@ -237,6 +252,114 @@ export default class System {
    lastfall.StablastListeVorverformung.forEach((vorferformung) => {
     vorferformung.Stab = this.searchObjectByNummer(vorferformung.Stabnummer, this.Stabliste)
     vorferformung.Lastfallnummer = lastfall.Nummer
+   })
+  })
+
+  this.checkSystem()
+ }
+
+ /**
+  * Überprüft das System auf Eingabefehler
+  */
+ checkSystem(): void {
+  this.Fehlerliste = []
+  //Überprüft ob alle zugewiesenen Lager existieren.
+  this.Knotenliste.forEach((knoten) => {
+   if (!knoten.Lager) {
+    this.Fehlerliste.push(
+     new Fehler("Eingabe", `Knoten ${knoten.Nummer}: Lager ${knoten.Lagernummer} existiert nicht.`),
+    )
+   }
+  })
+
+  this.Stabliste.forEach((stab) => {
+   stab.istZeichenbar = true
+   //Überprüft ob Anfangsknoten existieren.
+   if (!stab.Anfangsknoten) {
+    this.Fehlerliste.push(
+     new Fehler(
+      "Eingabe",
+      `Stab ${stab.Nummer}: Anfangsknoten (Nr. ${stab.Anfangsknotennummer}) existiert nicht.`,
+     ),
+    )
+    stab.istZeichenbar = false //Ohne Anfangsknoten kann der Stab nicht mehr gezeichnet werden.
+   }
+
+   //Überprüft ob Endknoten existieren.
+   if (!stab.Endknoten) {
+    this.Fehlerliste.push(
+     new Fehler(
+      "Eingabe",
+      `Stab ${stab.Nummer}: Endknoten (Nr. ${stab.Endknotennummer}) existiert nicht.`,
+     ),
+    )
+    stab.istZeichenbar = false //Ohne Endknoten kann der Stab nicht mehr gezeichnet werden.
+   }
+
+   //Überprüft ob Querschnitt existiert.
+   if (!stab.Querschnitt) {
+    this.Fehlerliste.push(
+     new Fehler(
+      "Eingabe",
+      `Stab ${stab.Nummer}: Querschnitt ${stab.Querschnittsnummer} existiert nicht.`,
+     ),
+    )
+   } else {
+    //Überprüft ob Material existiert.
+    if (!stab.Querschnitt!.Material) {
+     this.Fehlerliste.push(
+      new Fehler(
+       "Eingabe",
+       `Stab ${stab.Nummer}: Material ${stab.Querschnitt!.Materialnummer} existiert nicht.`,
+      ),
+     )
+    }
+   }
+
+   //Überprüft ob Anfangsgelenk existiert
+   if (!stab.Anfangsgelenk) {
+    this.Fehlerliste.push(
+     new Fehler(
+      "Eingabe",
+      `Stab ${stab.Nummer}: Anfangsgelenk (Nr. ${stab.Anfangsgelenknummer}) existiert nicht.`,
+     ),
+    )
+   }
+
+   //Überprüft ob Endgelenk existiert
+   if (!stab.Endgelenk) {
+    this.Fehlerliste.push(
+     new Fehler(
+      "Eingabe",
+      `Stab ${stab.Nummer}: Endgelenk (Nr. ${stab.Endgelenknummer}) existiert nicht.`,
+     ),
+    )
+   }
+  })
+
+  this.Lastfallliste.forEach((lastfall) => {
+   //Überprüft ob Knoten für Knotenlast existiert
+   lastfall.Knotenlastliste.forEach((knotenlast) => {
+    if (!knotenlast.Knoten) {
+     this.Fehlerliste.push(
+      new Fehler(
+       "Eingabe",
+       `Knotenlast ${knotenlast.Nummer}: Knoten ${knotenlast.Knotennummer} existiert nicht.`,
+      ),
+     )
+    }
+   })
+
+   //Überprüft ob Stab für Stablast existiert
+   lastfall.Stablastliste.forEach((stablast) => {
+    if (!stablast.Stab) {
+     this.Fehlerliste.push(
+      new Fehler(
+       "Eingabe",
+       `Stablast ${stablast.Nummer}: Stab ${stablast.Stabnummer} existiert nicht.`,
+      ),
+     )
+    }
    })
   })
  }
