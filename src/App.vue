@@ -1,5 +1,5 @@
 <template>
- <v-card>
+ <div class="navbar">
   <v-tabs
    v-model="tab"
    bg-color="rgb(0,80,0)"
@@ -13,87 +13,98 @@
    <v-tab value="einstellungen">Einstellungen</v-tab>
    <v-tab value="dev">Dev-Ausgabe</v-tab>
   </v-tabs>
-  <span><v-btn @click="systemStore.system.berechnen()">Rechnen</v-btn></span>
-  <span style="color: rgb(128, 128, 128); margin: 0px">current Commit: 19.03.2024 10:17</span>
-  <span
-   ><input
-    type="file"
-    ref="fileInput"
-    @change="handleFileUpload"
-  /></span>
-  <span><v-btn @click="saveSystemToFile">System speichern</v-btn></span>
-  <v-card-text>
-   <v-window
-    disabled
-    v-model="tab"
-    :key="componentKey"
+ </div>
+ <!-- <span><v-btn @click="systemStore.system.berechnen()">Rechnen</v-btn></span>
+ <span
+  ><input
+   type="file"
+   ref="fileInput"
+   @change="handleFileUpload"
+ /></span>
+ <span><v-btn @click="saveSystemToFile">System speichern</v-btn></span> -->
+ <div class="main-content">
+  <v-window
+   style="width: 100%; height: 100%"
+   disabled
+   v-model="tab"
+   :key="componentKey"
+  >
+   <v-window-item
+    style="overflow-y: auto"
+    value="start"
+    transition="false"
+    reverse-transition="false"
    >
-    <v-window-item
-     value="start"
-     transition="false"
-     reverse-transition="false"
-    >
-     <ViewStart />
-    </v-window-item>
+    <ViewStart />
+   </v-window-item>
 
-    <v-window-item
-     value="systemeingabe"
-     transition="false"
-     reverse-transition="false"
-    >
-     <ViewSystemeingabe />
-    </v-window-item>
+   <v-window-item
+    style="overflow-y: auto"
+    value="systemeingabe"
+    transition="false"
+    reverse-transition="false"
+   >
+    <ViewSystemeingabe />
+   </v-window-item>
 
-    <v-window-item
-     value="systemausgabe"
-     transition="false"
-     reverse-transition="false"
-    >
-     <ViewSystemausgabe />
-    </v-window-item>
+   <v-window-item
+    style="overflow-y: auto"
+    value="systemausgabe"
+    transition="false"
+    reverse-transition="false"
+   >
+    <ViewSystemausgabe />
+   </v-window-item>
 
-    <v-window-item
-     value="lasteingabe"
-     transition="false"
-     reverse-transition="false"
-    >
-     <ViewLasteingabe />
-    </v-window-item>
+   <v-window-item
+    style="overflow-y: auto"
+    value="lasteingabe"
+    transition="false"
+    reverse-transition="false"
+   >
+    <ViewLasteingabe />
+   </v-window-item>
 
-    <v-window-item
-     value="grafikausgabe"
-     transition="false"
-     reverse-transition="false"
-    >
-     <ViewGrafikausgabe />
-    </v-window-item>
+   <v-window-item
+    style="width: 100%; height: 100%"
+    value="grafikausgabe"
+    transition="false"
+    reverse-transition="false"
+   >
+    <ViewGrafikausgabe />
+   </v-window-item>
 
-    <v-window-item
-     value="handbuch"
-     transition="false"
-     reverse-transition="false"
-    >
-     <ViewHandbuch />
-    </v-window-item>
+   <v-window-item
+    style="overflow-y: auto"
+    value="handbuch"
+    transition="false"
+    reverse-transition="false"
+   >
+    <ViewHandbuch />
+   </v-window-item>
 
-    <v-window-item
-     value="einstellungen"
-     transition="false"
-     reverse-transition="false"
-    >
-     <ViewEinstellungen />
-    </v-window-item>
+   <v-window-item
+    style="overflow-y: auto"
+    value="einstellungen"
+    transition="false"
+    reverse-transition="false"
+   >
+    <ViewEinstellungen />
+   </v-window-item>
 
-    <v-window-item
-     value="dev"
-     transition="false"
-     reverse-transition="false"
-    >
-     <ViewDevAusgabe />
-    </v-window-item>
-   </v-window>
-  </v-card-text>
- </v-card>
+   <v-window-item
+    value="dev"
+    transition="false"
+    reverse-transition="false"
+   >
+    <ViewDevAusgabe />
+   </v-window-item>
+  </v-window>
+ </div>
+
+ <div class="footer">
+  &copy; Adrian Schubert {{ new Date().getFullYear() }} - current Commit: 19.03.2024 10:17
+ </div>
 </template>
 
 <script setup lang="ts">
@@ -290,3 +301,5 @@
   componentKey.value += 1
  }
 </script>
+
+<style scoped></style>

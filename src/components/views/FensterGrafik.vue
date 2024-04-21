@@ -1,110 +1,97 @@
 <template>
- <g v-if="lastfall.istBerechnet">
-  <h1>Min: {{ minSchnittgröße }}</h1>
-  <h1>Max: {{ maxSchnittgröße }}</h1>
-  <h1>Scale: {{ scaleSchnittgroesse }}</h1>
- </g>
- <div
-  class="graph-container"
-  ref="graphContainer"
- >
-  <svg
-   :width="graphWidth"
-   :height="graphHeight"
+ <svg class="svg-content">
+  <!-- Ergebnisgrößen -->
+  <g v-if="lastfall.istBerechnet">
+   <ErgebnisKomponente
+    v-for="element in lastfall.Balkenelementliste"
+    :key="element.Nummer"
+    :element="element"
+    :transform="transform"
+    :getErgebnisListe="getErgebnisListe"
+    :scaleSchnittgroesse="scaleSchnittgroesse"
+   />
+  </g>
+  <!-- Stäbe -->
+  <g
+   v-for="stab in systemStore.system.Stabliste"
+   :key="stab.Nummer"
   >
-   <!-- Ergebnisgrößen -->
-   <g v-if="lastfall.istBerechnet">
-    <ErgebnisKomponente
-     v-for="element in lastfall.Balkenelementliste"
-     :key="element.Nummer"
-     :element="element"
-     :transform="transform"
-     :getErgebnisListe="getErgebnisListe"
-     :scaleSchnittgroesse="scaleSchnittgroesse"
-    />
-   </g>
-   <!-- Stäbe -->
+   <StabKomponente
+    v-if="stab.istZeichenbar"
+    :stab="stab"
+    :transform="transform"
+   />
+  </g>
+  <!-- Lager -->
+  <g
+   v-for="knoten in systemStore.system.Knotenliste"
+   :key="knoten.Nummer"
+  >
+   <LagerKomponente
+    v-if="knoten.Lager"
+    :knoten="knoten"
+    :transform="transform"
+   />
+  </g>
+
+  <!-- Knoten -->
+  <KnotenKomponente
+   v-for="knoten in systemStore.system.Knotenliste"
+   :key="knoten.Nummer"
+   :knoten="knoten"
+   :transform="transform"
+  />
+
+  <!-- Stablasten -->
+  <g v-if="stablasten.length">
    <g
     v-for="stab in systemStore.system.Stabliste"
     :key="stab.Nummer"
    >
-    <StabKomponente
+    <StablastKomponente
      v-if="stab.istZeichenbar"
      :stab="stab"
+     :lasten="stablasten.filter((stablast) => stablast.Stab === stab)"
      :transform="transform"
+     :scaleLasten="scaleStablasten"
+     :scaleVorverformungen="scaleVorverformungen"
     />
    </g>
-   <!-- Lager -->
-   <g
+  </g>
+
+  <!-- Knotenlasten -->
+  <g v-if="knotenlasten.length">
+   <KnotenlastKomponente
     v-for="knoten in systemStore.system.Knotenliste"
     :key="knoten.Nummer"
-   >
-    <LagerKomponente
-     v-if="knoten.Lager"
-     :knoten="knoten"
-     :transform="transform"
-    />
-   </g>
+    :knoten="knoten"
+    :lasten="knotenlasten.filter((knotenlast) => knotenlast.Knoten === knoten)"
+    :transform="transform"
+    :scaleLasten="scaleKnotenlasten"
+   />
+  </g>
 
-   <!-- Knoten -->
-   <KnotenKomponente
+  <!-- Lagerkräfte -->
+  <g v-if="lastfall.istBerechnet">
+   <LagerkraefteKomponente
     v-for="knoten in systemStore.system.Knotenliste"
     :key="knoten.Nummer"
     :knoten="knoten"
     :transform="transform"
+    :lagerreaktionen="lastfall.Lagerkräfte"
    />
-
-   <!-- Stablasten -->
-   <g v-if="stablasten.length">
-    <g
-     v-for="stab in systemStore.system.Stabliste"
-     :key="stab.Nummer"
-    >
-     <StablastKomponente
-      v-if="stab.istZeichenbar"
-      :stab="stab"
-      :lasten="stablasten.filter((stablast) => stablast.Stab === stab)"
-      :transform="transform"
-      :scaleLasten="scaleStablasten"
-      :scaleVorverformungen="scaleVorverformungen"
-     />
-    </g>
-   </g>
-
-   <!-- Knotenlasten -->
-   <g v-if="knotenlasten.length">
-    <KnotenlastKomponente
-     v-for="knoten in systemStore.system.Knotenliste"
-     :key="knoten.Nummer"
-     :knoten="knoten"
-     :lasten="knotenlasten.filter((knotenlast) => knotenlast.Knoten === knoten)"
-     :transform="transform"
-     :scaleLasten="scaleKnotenlasten"
-    />
-   </g>
-
-   <!-- Lagerkräfte -->
-   <g v-if="lastfall.istBerechnet">
-    <LagerkraefteKomponente
-     v-for="knoten in systemStore.system.Knotenliste"
-     :key="knoten.Nummer"
-     :knoten="knoten"
-     :transform="transform"
-     :lagerreaktionen="lastfall.Lagerkräfte"
-    />
-   </g>
-   <!-- Verformtes System -->
-   <g v-if="lastfall.istBerechnet">
-    <VerformungKomponente
-     v-for="element in lastfall.Balkenelementliste"
-     :key="element.Nummer"
-     :element="element"
-     :transform="transform"
-     :scaleVerformung="scaleVerformung"
-    />
-   </g>
-  </svg>
- </div>
+  </g>
+  <!-- Verformtes System -->
+  <g v-if="lastfall.istBerechnet">
+   <VerformungKomponente
+    v-for="element in lastfall.Balkenelementliste"
+    :key="element.Nummer"
+    :element="element"
+    :transform="transform"
+    :scaleVerformung="scaleVerformung"
+   />
+  </g>
+ </svg>
 </template>
 
 <script setup lang="ts">
@@ -126,6 +113,7 @@
  const props = defineProps<{
   lastfall: Lastfall
   ergebnisgroesse: number
+  svgContainer: HTMLElement | null
  }>()
 
  const graphicSettings = useGraphicSettingsStore()
@@ -274,13 +262,12 @@
  })
 
  const systemStore = ref(useSystemStore())
- const graphContainer: Ref<HTMLElement | null> = ref(null)
  const graphWidth: Ref<number> = ref(0)
  const graphHeight: Ref<number> = ref(0)
 
  const updateDimensions = () => {
-  graphWidth.value = graphContainer.value!.clientWidth
-  graphHeight.value = graphContainer.value!.clientHeight
+  graphWidth.value = props.svgContainer!.clientWidth
+  graphHeight.value = props.svgContainer!.clientHeight
  }
 
  const transform = computed(() => {
@@ -325,5 +312,9 @@
  .graph-container {
   width: 100%;
   height: 100vh;
+ }
+ .svg-content {
+  width: 100%;
+  height: 100%;
  }
 </style>
