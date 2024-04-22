@@ -1,5 +1,4 @@
 <template>
- <h1>Lagereingabe normal</h1>
  <TabelleTemplate
   :objectlist="Lagerliste"
   :createNewObject="newLager"

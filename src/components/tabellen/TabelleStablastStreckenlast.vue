@@ -1,5 +1,4 @@
 <template>
- <h1>Lastfall {{ lastfall.Nummer }} Stabstreckenlast normal</h1>
  <TabelleTemplate
   :objectlist="StablastListeStreckenlast"
   :createNewObject="newStablastStreckenlast"

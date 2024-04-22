@@ -1,5 +1,4 @@
 <template>
- <h1>Lastfalleingabe normal</h1>
  <TabelleTemplate
   :objectlist="Lastfallliste"
   :createNewObject="newLastfall"

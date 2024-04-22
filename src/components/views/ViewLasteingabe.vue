@@ -1,23 +1,19 @@
 <template>
  <p>Hier sollen Lasten eingegeben werden.</p>
+ <h1>Lastfalleingabe</h1>
  <TabelleLastfall />
 
- <TabelleKnotenlast
+ <div
   v-for="lastfall in system.Lastfallliste"
   :key="lastfall.Nummer"
-  :lastfall="lastfall"
- />
-
- <TabelleStablastStreckenlast
-  v-for="lastfall in system.Lastfallliste"
-  :key="lastfall.Nummer"
-  :lastfall="lastfall"
- />
- <TabelleStablastVorverformung
-  v-for="lastfall in system.Lastfallliste"
-  :key="lastfall.Nummer"
-  :lastfall="lastfall"
- />
+ >
+  <h1>Knotenlasten Lastfall {{ lastfall.Nummer }}</h1>
+  <TabelleKnotenlast :lastfall="lastfall" />
+  <h1>Streckenlasten Lastfall {{ lastfall.Nummer }}</h1>
+  <TabelleStablastStreckenlast :lastfall="lastfall" />
+  <h1>Vorverformungen Lastfall {{ lastfall.Nummer }}</h1>
+  <TabelleStablastVorverformung :lastfall="lastfall" />
+ </div>
 </template>
 
 <script setup lang="ts">

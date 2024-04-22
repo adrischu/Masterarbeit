@@ -8,6 +8,8 @@ import type { isStablast } from "./classes/InterfaceStablast"
 import { useSettingsStore } from "@/stores/SettingsStore"
 import Stab from "./classes/Stab"
 import Starrelement from "./classes/Starrelement"
+import { useSystemStore } from "@/stores/SystemStore"
+import Fehler from "./classes/Fehler"
 
 //-------------------------------------------------------------------------------
 /**
@@ -369,6 +371,7 @@ function randbedingungenEinarbeiten(system: System, lastfall: Lastfall) {
  * @param lastfall Aktuelles Lastfallobjekt.
  */
 function gleichungssystemLösen(system: System, lastfall: Lastfall) {
+ const systemStore = useSystemStore()
  //Da der Lastvektor in der Funktion gauss zum Verformungsvektor
  //umgeformt wird, werden diese beiden hier gleichgesetzt.
  lastfall.Verformungsvektor_kurz = lastfall.Lastvektor.slice()
@@ -379,6 +382,9 @@ function gleichungssystemLösen(system: System, lastfall: Lastfall) {
    lastfall.Verformungsvektor_kurz,
   )
  ) {
+  systemStore.system.Fehlerliste.push(
+   new Fehler("Berechnung", "Singuläre Steifigkeitsmatrix. System ist instabil oder kinematisch."),
+  )
   console.log("Singuläre Steifigkeitsmatrix")
  }
 

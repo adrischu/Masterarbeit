@@ -1,5 +1,4 @@
 <template>
- <h1>Lastfall {{ lastfall.Nummer }} Vorverformung normal</h1>
  <TabelleTemplate
   :objectlist="StablastListeVorverformung"
   :createNewObject="newStablastVorverformung"

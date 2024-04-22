@@ -1,5 +1,4 @@
 <template>
- <h1>Querschnittseingabe normal</h1>
  <TabelleTemplate
   :objectlist="Querschnittliste"
   :createNewObject="newQuerschnitt"

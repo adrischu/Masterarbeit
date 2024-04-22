@@ -1,5 +1,4 @@
 <template>
- <h1>Materialeingabe normal</h1>
  <TabelleTemplate
   :objectlist="Materialliste"
   :createNewObject="newMaterial"

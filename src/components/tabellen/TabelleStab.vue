@@ -1,5 +1,4 @@
 <template>
- <h1>Stabeingabe normal</h1>
  <TabelleTemplate
   :objectlist="Stabliste"
   :createNewObject="newStab"

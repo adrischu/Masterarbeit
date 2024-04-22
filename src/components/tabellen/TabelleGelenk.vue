@@ -1,5 +1,4 @@
 <template>
- <h1>Gelenkeingabe normal</h1>
  <TabelleTemplate
   :objectlist="Gelenkliste"
   :createNewObject="newGelenk"

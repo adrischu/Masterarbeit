@@ -1,5 +1,4 @@
 <template>
- <h1>Knoteneingabe normal</h1>
  <TabelleTemplate
   :objectlist="Knotenliste"
   :createNewObject="newKnoten"

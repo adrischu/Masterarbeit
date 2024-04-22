@@ -1,5 +1,4 @@
 <template>
- <h1>Lastfall {{ lastfall.Nummer }} Knotenlasten normal</h1>
  <TabelleTemplate
   :objectlist="Knotenlastliste"
   :createNewObject="newKnotenlast"

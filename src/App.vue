@@ -3,6 +3,7 @@
   <v-tabs
    v-model="tab"
    bg-color="rgb(0,80,0)"
+   density="compact"
   >
    <v-tab value="start">Start</v-tab>
    <v-tab value="systemeingabe">Systemeingabe</v-tab>
@@ -14,14 +15,8 @@
    <v-tab value="dev">Dev-Ausgabe</v-tab>
   </v-tabs>
  </div>
- <!-- <span><v-btn @click="systemStore.system.berechnen()">Rechnen</v-btn></span>
- <span
-  ><input
-   type="file"
-   ref="fileInput"
-   @change="handleFileUpload"
- /></span>
- <span><v-btn @click="saveSystemToFile">System speichern</v-btn></span> -->
+
+ <!-- Hier kommen die verschiedenen Seiten -->
  <div class="main-content">
   <v-window
    style="width: 100%; height: 100%"
@@ -71,7 +66,10 @@
     transition="false"
     reverse-transition="false"
    >
-    <ViewGrafikausgabe />
+    <ViewGrafikausgabe
+     @force-rerender="forceRerender"
+     @click-save="saveSystemToFile"
+    />
    </v-window-item>
 
    <v-window-item
@@ -255,24 +253,24 @@
  //  )
 
  /**Funktion zum Einlesen eines Systems aus einer Datei */
- function handleFileUpload(event: Event) {
-  const fileInput = event.target as HTMLInputElement // Typumwandlung zu HTMLInputElement
-  const file = fileInput.files?.[0] // Verwenden des optionalen Zugriffsoperators
+ //   function handleFileUpload(event: Event) {
+ //    const fileInput = event!.target as HTMLInputElement // Typumwandlung zu HTMLInputElement
+ //    const file = fileInput.files?.[0] // Verwenden des optionalen Zugriffsoperators
 
-  if (!file) return
+ //    if (!file) return
 
-  const reader = new FileReader()
-  reader.onload = (e) => {
-   const content = e.target?.result
-   if (content) {
-    const systemData = JSON.parse(content as string) // Parsen Sie die JSON-Daten
-    systemStore.importSystem(systemData) // Aktualisieren Sie das System im Store
-    console.log("System erfolgreich eingelesen. Neues System:", systemStore.system)
-    forceRerender()
-   }
-  }
-  reader.readAsText(file)
- }
+ //    const reader = new FileReader()
+ //    reader.onload = (e) => {
+ //     const content = e.target?.result
+ //     if (content) {
+ //      const systemData = JSON.parse(content as string) // Parsen Sie die JSON-Daten
+ //      systemStore.importSystem(systemData) // Aktualisieren Sie das System im Store
+ //      console.log("System erfolgreich eingelesen. Neues System:", systemStore.system)
+ //      forceRerender()
+ //     }
+ //    }
+ //    reader.readAsText(file)
+ //   }
 
  /** Funktion zum Speichern des Systems an einem benutzerdefinierten Speicherort */
  function saveSystemToFile() {
@@ -302,4 +300,12 @@
  }
 </script>
 
-<style scoped></style>
+<style scoped>
+ .file-input {
+  height: 100px;
+ }
+ .file-input:deep().v-input__control,
+ .file-input:deep().v-input__details {
+  display: none;
+ }
+</style>

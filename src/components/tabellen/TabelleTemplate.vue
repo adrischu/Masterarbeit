@@ -1,10 +1,11 @@
 <template>
- <div>
+ <div id="tabelle-header">
   <v-table
    class="eingabetabelle-tabelle"
    density="compact"
    hover
    fixed-header
+   height="200"
   >
    <!--  -->
    <!-- Tabellenkopfzeile -->
@@ -34,6 +35,7 @@
         ><div v-html="headerItem.tooltip"></div></v-tooltip
       ></v-btn>
      </th>
+     <th></th>
     </tr>
    </thead>
 
@@ -161,7 +163,7 @@
 </template>
 
 <script setup lang="ts">
- import { ref } from "vue"
+ import { computed, ref } from "vue"
  import { type Ref } from "vue"
  import type { isStatikobjekt } from "@/typescript/classes/InterfaceStatikobjekt"
  import { useSystemStore } from "@/stores/SystemStore"
@@ -184,6 +186,20 @@
  let newObjectValues: Ref<any[]> = ref(newStatikObjekt.values)
 
  let data: Ref<any[]> = ref([])
+
+ const tableDiv: Ref<HTMLElement | null> = ref(null)
+ const tableHeight = computed(() => {
+  console.log(tableDiv.value?.scrollHeight)
+  return tableDiv.value?.scrollHeight
+ })
+ //  const tableHeight = computed(() => {
+ //   // Hole das Element mit der Klasse "tabelle-header"
+ //   const tabelleHeader = document.querySelector("tabelle-eingabe")
+
+ //   // Überprüfe, ob das Element gefunden wurde
+ //   // Höhe des Elements auslesen
+ //   return tabelleHeader!.scrollHeight
+ //  })
 
  updateData()
 
@@ -245,12 +261,13 @@
 
  .eingabetabelle-tabelle,
  thead {
+  width: 100%;
+  height: 100%;
   text-align: center;
   border: #646262 solid;
   border-width: 1px;
-  border-width: 2px;
-  margin: 15px;
-  padding: 0px;
+  margin: 0px;
+  padding: 2px;
  }
 
  td,
