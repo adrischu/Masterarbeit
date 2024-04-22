@@ -3,6 +3,7 @@
   :objectlist="StablastListeVorverformung"
   :createNewObject="newStablastVorverformung"
   :lastfallnummer="lastfall.Nummer"
+  :tableHeight="tableHeight"
  />
 </template>
 
@@ -13,6 +14,7 @@
 
  const props = defineProps<{
   lastfall: Lastfall
+  tableHeight: number
  }>()
 
  const StablastListeVorverformung = props.lastfall.StablastListeVorverformung

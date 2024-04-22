@@ -2,6 +2,7 @@
  <TabelleTemplate
   :objectlist="Lagerliste"
   :createNewObject="newLager"
+  :tableHeight="tableHeight"
  />
 </template>
 
@@ -9,6 +10,10 @@
  import { useSystemStore } from "@/stores/SystemStore"
  import Lager from "@/typescript/classes/Lager"
  import TabelleTemplate from "./TabelleTemplate.vue"
+
+ const props = defineProps<{
+  tableHeight: number
+ }>()
 
  const systemStore = useSystemStore()
 

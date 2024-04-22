@@ -2,6 +2,7 @@
  <TabelleTemplate
   :objectlist="Knotenliste"
   :createNewObject="newKnoten"
+  :tableHeight="tableHeight"
  />
 </template>
 
@@ -9,6 +10,10 @@
  import { useSystemStore } from "@/stores/SystemStore"
  import Knoten from "@/typescript/classes/Knoten"
  import TabelleTemplate from "./TabelleTemplate.vue"
+
+ const props = defineProps<{
+  tableHeight: number
+ }>()
 
  const systemStore = useSystemStore()
 

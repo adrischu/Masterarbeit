@@ -1,6 +1,6 @@
 <template>
  <p>Hier sollen Lasten eingegeben werden.</p>
- <h1>Lastfalleingabe</h1>
+ <!-- <h1>Lastfalleingabe</h1>
  <TabelleLastfall />
 
  <div
@@ -13,7 +13,7 @@
   <TabelleStablastStreckenlast :lastfall="lastfall" />
   <h1>Vorverformungen Lastfall {{ lastfall.Nummer }}</h1>
   <TabelleStablastVorverformung :lastfall="lastfall" />
- </div>
+ </div> -->
 </template>
 
 <script setup lang="ts">

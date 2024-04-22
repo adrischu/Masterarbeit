@@ -2,6 +2,7 @@
  <TabelleTemplate
   :objectlist="Lastfallliste"
   :createNewObject="newLastfall"
+  :tableHeight="tableHeight"
  />
 </template>
 
@@ -9,6 +10,10 @@
  import { useSystemStore } from "@/stores/SystemStore"
  import TabelleTemplate from "./TabelleTemplate.vue"
  import Lastfall from "@/typescript/classes/Lastfall"
+
+ const props = defineProps<{
+  tableHeight: number
+ }>()
 
  const systemStore = useSystemStore()
 

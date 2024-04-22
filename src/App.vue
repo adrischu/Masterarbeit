@@ -7,9 +7,7 @@
    show-arrows
   >
    <v-tab value="start">Start</v-tab>
-   <v-tab value="systemeingabe">Systemeingabe</v-tab>
    <v-tab value="systemausgabe">Systemausgabe</v-tab>
-   <v-tab value="lasteingabe">Lasteingabe</v-tab>
    <v-tab value="grafikausgabe">Grafikausgabe</v-tab>
    <v-tab value="handbuch">Handbuch</v-tab>
    <v-tab value="einstellungen">Einstellungen</v-tab>
@@ -32,33 +30,6 @@
     reverse-transition="false"
    >
     <ViewStart />
-   </v-window-item>
-
-   <v-window-item
-    style="overflow-y: auto"
-    value="systemeingabe"
-    transition="false"
-    reverse-transition="false"
-   >
-    <ViewSystemeingabe />
-   </v-window-item>
-
-   <v-window-item
-    style="overflow-y: auto"
-    value="systemausgabe"
-    transition="false"
-    reverse-transition="false"
-   >
-    <ViewSystemausgabe />
-   </v-window-item>
-
-   <v-window-item
-    style="overflow-y: auto"
-    value="lasteingabe"
-    transition="false"
-    reverse-transition="false"
-   >
-    <ViewLasteingabe />
    </v-window-item>
 
    <v-window-item
@@ -110,12 +81,9 @@
  import { ref } from "vue"
  import { useSystemStore } from "./stores/SystemStore"
  import ViewStart from "./components/views/ViewStart.vue"
- import ViewSystemeingabe from "./components/views/ViewSystemeingabe.vue"
- import ViewLasteingabe from "./components/views/ViewLasteingabe.vue"
  import ViewGrafikausgabe from "./components/views/ViewGrafikausgabe.vue"
  import ViewHandbuch from "./components/views/ViewHandbuch.vue"
  import ViewDevAusgabe from "./components/views/ViewDevAusgabe.vue"
- import ViewSystemausgabe from "./components/views/ViewSystemausgabe.vue"
  import ViewEinstellungen from "./components/views/ViewEinstellungen.vue"
  import System from "./typescript/classes/System"
  import { Theorie } from "./typescript/enumerations"

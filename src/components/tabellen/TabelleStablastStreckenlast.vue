@@ -3,6 +3,7 @@
   :objectlist="StablastListeStreckenlast"
   :createNewObject="newStablastStreckenlast"
   :lastfallnummer="lastfall.Nummer"
+  :tableHeight="tableHeight"
  />
 </template>
 
@@ -13,6 +14,7 @@
 
  const props = defineProps<{
   lastfall: Lastfall
+  tableHeight: number
  }>()
 
  const StablastListeStreckenlast = props.lastfall.StablastListeStreckenlast

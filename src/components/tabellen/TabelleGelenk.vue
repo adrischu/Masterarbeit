@@ -2,6 +2,7 @@
  <TabelleTemplate
   :objectlist="Gelenkliste"
   :createNewObject="newGelenk"
+  :tableHeight="tableHeight"
  />
 </template>
 
@@ -9,6 +10,10 @@
  import { useSystemStore } from "@/stores/SystemStore"
  import Gelenk from "@/typescript/classes/Gelenk"
  import TabelleTemplate from "./TabelleTemplate.vue"
+
+ const props = defineProps<{
+  tableHeight: number
+ }>()
 
  const systemStore = useSystemStore()
 

@@ -8,6 +8,7 @@
    <v-tabs v-model="tabellentyp">
     <v-tab value="system">System</v-tab>
     <v-tab value="lasten">Lasten</v-tab>
+    <v-tab value="fehler">Fehler</v-tab>
    </v-tabs>
    <v-divider vertical />
    <v-divider
@@ -40,7 +41,7 @@
  </div>
 
  <div
-  ref="tabelle-eingabe"
+  ref="tabelleEingabe"
   style="flex: 1"
  >
   <!-- Tabellenanzeige -->
@@ -56,7 +57,7 @@
     transition="false"
     reverse-transition="false"
    >
-    <TabelleLager />
+    <TabelleLager :tableHeight="tableHeight" />
    </v-window-item>
    <!-- Knoten -->
    <v-window-item
@@ -65,7 +66,7 @@
     transition="false"
     reverse-transition="false"
    >
-    <TabelleKnoten class="tabelle-variabel" />
+    <TabelleKnoten :tableHeight="tableHeight" />
    </v-window-item>
    <!-- Material -->
    <v-window-item
@@ -74,7 +75,7 @@
     transition="false"
     reverse-transition="false"
    >
-    <TabelleMaterial />
+    <TabelleMaterial :tableHeight="tableHeight" />
    </v-window-item>
    <!-- Querschnitte -->
    <v-window-item
@@ -83,7 +84,7 @@
     transition="false"
     reverse-transition="false"
    >
-    <TabelleQuerschnitt />
+    <TabelleQuerschnitt :tableHeight="tableHeight" />
    </v-window-item>
    <!-- Gelenke -->
    <v-window-item
@@ -92,7 +93,7 @@
     transition="false"
     reverse-transition="false"
    >
-    <TabelleGelenk />
+    <TabelleGelenk :tableHeight="tableHeight" />
    </v-window-item>
    <!-- Stäbe -->
    <v-window-item
@@ -101,7 +102,7 @@
     transition="false"
     reverse-transition="false"
    >
-    <TabelleStab />
+    <TabelleStab :tableHeight="tableHeight" />
    </v-window-item>
    <!-- Lastfälle -->
    <v-window-item
@@ -110,7 +111,7 @@
     transition="false"
     reverse-transition="false"
    >
-    <TabelleLastfall />
+    <TabelleLastfall :tableHeight="tableHeight" />
    </v-window-item>
    <!-- Knotenlasten -->
    <div
@@ -123,7 +124,10 @@
      transition="false"
      reverse-transition="false"
     >
-     <TabelleKnotenlast :lastfall="lf" />
+     <TabelleKnotenlast
+      :lastfall="lf"
+      :tableHeight="tableHeight"
+     />
     </v-window-item>
     <!-- Streckenlasten -->
     <v-window-item
@@ -132,7 +136,10 @@
      transition="false"
      reverse-transition="false"
     >
-     <TabelleStablastStreckenlast :lastfall="lf" />
+     <TabelleStablastStreckenlast
+      :lastfall="lf"
+      :tableHeight="tableHeight"
+     />
     </v-window-item>
     <!-- Vorverformungen -->
     <v-window-item
@@ -141,9 +148,40 @@
      transition="false"
      reverse-transition="false"
     >
-     <TabelleStablastVorverformung :lastfall="lf" />
+     <TabelleStablastVorverformung
+      :lastfall="lf"
+      :tableHeight="tableHeight"
+     />
     </v-window-item>
    </div>
+   <v-window-item
+    class="tabelle-variabel"
+    value="fehler"
+    transition="false"
+    reverse-transition="false"
+   >
+    <v-table
+     class="eingabetabelle-tabelle"
+     density="compact"
+     hover
+     fixed-header
+     :height="tableHeight"
+    >
+     <tr>
+      <th>Typ</th>
+      <th>Beschreibung</th>
+     </tr>
+     <tbody>
+      <tr
+       v-for="fehler in systemStore.system.Fehlerliste"
+       :key="fehler.Nachricht"
+      >
+       <td>{{ fehler.Typ }}</td>
+       <td>{{ fehler.Nachricht }}</td>
+      </tr>
+     </tbody>
+    </v-table>
+   </v-window-item>
   </v-window>
  </div>
 </template>
@@ -151,7 +189,7 @@
 <script setup lang="ts">
  import { useSystemStore } from "@/stores/SystemStore"
  import TabelleStab from "./TabelleStab.vue"
- import { computed, ref } from "vue"
+ import { computed, ref, type Ref } from "vue"
  import TabelleKnotenlast from "./TabelleKnotenlast.vue"
  import TabelleLastfall from "./TabelleLastfall.vue"
  import TabelleGelenk from "./TabelleGelenk.vue"
@@ -167,15 +205,28 @@
  let tabellentyp = ref<String>("start")
  let tabellenUntertyp = ref<String>("knoten")
  let tabelleID = computed(() => {
-  if (tabellentyp.value === "lasten") {
-   if (tabellenUntertyp.value === "lastfall") {
-    return tabellenUntertyp.value
-   } else {
-    return `${tabellenUntertyp.value}${props.lastfall.Nummer}`
+  switch (tabellentyp.value) {
+   case "lasten": {
+    if (tabellenUntertyp.value === "lastfall") {
+     return tabellenUntertyp.value
+    } else {
+     return `${tabellenUntertyp.value}${props.lastfall.Nummer}`
+    }
    }
-  } else {
-   return tabellenUntertyp.value
+   case "fehler": {
+    return tabellentyp.value
+   }
+   case "system": {
+    return tabellenUntertyp.value
+   }
+   default:
+    return ""
   }
+ })
+ const tabelleEingabe: Ref<HTMLElement | null> = ref(null)
+ const tableHeight = computed(() => {
+  console.log(tabelleEingabe.value?.scrollHeight)
+  return tabelleEingabe.value!.scrollHeight
  })
 
  const props = defineProps<{

@@ -2,6 +2,7 @@
  <TabelleTemplate
   :objectlist="Querschnittliste"
   :createNewObject="newQuerschnitt"
+  :tableHeight="tableHeight"
  />
 </template>
 
@@ -9,6 +10,10 @@
  import { useSystemStore } from "@/stores/SystemStore"
  import TabelleTemplate from "./TabelleTemplate.vue"
  import Querschnitt from "@/typescript/classes/Querschnitt"
+
+ const props = defineProps<{
+  tableHeight: number
+ }>()
 
  const systemStore = useSystemStore()
 

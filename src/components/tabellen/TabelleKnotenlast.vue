@@ -3,6 +3,7 @@
   :objectlist="Knotenlastliste"
   :createNewObject="newKnotenlast"
   :lastfallnummer="lastfall.Nummer"
+  :tableHeight="tableHeight"
  />
 </template>
 
@@ -13,6 +14,7 @@
 
  const props = defineProps<{
   lastfall: Lastfall
+  tableHeight: number
  }>()
 
  const Knotenlastliste = props.lastfall.Knotenlastliste

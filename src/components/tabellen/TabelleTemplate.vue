@@ -5,7 +5,7 @@
    density="compact"
    hover
    fixed-header
-   height="200"
+   :height="tableHeight"
   >
    <!--  -->
    <!-- Tabellenkopfzeile -->
@@ -170,6 +170,7 @@
 
  const props = withDefaults(
   defineProps<{
+   tableHeight: number
    objectlist: isStatikobjekt[]
    createNewObject: (index: number) => isStatikobjekt
    lastfallnummer?: number
@@ -187,11 +188,6 @@
 
  let data: Ref<any[]> = ref([])
 
- const tableDiv: Ref<HTMLElement | null> = ref(null)
- const tableHeight = computed(() => {
-  console.log(tableDiv.value?.scrollHeight)
-  return tableDiv.value?.scrollHeight
- })
  //  const tableHeight = computed(() => {
  //   // Hole das Element mit der Klasse "tabelle-header"
  //   const tabelleHeader = document.querySelector("tabelle-eingabe")
@@ -251,6 +247,7 @@
 
 <style scoped>
  .eingabetabelle-ersteZeile {
+  text-align: center;
   background-color: rgb(14, 80, 14);
   height: 10px;
  }
@@ -270,15 +267,6 @@
   padding: 2px;
  }
 
- td,
- th {
-  text-align: center;
-  align-items: center;
-  border: #646262 solid;
-  border-width: 1px;
-  width: 1%;
- }
-
  thead {
   padding: 0;
   text-align: center;
@@ -286,5 +274,8 @@
 
  select {
   width: 100px;
+ }
+ input {
+  width: 150px;
  }
 </style>
