@@ -4,6 +4,7 @@
    v-model="tab"
    bg-color="rgb(0,80,0)"
    density="compact"
+   show-arrows
   >
    <v-tab value="start">Start</v-tab>
    <v-tab value="systemeingabe">Systemeingabe</v-tab>
@@ -101,7 +102,7 @@
  </div>
 
  <div class="footer">
-  &copy; Adrian Schubert {{ new Date().getFullYear() }} - current Commit: 21.04.2024 16:15
+  &copy; Adrian Schubert {{ new Date().getFullYear() }} - current Commit: 22.04.2024 18:12
  </div>
 </template>
 
