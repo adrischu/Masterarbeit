@@ -1,5 +1,8 @@
 <template>
- <div style="flex: none">
+ <div
+  id="tabelle-variabel"
+  style="flex: none"
+ >
   <v-toolbar
    class="tabelle-selection"
    density="compact"

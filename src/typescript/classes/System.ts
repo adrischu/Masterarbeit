@@ -49,8 +49,13 @@ export default class System {
   this.Verformungsinzidenzen = []
  }
 
- berechnen(): void {
-  startBerechnungen(this)
+ berechnen(): boolean {
+  if (this.Fehlerliste.length) {
+   return false
+  } else {
+   startBerechnungen(this)
+   return true
+  }
   //Hier Überprüfungen einbauen
  }
 

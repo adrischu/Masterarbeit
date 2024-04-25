@@ -1,5 +1,11 @@
 <template>
- <svg class="svg-content">
+ <svg
+  version="1.1"
+  id="svg-komponente"
+  class="svg-content"
+  :width="graphWidth"
+  :height="graphHeight"
+ >
   <!-- Ergebnisgrößen -->
   <g v-if="lastfall.istBerechnet">
    <ErgebnisKomponente

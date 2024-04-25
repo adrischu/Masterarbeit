@@ -273,9 +273,11 @@
  }
 
  select {
-  width: 100px;
+  width: 100%;
+  padding: 0;
+  margin: 0;
  }
  input {
-  width: 150px;
+  width: 100%;
  }
 </style>

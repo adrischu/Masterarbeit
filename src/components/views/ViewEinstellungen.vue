@@ -3,11 +3,6 @@
  <p>
   <v-text-field
    type="number"
-   label="Nachkommastellen Ergebnisse"
-   v-model="graphicSettingsStore.NACHKOMMASTELLEN_SCHNITTGROESSEN"
-  />
-  <v-text-field
-   type="number"
    label="Nachkommastellen Lasten"
    v-model="graphicSettingsStore.NACHKOMMASTELLEN_LASTWERTE"
   />

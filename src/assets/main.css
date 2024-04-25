@@ -21,9 +21,13 @@ body {
  overflow-y: hidden;
 }
 
-.navbar {
- padding: 0;
+.header {
+ background: rgb(151, 151, 151);
+ background-color: rgb(151, 151, 151);
+ margin: 0px;
+ padding: 0px;
  text-align: center;
+ flex: none;
 }
 
 .main-content {
@@ -47,4 +51,20 @@ th {
  border-width: 1px;
  width: 1%;
  height: 10px;
+}
+
+.action-fields {
+ padding: 0;
+ margin: 0px;
+ border-style: solid;
+ border-width: 0.5px;
+ position: absolute; /* Absolut positionieren */
+ top: 0; /* Oben ausrichten */
+ left: 0; /* Links ausrichten */
+ display: flex; /* Flexbox verwenden, um die Auswahlfelder zu positionieren */
+ flex-direction: row; /* Vertikale Anordnung der Auswahlfelder */
+ justify-content: center; /* Zentrieren der Auswahlfelder vertikal */
+ align-items: left; /* Zentrieren der Auswahlfelder horizontal */
+ pointer-events: auto; /* Auswahlfelder sollen keine Mausklicks blockieren */
+ width: auto;
 }
