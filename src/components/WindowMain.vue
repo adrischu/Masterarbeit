@@ -144,10 +144,10 @@
  import { preloadSystem } from "@/typescript/SystemPreload"
  import type Lastfall from "@/typescript/classes/Lastfall"
  import TabelleVariabel from "./tabellen/TabelleVariabel.vue"
- import FensterGrafik from "./views/FensterGrafik.vue"
- import DialogEinstellungen from "./DialogEinstellungen.vue"
- import DialogHandbuch from "./DialogHandbuch.vue"
- import DialogFehler from "./DialogFehler.vue"
+ import FensterGrafik from "./FensterGrafik.vue"
+ import DialogEinstellungen from "./dialoge/DialogEinstellungen.vue"
+ import DialogHandbuch from "./dialoge/DialogHandbuch.vue"
+ import DialogFehler from "./dialoge/DialogFehler.vue"
  import { saveSystemToFile } from "@/typescript/DateiFunktionen"
  import { handleFileUpload } from "@/typescript/DateiFunktionen"
  import { alsSVGSpeichern } from "@/typescript/DateiFunktionen"
@@ -212,21 +212,14 @@
   flex-direction: column;
  }
 
- .minmax-text {
-  position: relative;
-  bottom: 0;
-  left: 0;
-  display: flex;
- }
-
  .divider {
   margin-top: 7px;
   margin-bottom: 7px;
  }
- /* Stilregeln für die Auswahlfelder hier hinzufügen */
 
+ /* Stilregeln für die Auswahlfelder hier hinzufügen */
  .file-input {
-  height: 100px;
+  height: 200px;
  }
  .file-input:deep().v-input__control,
  .file-input:deep().v-input__details {

@@ -266,7 +266,7 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
  get header() {
   const systemStore = useSystemStore()
   return [
-   { title: "Nummer", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
+   { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
     title: "Stab",
     value: this.Stabnummer,

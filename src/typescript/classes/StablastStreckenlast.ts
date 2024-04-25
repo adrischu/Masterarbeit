@@ -365,7 +365,7 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
  get header() {
   const systemStore = useSystemStore()
   return [
-   { title: "Nummer", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
+   { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
     title: "Stab",
     value: this.Stabnummer,
@@ -374,7 +374,7 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
     selectListValues: systemStore.system.Stabliste.map((stab) => stab.Nummer),
    },
    {
-    title: "Koordinatensystem",
+    title: "KS",
     value: this.Koordinatensystem,
     inputType: "select",
     selectListKeys: ["lokal", "global"],

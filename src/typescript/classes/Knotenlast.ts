@@ -49,9 +49,9 @@ export default class Knotenlast implements isStatikobjekt {
  get header() {
   const systemStore = useSystemStore()
   return [
-   { title: "Nummer", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
+   { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
-    title: "Knotennummer",
+    title: "Knoten",
     value: this.Knotennummer,
     inputType: "select",
     selectListKeys: systemStore.system.Knotenliste.map((knoten) => `Knoten ${knoten.Nummer}`),

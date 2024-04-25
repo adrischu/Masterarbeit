@@ -52,16 +52,16 @@ export default class Knoten implements isStatikobjekt {
  get header() {
   const systemStore = useSystemStore()
   return [
-   { title: "Nummer", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
+   { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
-    title: "x-Koordinate",
+    title: "x",
     unit: "m",
     value: this.Koordinaten.x,
     inputType: "input",
     inputFormat: "number",
    },
    {
-    title: "z-Koordinate",
+    title: "z",
     unit: "m",
     value: this.Koordinaten.z,
     inputType: "input",

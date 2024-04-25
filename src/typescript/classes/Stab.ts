@@ -106,7 +106,7 @@ export default class Stab implements isStatikobjekt {
  get header() {
   const systemStore = useSystemStore()
   return [
-   { title: "Nummer", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
+   { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
     title: "Anfangsknoten",
     value: this.Anfangsknotennummer,

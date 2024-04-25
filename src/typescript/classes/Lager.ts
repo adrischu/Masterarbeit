@@ -42,44 +42,44 @@ export default class Lager implements isStatikobjekt {
 
  get header() {
   return [
-   { title: "Nummer", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
+   { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
-    title: "Lager in x",
+    title: "X",
     value: this.Lagerung[0],
     inputType: "checkbox",
     inputFormat: "boolean",
     selectList: [0, 1],
    },
    {
-    title: "Lager in z",
+    title: "Z",
     value: this.Lagerung[1],
     inputType: "checkbox",
     inputFormat: "boolean",
     selectList: [0, 1],
    },
    {
-    title: "Lager in phi",
+    title: "&phi;",
     value: this.Lagerung[2],
     inputType: "checkbox",
     inputFormat: "boolean",
     selectList: [0, 1],
    },
    {
-    title: "Feder in x",
+    title: "<sub>X</sub>",
     unit: "N/m",
     value: this.Feder[0],
     inputType: "input",
     inputFormat: "number",
    },
    {
-    title: "Feder in z",
+    title: "k<sub>Z</sub>",
     unit: "N/m",
     value: this.Feder[1],
     inputType: "input",
     inputFormat: "number",
    },
    {
-    title: "Feder in phi",
+    title: "k<sub>&phi;</sub>",
     unit: "Nm/rad",
     value: this.Feder[2],
     inputType: "input",

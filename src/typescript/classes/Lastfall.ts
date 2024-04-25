@@ -81,7 +81,7 @@ export default class Lastfall implements isStatikobjekt {
 
  get header() {
   return [
-   { title: "Nummer", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
+   { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
     title: "Name",
     value: this.Name,

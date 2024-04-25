@@ -48,24 +48,24 @@ export default class Gelenk implements isStatikobjekt {
  get header() {
   //   const systemStore = useSystemStore()
   return [
-   { title: "Nummer", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
+   { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
-    title: "Normalkraftgelenk",
+    title: "N",
     value: this.Gelenke[0],
     inputType: "checkbox",
    },
    {
-    title: "Querkraftgelenk",
+    title: "V",
     value: this.Gelenke[1],
     inputType: "checkbox",
    },
    {
-    title: "Momentengelenk",
+    title: "M",
     value: this.Gelenke[2],
     inputType: "checkbox",
    },
    {
-    title: "Feder in x",
+    title: "k<sub>N</sub>",
     unit: "N/m",
     value: this.Federn[0],
     inputType: "input",
@@ -73,7 +73,7 @@ export default class Gelenk implements isStatikobjekt {
     disabled: !this.Gelenke[0],
    },
    {
-    title: "Feder in z",
+    title: "k<sub>V</sub>",
     unit: "N/m",
     value: this.Federn[1],
     inputType: "input",
@@ -81,7 +81,7 @@ export default class Gelenk implements isStatikobjekt {
     disabled: !this.Gelenke[1],
    },
    {
-    title: "Feder in phi",
+    title: "k<sub>M</sub>",
     unit: "Nm/rad",
     value: this.Federn[2],
     inputType: "input",

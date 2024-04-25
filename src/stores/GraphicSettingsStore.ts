@@ -34,6 +34,8 @@ export const useGraphicSettingsStore = defineStore("graphicSettingsStore", {
   ABSTAND_TEXT: 15 as number, //Abstand des Textes von Ausgabepunkten (Schnittgrößen oder Verformung)
   ABSTAND_STABLAST: 30 as number,
   ABSTAND_KNOTENLAST: 30 as number,
+  /**Dieser Abstand in px wird mindestens zwischen System und Fensterrand eingehalten. */
+  ABSTAND_GRAFIKRAND: 250 as number,
   //Nachkommastellen
   NACHKOMMASTELLEN_SCHNITTGROESSEN: 6 as number,
   NACHKOMMASTELLEN_LASTWERTE: 2 as number,

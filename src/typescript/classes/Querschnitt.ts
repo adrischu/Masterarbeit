@@ -43,7 +43,7 @@ export default class Querschnitt implements isStatikobjekt {
  get header() {
   const systemStore = useSystemStore()
   return [
-   { title: "Nummer", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
+   { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
     title: "Name",
     value: this.Name,
@@ -51,7 +51,7 @@ export default class Querschnitt implements isStatikobjekt {
     inputFormat: "text",
    },
    {
-    title: "Materialnummer",
+    title: "Material",
     value: this.Materialnummer,
     inputType: "select",
     selectListKeys: systemStore.system.Materialliste.map(
@@ -60,14 +60,14 @@ export default class Querschnitt implements isStatikobjekt {
     selectListValues: systemStore.system.Materialliste.map((material) => material.Nummer),
    },
    {
-    title: "Fläche",
+    title: "A",
     unit: "m<sup>2</sup>",
     value: this.A,
     inputType: "input",
     inputFormat: "number",
    },
    {
-    title: "Flächenträgheitsmoment",
+    title: "I",
     unit: "m<sup>4</sup>",
     value: this.I,
     inputType: "input",

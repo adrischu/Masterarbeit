@@ -103,14 +103,14 @@
 <script setup lang="ts">
  import { computed, ref, type Ref, onMounted, onBeforeUnmount, nextTick } from "vue"
  import { useSystemStore } from "@/stores/SystemStore"
- import StabKomponente from "../grafikkomponenten/StabKomponente.vue"
- import StablastKomponente from "../grafikkomponenten/StablastKomponente.vue"
- import KnotenlastKomponente from "../grafikkomponenten/KnotenlastKomponente.vue"
- import KnotenKomponente from "../grafikkomponenten/KnotenKomponente.vue"
- import LagerkraefteKomponente from "../grafikkomponenten/LagerkraefteKomponente.vue"
- import LagerKomponente from "../grafikkomponenten/LagerKomponente.vue"
- import ErgebnisKomponente from "../grafikkomponenten/ErgebnisKomponente.vue"
- import VerformungKomponente from "../grafikkomponenten/VerformungKomponente.vue"
+ import StabKomponente from "./grafikkomponenten/StabKomponente.vue"
+ import StablastKomponente from "./grafikkomponenten/StablastKomponente.vue"
+ import KnotenlastKomponente from "./grafikkomponenten/KnotenlastKomponente.vue"
+ import KnotenKomponente from "./grafikkomponenten/KnotenKomponente.vue"
+ import LagerkraefteKomponente from "./grafikkomponenten/LagerkraefteKomponente.vue"
+ import LagerKomponente from "./grafikkomponenten/LagerKomponente.vue"
+ import ErgebnisKomponente from "./grafikkomponenten/ErgebnisKomponente.vue"
+ import VerformungKomponente from "./grafikkomponenten/VerformungKomponente.vue"
  import Balkenelement from "@/typescript/classes/Balkenelement"
  import Lastfall from "@/typescript/classes/Lastfall"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
@@ -277,6 +277,8 @@
  }
 
  const transform = computed(() => {
+  const graphicSettings = useGraphicSettingsStore()
+  const grafikRand = graphicSettings.ABSTAND_GRAFIKRAND
   const minX = Math.min(
    ...systemStore.value.system.Knotenliste.map((knoten) => knoten.Koordinaten.x),
   )
@@ -290,14 +292,14 @@
    ...systemStore.value.system.Knotenliste.map((knoten) => knoten.Koordinaten.z),
   )
 
-  const systemWidth = maxX - minX + 10 // 50px Rand auf jeder Seite
-  const systemHeight = maxY - minY + 10 // 50px Rand auf jeder Seite
+  const systemWidth = maxX - minX
+  const systemHeight = maxY - minY
 
-  const scaleWidth = graphWidth.value / systemWidth
-  const scaleHeight = graphHeight.value / systemHeight
+  const scaleWidth = (graphWidth.value - grafikRand) / systemWidth
+  const scaleHeight = (graphHeight.value - grafikRand) / systemHeight
   const scale = Math.min(scaleWidth, scaleHeight)
-  const translateX = (graphWidth.value - (maxX - minX) * scale) / 2
-  const translateY = (graphHeight.value - (maxY - minY) * scale) / 2
+  const translateX = (graphWidth.value - (maxX + minX) * scale) / 2
+  const translateY = (graphHeight.value - (maxY + minY) * scale) / 2
   return { x: translateX, y: translateY, scale: scale }
  })
 
