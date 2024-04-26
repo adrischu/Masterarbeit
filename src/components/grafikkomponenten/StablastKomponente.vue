@@ -62,9 +62,12 @@
     :y="text.point.z"
    >
     {{
-     Math.round((text.value + Number.EPSILON) * 10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE) /
+     Math.round(
+      (einheitStreck.vonSI * text.value + Number.EPSILON) *
+       10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE,
+     ) /
      10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE
-    }}
+    }}{{ graphicSettings.EINHEIT_SHOW ? einheitStreck.text : "" }}
    </text>
   </g>
  </g>
@@ -117,8 +120,12 @@
  import type Stab from "@/typescript/classes/Stab"
  import type { isStablast } from "@/typescript/classes/InterfaceStablast"
  import type StablastVorverformung from "@/typescript/classes/StablastVorverformung"
+ import type { isEinheit } from "@/typescript/classes/InterfaceEinheit"
 
  const graphicSettings = useGraphicSettingsStore()
+
+ const einheitStreck: isEinheit = useGraphicSettingsStore().EINHEIT_LASTEN_STRECKENLAST
+ //const einheitVorv:isEinheit = useGraphicSettingsStore().EINHEIT_LASTEN_VORVERFORMUNG
 
  const props = defineProps<{
   lasten: isStablast[]

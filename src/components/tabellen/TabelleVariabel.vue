@@ -1,12 +1,9 @@
 <template>
  <div
-  id="tabelle-variabel"
+  id="tabelle-selection"
   style="flex: none"
  >
-  <v-toolbar
-   class="tabelle-selection"
-   density="compact"
-  >
+  <v-toolbar density="compact">
    <!-- Auswahl ob System oder Last -->
    <v-tabs v-model="tabellentyp">
     <v-tab value="system">System</v-tab>
@@ -37,19 +34,20 @@
    >
     <v-tab value="lastfall">Lastfälle</v-tab>
     <v-tab value="knotenlast">Knotenlasten LF{{ lastfall.Nummer }}</v-tab>
-    <v-tab value="streckenlast">Streckenlasten</v-tab>
-    <v-tab value="vorverformung">Vorverformungen</v-tab>
+    <v-tab value="streckenlast">Streckenlasten LF{{ lastfall.Nummer }}</v-tab>
+    <v-tab value="vorverformung">Vorverformungen LF{{ lastfall.Nummer }}</v-tab>
    </v-tabs>
   </v-toolbar>
  </div>
-
  <div
+  id="tabelle-eingabe"
   ref="tabelleEingabe"
   style="flex: 1"
  >
   <!-- Tabellenanzeige -->
   <v-window
-   style="flex: 1"
+   id="tabelle-window"
+   style="height: 100%; width: 100%"
    disabled
    v-model="tabelleID"
   >

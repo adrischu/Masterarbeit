@@ -42,10 +42,11 @@
   >
    {{
     Math.round(
-     (last.text.value + Number.EPSILON) * 10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE,
+     (last.text.value * einheit.vonSI + Number.EPSILON) *
+      10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE,
     ) /
     10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE
-   }}
+   }}{{ graphicSettings.EINHEIT_SHOW ? einheit.text : "" }}
   </text>
  </g>
 </template>
@@ -56,8 +57,11 @@
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
  import type Knoten from "@/typescript/classes/Knoten"
  import type Knotenlast from "@/typescript/classes/Knotenlast"
+ import type { isEinheit } from "@/typescript/classes/InterfaceEinheit"
 
  const graphicSettings = useGraphicSettingsStore()
+
+ const einheit: isEinheit = useGraphicSettingsStore().EINHEIT_LASTEN_KRAFT
 
  const props = defineProps<{
   lasten: Knotenlast[]

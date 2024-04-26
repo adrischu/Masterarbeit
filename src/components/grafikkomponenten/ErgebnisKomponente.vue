@@ -31,10 +31,11 @@
   >
    {{
     Math.round(
-     (stabGrößen[index] + Number.EPSILON) * 10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN,
+     (stabGrößen[index] * einheit.vonSI + Number.EPSILON) *
+      10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN,
     ) /
     10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN
-   }}
+   }}{{ graphicSettings.EINHEIT_SHOW ? einheit.text : "" }}
   </text>
  </g>
 </template>
@@ -44,6 +45,7 @@
  import Vector from "@/typescript/classes/Vector"
  import { computed } from "vue"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
+ import type { isEinheit } from "@/typescript/classes/InterfaceEinheit"
 
  const graphicSettings = useGraphicSettingsStore()
 
@@ -52,6 +54,7 @@
   transform: { x: number; y: number; scale: number }
   scaleSchnittgroesse: number
   getErgebnisListe: (element: Balkenelement) => number[]
+  einheit: isEinheit
  }>()
 
  let anfang = computed(() => {

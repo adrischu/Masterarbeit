@@ -40,10 +40,11 @@
   >
    {{
     Math.round(
-     (reaktion.text.value + Number.EPSILON) * 10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE,
+     (reaktion.text.value * einheit.vonSI + Number.EPSILON) *
+      10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE,
     ) /
     10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE
-   }}
+   }}{{ graphicSettings.EINHEIT_SHOW ? einheit.text : "" }}
   </text>
  </g>
 </template>
@@ -53,8 +54,11 @@
  import { computed } from "vue"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
  import type Knoten from "@/typescript/classes/Knoten"
+ import type { isEinheit } from "@/typescript/classes/InterfaceEinheit"
 
  const graphicSettings = useGraphicSettingsStore()
+
+ const einheit: isEinheit = graphicSettings.EINHEIT_ERGEBNIS_KRAFT
 
  const props = defineProps<{
   knoten: Knoten

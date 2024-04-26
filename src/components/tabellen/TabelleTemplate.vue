@@ -1,165 +1,162 @@
 <template>
- <div id="tabelle-header">
-  <v-table
-   class="eingabetabelle-tabelle"
-   density="compact"
-   hover
-   fixed-header
-   :height="tableHeight"
-  >
-   <!--  -->
-   <!-- Tabellenkopfzeile -->
-   <!--  -->
-   <thead>
-    <tr>
-     <th
-      v-for="headerItem in newStatikObjekt.header"
-      :key="headerItem.title"
-     >
-      <span v-html="headerItem.title"></span>
-      <span
-       v-if="headerItem.unit"
-       v-html="` [${headerItem.unit}]`"
-      ></span>
-      <v-btn
-       v-if="headerItem.tooltip"
-       icon
-       color="rgb(255, 255, 80)"
-       size="20"
-       :active="false"
-       ><v-icon>mdi-help</v-icon
-       ><v-tooltip
-        activator="parent"
-        location="end"
-        open-delay="500"
-        ><div v-html="headerItem.tooltip"></div></v-tooltip
-      ></v-btn>
-     </th>
-     <th></th>
-    </tr>
-   </thead>
-
-   <!-- Tabelleninhalt -->
-   <tbody>
-    <!--  -->
-    <!-- Erste Zeile zum Hinzufügen -->
-    <!--  -->
-    <tr class="eingabetabelle-ersteZeile">
-     <td
-      v-for="(headerItem, itemIndex) in newStatikObjekt.header"
-      :key="itemIndex"
-     >
-      <!-- Falls normaler Input vorhanden -->
-      <input
-       v-if="headerItem.inputType === 'fixed' || headerItem.inputType === 'input'"
-       :type="headerItem.inputFormat"
-       v-model="newObjectValues[itemIndex]"
-      />
-      <!-- Falls DropDownBox vorhanden -->
-      <select
-       v-if="headerItem.inputType === 'select'"
-       v-model="newObjectValues[itemIndex]"
-      >
-       <option
-        v-for="(selectItem, selectIndex) in headerItem.selectListKeys"
-        :key="selectItem"
-        :value="headerItem.selectListValues![selectIndex]"
-       >
-        {{ selectItem }}
-       </option>
-      </select>
-      <!-- Falls Checkbox vorhanden -->
-      <v-checkbox-btn
-       v-if="headerItem.inputType === 'checkbox'"
-       v-model="newObjectValues[itemIndex]"
-      ></v-checkbox-btn>
-     </td>
-     <td>
-      <v-btn
-       @click="handleAdd"
-       icon
-       color="green"
-       size="x-small"
-       ><v-icon>mdi-plus</v-icon
-       ><v-tooltip
-        activator="parent"
-        location="end"
-        open-delay="500"
-       >
-        {{ newStatikObjekt.Typ }} hinzufügen
-       </v-tooltip></v-btn
-      >
-     </td>
-    </tr>
-
-    <!--  -->
-    <!-- Andere Zeilen für Inhalt -->
-    <!--  -->
-    <tr
-     v-for="(object, objectIndex) in data"
-     :key="object[0]"
+ <v-table
+  class="eingabetabelle-tabelle"
+  density="compact"
+  hover
+  fixed-header
+  :height="tableHeight"
+ >
+  <!--  -->
+  <!-- Tabellenkopfzeile -->
+  <!--  -->
+  <thead>
+   <tr>
+    <th
+     v-for="headerItem in newStatikObjekt.header"
+     :key="headerItem.title"
     >
-     <td
-      v-for="(headerItem, itemIndex) in object"
-      :key="itemIndex"
+     <span v-html="headerItem.title"></span>
+     <span
+      v-if="headerItem.unit"
+      v-html="` [${headerItem.unit}]`"
+     ></span>
+     <v-btn
+      v-if="headerItem.tooltip"
+      icon
+      color="rgb(255, 255, 80)"
+      size="20"
+      :active="false"
+      ><v-icon>mdi-help</v-icon
+      ><v-tooltip
+       activator="parent"
+       location="end"
+       open-delay="500"
+       ><div v-html="headerItem.tooltip"></div></v-tooltip
+     ></v-btn>
+    </th>
+    <th></th>
+   </tr>
+  </thead>
+
+  <!-- Tabelleninhalt -->
+  <tbody>
+   <!--  -->
+   <!-- Erste Zeile zum Hinzufügen -->
+   <!--  -->
+   <tr class="eingabetabelle-ersteZeile">
+    <td
+     v-for="(headerItem, itemIndex) in newStatikObjekt.header"
+     :key="itemIndex"
+    >
+     <!-- Falls normaler Input vorhanden -->
+     <input
+      v-if="headerItem.inputType === 'fixed' || headerItem.inputType === 'input'"
+      :type="headerItem.inputFormat"
+      v-model="newObjectValues[itemIndex]"
+     />
+     <!-- Falls DropDownBox vorhanden -->
+     <select
+      v-if="headerItem.inputType === 'select'"
+      v-model="newObjectValues[itemIndex]"
      >
-      <!-- Falls nicht veränderbar -->
-      <span v-if="objectlist[objectIndex].header[itemIndex].inputType === 'fixed'">
+      <option
+       v-for="(selectItem, selectIndex) in headerItem.selectListKeys"
+       :key="selectItem"
+       :value="headerItem.selectListValues![selectIndex]"
+      >
+       {{ selectItem }}
+      </option>
+     </select>
+     <!-- Falls Checkbox vorhanden -->
+     <v-checkbox-btn
+      v-if="headerItem.inputType === 'checkbox'"
+      v-model="newObjectValues[itemIndex]"
+     ></v-checkbox-btn>
+    </td>
+    <td>
+     <v-btn
+      @click="handleAdd"
+      icon
+      color="green"
+      size="x-small"
+      ><v-icon>mdi-plus</v-icon
+      ><v-tooltip
+       activator="parent"
+       location="end"
+       open-delay="500"
+      >
+       {{ newStatikObjekt.Typ }} hinzufügen
+      </v-tooltip></v-btn
+     >
+    </td>
+   </tr>
+
+   <!--  -->
+   <!-- Andere Zeilen für Inhalt -->
+   <!--  -->
+   <tr
+    v-for="(object, objectIndex) in data"
+    :key="object[0]"
+   >
+    <td
+     v-for="(headerItem, itemIndex) in object"
+     :key="itemIndex"
+    >
+     <!-- Falls nicht veränderbar -->
+     <span v-if="objectlist[objectIndex].header[itemIndex].inputType === 'fixed'">
+      {{ data[objectIndex][itemIndex] }}
+     </span>
+     <!-- Falls normaler Input vorhanden -->
+     <input
+      v-if="objectlist[objectIndex].header[itemIndex].inputType === 'input'"
+      :type="objectlist[objectIndex].header[itemIndex].inputFormat"
+      v-model="data[objectIndex][itemIndex]"
+      @focusout="handleEdit(object, objectIndex)"
+      :disabled="objectlist[objectIndex].header[itemIndex].disabled"
+     />
+     <!-- Falls DropDownBox vorhanden -->
+     <select
+      v-if="objectlist[objectIndex].header[itemIndex].inputType === 'select'"
+      v-model="data[objectIndex][itemIndex]"
+      @focusout="handleEdit(object, objectIndex)"
+     >
+      <option :value="data[objectIndex][itemIndex]">
        {{ data[objectIndex][itemIndex] }}
-      </span>
-      <!-- Falls normaler Input vorhanden -->
-      <input
-       v-if="objectlist[objectIndex].header[itemIndex].inputType === 'input'"
-       :type="objectlist[objectIndex].header[itemIndex].inputFormat"
-       v-model="data[objectIndex][itemIndex]"
-       @focusout="handleEdit(object, objectIndex)"
-       :disabled="objectlist[objectIndex].header[itemIndex].disabled"
-      />
-      <!-- Falls DropDownBox vorhanden -->
-      <select
-       v-if="objectlist[objectIndex].header[itemIndex].inputType === 'select'"
-       v-model="data[objectIndex][itemIndex]"
-       @focusout="handleEdit(object, objectIndex)"
+      </option>
+      <option
+       v-for="(selectItem, selectIndex) in objectlist[objectIndex].header[itemIndex].selectListKeys"
+       :key="selectItem"
+       :value="objectlist[objectIndex].header[itemIndex].selectListValues![selectIndex]"
       >
-       <option :value="data[objectIndex][itemIndex]">
-        {{ data[objectIndex][itemIndex] }}
-       </option>
-       <option
-        v-for="(selectItem, selectIndex) in objectlist[objectIndex].header[itemIndex]
-         .selectListKeys"
-        :key="selectItem"
-        :value="objectlist[objectIndex].header[itemIndex].selectListValues![selectIndex]"
-       >
-        {{ selectItem }}
-       </option>
-      </select>
-      <!-- Falls Checkbox vorhanden -->
-      <v-checkbox-btn
-       v-if="objectlist[objectIndex].header[itemIndex].inputType === 'checkbox'"
-       v-model="data[objectIndex][itemIndex]"
-       @change="handleEdit(object, objectIndex)"
-      ></v-checkbox-btn>
-     </td>
-     <td>
-      <v-btn
-       @click="handleDelete(objectIndex)"
-       icon
-       color="red"
-       size="x-small"
-       ><v-icon>mdi-minus</v-icon
-       ><v-tooltip
-        activator="parent"
-        location="end"
-        open-delay="500"
-       >
-        {{ newStatikObjekt.Typ }} entfernen
-       </v-tooltip></v-btn
+       {{ selectItem }}
+      </option>
+     </select>
+     <!-- Falls Checkbox vorhanden -->
+     <v-checkbox-btn
+      v-if="objectlist[objectIndex].header[itemIndex].inputType === 'checkbox'"
+      v-model="data[objectIndex][itemIndex]"
+      @change="handleEdit(object, objectIndex)"
+     ></v-checkbox-btn>
+    </td>
+    <td>
+     <v-btn
+      @click="handleDelete(objectIndex)"
+      icon
+      color="red"
+      size="x-small"
+      ><v-icon>mdi-minus</v-icon
+      ><v-tooltip
+       activator="parent"
+       location="end"
+       open-delay="500"
       >
-     </td>
-    </tr>
-   </tbody>
-  </v-table>
- </div>
+       {{ newStatikObjekt.Typ }} entfernen
+      </v-tooltip></v-btn
+     >
+    </td>
+   </tr>
+  </tbody>
+ </v-table>
 </template>
 
 <script setup lang="ts">
@@ -187,15 +184,6 @@
  let newObjectValues: Ref<any[]> = ref(newStatikObjekt.values)
 
  let data: Ref<any[]> = ref([])
-
- //  const tableHeight = computed(() => {
- //   // Hole das Element mit der Klasse "tabelle-header"
- //   const tabelleHeader = document.querySelector("tabelle-eingabe")
-
- //   // Überprüfe, ob das Element gefunden wurde
- //   // Höhe des Elements auslesen
- //   return tabelleHeader!.scrollHeight
- //  })
 
  updateData()
 
@@ -246,6 +234,11 @@
 </script>
 
 <style scoped>
+ .v-table__wrapper table {
+  table-layout: fixed;
+  width: 0 !important;
+ }
+
  .eingabetabelle-ersteZeile {
   text-align: center;
   background-color: rgb(14, 80, 14);
@@ -256,20 +249,24 @@
   height: 50px;
  }
 
- .eingabetabelle-tabelle,
+ .eingabetabelle-tabelle {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  border: #646262 solid;
+  border-width: 0px;
+  margin: 0px;
+  padding: 0px;
+ }
+
  thead {
   width: 100%;
   height: 100%;
   text-align: center;
   border: #646262 solid;
-  border-width: 1px;
+  border-width: 0px;
   margin: 0px;
-  padding: 2px;
- }
-
- thead {
-  padding: 0;
-  text-align: center;
+  padding: 0px;
  }
 
  select {

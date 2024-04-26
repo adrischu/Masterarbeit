@@ -1,4 +1,5 @@
 import { defineStore } from "pinia"
+import { useEinheitenStore } from "./EinheitenStore"
 
 /**
  * In diesem Speicher befinden sich Variablen, die die grafische Darstellung des Systems steuern.
@@ -37,7 +38,7 @@ export const useGraphicSettingsStore = defineStore("graphicSettingsStore", {
   /**Dieser Abstand in px wird mindestens zwischen System und Fensterrand eingehalten. */
   ABSTAND_GRAFIKRAND: 250 as number,
   //Nachkommastellen
-  NACHKOMMASTELLEN_SCHNITTGROESSEN: 6 as number,
+  NACHKOMMASTELLEN_SCHNITTGROESSEN: 2 as number,
   NACHKOMMASTELLEN_LASTWERTE: 2 as number,
   //Schriftgrößen
   SCHRIFTGROESSE_SCHNITTGROESSEN: 15 as number,
@@ -50,5 +51,14 @@ export const useGraphicSettingsStore = defineStore("graphicSettingsStore", {
 
   RADIUS_KNOTEN: 4 as number,
   RADIUS_GELENK: 8 as number,
+
+  //EINHEITENANZEIGE
+  EINHEIT_SHOW: true,
+  EINHEIT_ERGEBNIS_KRAFT: useEinheitenStore().kN,
+  EINHEIT_ERGEBNIS_MOMENT: useEinheitenStore().kNm,
+  EINHEIT_ERGEBNIS_LÄNGE: useEinheitenStore().mm,
+  EINHEIT_ERGEBNIS_WINKEL: useEinheitenStore().mrad,
+  EINHEIT_LASTEN_KRAFT: useEinheitenStore().kN,
+  EINHEIT_LASTEN_STRECKENLAST: useEinheitenStore().kN_m,
  }),
 })

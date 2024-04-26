@@ -109,24 +109,25 @@
   </v-toolbar>
  </div>
 
- <!-- Div für Grafikfenster -->
- <div
-  id="grafik-fenster"
-  class="svg-container"
-  ref="svgContainer"
- >
-  <FensterGrafik
-   :lastfall="lastfall"
-   :ergebnisgroesse="ergebnisgroesse"
-   :svgContainer="svgContainer"
-  />
- </div>
+ <div class="main-content">
+  <!-- Div für Grafikfenster -->
+  <div
+   id="grafik-fenster"
+   class="svg-container"
+   ref="svgContainer"
+  >
+   <FensterGrafik
+    :lastfall="lastfall"
+    :ergebnisgroesse="ergebnisgroesse"
+    :svgContainer="svgContainer"
+   />
+  </div>
 
- <!-- Div für Tabelle -->
- <div class="table-container">
-  <TabelleVariabel :lastfall="lastfall" />
+  <!-- Div für Tabelle -->
+  <div class="table-container">
+   <TabelleVariabel :lastfall="lastfall" />
+  </div>
  </div>
-
  <!-- Div für Fußzeile -->
  <div class="footer">
   &copy; Adrian Schubert {{ new Date().getFullYear() }} - current Commit: 23.04.2024 00:18
@@ -210,6 +211,7 @@
   height: 25%;
   display: flex;
   flex-direction: column;
+  overflow-y: hidden;
  }
 
  .divider {

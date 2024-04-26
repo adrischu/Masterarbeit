@@ -73,7 +73,19 @@
       </v-list-item-action>
      </template>
     </v-list-item>
-    <!-- Nachkomkmastellen Ergenisse -->
+
+    <!-- Einheiten anzeigen -->
+    <v-list-item
+     title="Einheitenanzeige"
+     subtitle="Einheitentexte für Lasten und Ergebnisse anzeigen?"
+     ><template v-slot:prepend>
+      <v-list-item-action start>
+       <v-checkbox-btn v-model="graphicSettings.EINHEIT_SHOW"></v-checkbox-btn>
+      </v-list-item-action>
+     </template>
+    </v-list-item>
+
+    <!-- Nachkomkmastellen Ergebnisse -->
     <v-list-item>
      <v-text-field
       type="number"

@@ -15,6 +15,7 @@
     :transform="transform"
     :getErgebnisListe="getErgebnisListe"
     :scaleSchnittgroesse="scaleSchnittgroesse"
+    :einheit="getEinheit!"
    />
   </g>
   <!-- Stäbe -->
@@ -115,6 +116,7 @@
  import Lastfall from "@/typescript/classes/Lastfall"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
  import type { isStablast } from "@/typescript/classes/InterfaceStablast"
+ import type { isEinheit } from "@/typescript/classes/InterfaceEinheit"
 
  const props = defineProps<{
   lastfall: Lastfall
@@ -136,6 +138,38 @@
 
  const knotenlasten = computed(() => {
   return props.lastfall.Knotenlastliste
+ })
+
+ const getEinheit = computed(() => {
+  switch (props.ergebnisgroesse) {
+   //Normalkraft
+   case 0: {
+    return graphicSettings.EINHEIT_ERGEBNIS_KRAFT
+   }
+   //QUerkraft
+   case 1: {
+    return graphicSettings.EINHEIT_ERGEBNIS_KRAFT
+   }
+   //Moment
+   case 2: {
+    return graphicSettings.EINHEIT_ERGEBNIS_MOMENT
+   }
+   //Verschiebung in x
+   case 3: {
+    return graphicSettings.EINHEIT_ERGEBNIS_LÄNGE
+   }
+   //Vewrschiebung in z
+   case 4: {
+    return graphicSettings.EINHEIT_ERGEBNIS_LÄNGE
+   }
+   //Verdrehung
+   case 5: {
+    return graphicSettings.EINHEIT_ERGEBNIS_WINKEL
+   }
+   default: {
+    return null
+   }
+  }
  })
 
  const getErgebnisListe = computed(() => {

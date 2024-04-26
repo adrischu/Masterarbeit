@@ -10,6 +10,9 @@ body {
  margin: 0;
  padding: 0;
  overflow-y: hidden;
+
+ -ms-overflow-style: none; /* IE and Edge */
+ scrollbar-width: none; /* Firefox */
 }
 
 #app {
@@ -33,12 +36,14 @@ body {
 .main-content {
  flex: 1;
  padding: 0;
+ margin: 0;
  overflow-y: auto;
 }
 
 .footer {
  background-color: rgb(204, 204, 204);
  padding: 0;
+ margin: 0;
  text-align: center;
  flex: none; /* Footer wird nicht vergrößert */
 }
