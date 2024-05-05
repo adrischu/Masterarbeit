@@ -1,5 +1,6 @@
 import { Theorie } from "../enumerations"
 import type Balkenelement from "./Balkenelement"
+import type Fehler from "./Fehler"
 import type { isElement } from "./InterfaceElement"
 import type { isStablast } from "./InterfaceStablast"
 import type { isStatikobjekt } from "./InterfaceStatikobjekt"
@@ -33,6 +34,10 @@ export default class Lastfall implements isStatikobjekt {
  M_K_kurz: number[][]
  /**Knotenkraftvektor aller gehaltenen und nicht-gehaltenen Freiheitsgrade */
  Lagerkräfte: number[]
+ /**Fehlerliste, die während der Berechnung als Abbruchkriterium verwendet wird.
+  * Wird nach der Berechnung zur Fehlerliste des Systems dazuaddier und ist ab dann redundant.
+  */
+ Fehlerliste: Fehler[]
  /**True bedeutet dass dieser Lastfall berechnet ist */
  istBerechnet: boolean
 
@@ -51,6 +56,7 @@ export default class Lastfall implements isStatikobjekt {
   this.M_K_lang = []
   this.M_K_kurz = []
   this.Lagerkräfte = []
+  this.Fehlerliste = []
   this.istBerechnet = false
  }
 

@@ -5,10 +5,11 @@
   fullscreen
  >
   <template v-slot:activator="{ props: activatorProps }">
-   <v-btn
+   <!-- <v-btn
     icon="mdi-cog"
     v-bind="activatorProps"
-   ></v-btn>
+   ></v-btn> -->
+   <v-btn v-bind="activatorProps"> Einstellungen </v-btn>
   </template>
 
   <v-card>

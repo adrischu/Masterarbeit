@@ -282,8 +282,12 @@
   if (props.lastfall.StablastListeVorverformung.length === 0) return 0
   let max = 0
   props.lastfall.StablastListeVorverformung.forEach((last) => {
-   const L = last.Stab!.Länge
-   max = Math.max(max, Math.abs(last.phi0 * L), Math.abs(last.w0zuL * L))
+   try {
+    const L = last.Stab!.Länge
+    max = Math.max(max, Math.abs(last.phi0 * L), Math.abs(last.w0zuL * L))
+   } catch (error) {
+    max = 1 * max
+   }
   })
   return max === 0 ? 0 : (graphicSettings.SKALIERUNG_STABLASTEN * 60) / max
  })

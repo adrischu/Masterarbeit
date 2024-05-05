@@ -47,75 +47,6 @@ export async function alsSVGSpeichern() {
  element.href = window.URL.createObjectURL(blob)
  element.click()
  element.remove()
-
- //-----------------------------------------------------------------------------------------------
- //  let lastFileHandleSVG = "documents"
- //  let currentFilenameSVG = "d2beam.svg"
- //  //let svg = svgElement;
- //  //console.log("svg", svg)
- //  const elem = document.getElementById("svg-komponente") as any
-
- //  if (elem) {
- //   // svg = svg.replace(/\r?\n|\r/g, "").trim();
- //   // svg = svg.substring(0, svg.indexOf("</svg>")) + "</svg>";
- //   // // @ts-ignore
- //   // svg = svg.replaceAll("  ", "");
-
- //   // const preface = '<?xml version="1.0" standalone="no"?>\r\n';
- //   // const svgBlob = new Blob([preface, svg], { type: "image/svg+xml;charset=utf-8" });
-
- //   const svgBlob = new Blob([elem.innerHTML], { type: "image/svg+xml;charset=utf-8" }) //
-
- //   console.log("svgBlob.type", svgBlob.type)
-
- //   navigator.clipboard.writeText(elem.innerHTML) // für inkscape
-
- //   let filename: any = "d2beam.svg"
-
- //   if (app.hasFSAccess && app.isMac) {
- //    filename = window.prompt(
- //     "Name der Datei mit Extension, z.B. duennqs.svg\nDie Datei wird im Default Download Ordner gespeichert",
- //     "d2beam.svg",
- //    )
- //   } else if (app.hasFSAccess) {
- //    try {
- //     // @ts-ignore
- //     const fileHandle = await window.showSaveFilePicker({
- //      suggestedName: currentFilenameSVG,
- //      startIn: lastFileHandleSVG,
- //      types: [
- //       {
- //        description: "svg file",
- //        accept: { "text/plain": [".svg"] }, //   image/svg+xml (.svg)
- //       },
- //      ],
- //     })
- //     console.log("fileHandle SVG", fileHandle)
- //     lastFileHandleSVG = fileHandle
- //     currentFilenameSVG = fileHandle.name
-
- //     const fileStream = await fileHandle.createWritable()
- //     //console.log("fileStream=",fileStream);
-
- //     // (C) WRITE FILE
- //     await fileStream.write(svgBlob)
- //     await fileStream.close()
- //    } catch (error: any) {
- //     //alert(error.name);
- //     alert(error.message)
- //    }
-
- //    return
- //   }
-
- //   // für den Rest des Feldes
-
- //   try {
- //    saveAs(svgBlob, filename)
- //   } catch (error: any) {
- //    alert(error.message)
- //   }
- //  }
 }
 
 export function alsPNGSpeichern() {
@@ -164,4 +95,13 @@ export function alsPNGSpeichern() {
  a.click()
  a.remove()
  //  })
+}
+
+export async function saveTextFile(text: string, fileName: string) {
+ const blob = new Blob([text], { type: "text/plain" })
+ const element = document.createElement("a")
+ element.download = `${fileName}.txt`
+ element.href = window.URL.createObjectURL(blob)
+ element.click()
+ element.remove()
 }

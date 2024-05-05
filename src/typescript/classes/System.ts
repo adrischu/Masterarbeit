@@ -49,7 +49,24 @@ export default class System {
   this.Verformungsinzidenzen = []
  }
 
+ delete(): void {
+  this.Knotenliste = []
+  this.Stabliste = []
+  this.Lagerliste = []
+  this.Querschnittliste = []
+  this.Gelenkliste = []
+  this.Materialliste = []
+  this.Lastfallliste = []
+  this.Fehlerliste = []
+
+  //Die folgenden Variablen verändern sich über die Berechnung
+  this.istBerechnet = false
+ }
+
  berechnen(): boolean {
+  //Es werden alle Berechnungsfehler gelöscht. Sonst kann die Berechnung nicht gestartet werden.
+  this.Fehlerliste = this.Fehlerliste.filter((e) => e.Typ !== "Berechnung")
+  //Berechnung wird nur gestartet, wenn Fehlerliste leer ist.
   if (this.Fehlerliste.length) {
    return false
   } else {
@@ -161,6 +178,7 @@ export default class System {
 
   statikobjekt!.values = statikobjektdaten
   statikobjektArray!.push(statikobjekt!)
+  statikobjektArray.sort((a, b) => a.Nummer - b.Nummer)
   if (buildSystem) this.buildSystem()
   ergebnisseLöschen(this)
  }
@@ -250,10 +268,12 @@ export default class System {
     knotenlast.Knoten = this.searchObjectByNummer(knotenlast.Knotennummer, this.Knotenliste)
     knotenlast.Lastfallnummer = lastfall.Nummer
    })
+   //Streckenlasten bekommen Stab
    lastfall.StablastListeStreckenlast.forEach((streckenlast) => {
     streckenlast.Stab = this.searchObjectByNummer(streckenlast.Stabnummer, this.Stabliste)
     streckenlast.Lastfallnummer = lastfall.Nummer
    })
+   //Vorverformungen bekommen Stab
    lastfall.StablastListeVorverformung.forEach((vorferformung) => {
     vorferformung.Stab = this.searchObjectByNummer(vorferformung.Stabnummer, this.Stabliste)
     vorferformung.Lastfallnummer = lastfall.Nummer

@@ -158,9 +158,9 @@
   <g id="x">
    <use href="#triangleX" />
    <use
-    href="#horLine"
-    x="0"
-    y="7"
+    href="#vertLine"
+    x="7"
+    y="0"
    />
   </g>
  </defs>

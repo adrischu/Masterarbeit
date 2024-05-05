@@ -79,33 +79,52 @@
    </v-select>
    <v-spacer></v-spacer>
 
-   <!-- Bild speichern -->
+   <!-- Parameteranalyse -->
    <v-menu>
     <template v-slot:activator="{ props }">
      <v-btn
-      icon="mdi-image-area"
+      icon="mdi-chart-line"
       v-bind="props"
      />
     </template>
     <v-list>
      <v-list-item>
-      <v-btn
-       @click="alsPNGSpeichern"
-       disabled
-       >Als .png speichern</v-btn
-      >
+      <v-btn @click="system1Analyse1Element">System 1 - 1 Element</v-btn>
      </v-list-item>
      <v-list-item>
-      <v-btn @click="alsSVGSpeichern">Als .svg speichern</v-btn>
+      <v-btn @click="system1Analyse2Element">System 1 - 2 Elemente</v-btn>
+     </v-list-item>
+     <v-list-item>
+      <v-btn @click="system2Analyse1Element">System 1 - 2 Elemente</v-btn>
      </v-list-item>
     </v-list>
    </v-menu>
 
-   <!-- Handbuch -->
-   <DialogHandbuch />
+   <!-- "Mehr-Menü" -->
+   <v-menu>
+    <template v-slot:activator="{ props }">
+     <v-btn
+      icon="mdi-dots-vertical"
+      v-bind="props"
+     />
+    </template>
+    <v-list>
+     <!-- Grafik als SVG-Speichern -->
+     <v-list-item>
+      <v-btn @click="alsSVGSpeichern">Als .svg speichern</v-btn>
+     </v-list-item>
 
-   <!-- Einstellungen -->
-   <DialogEinstellungen />
+     <!-- Handbuch -->
+     <v-list-item>
+      <DialogHandbuch />
+     </v-list-item>
+
+     <!-- Einstellungen -->
+     <v-list-item>
+      <DialogEinstellungen />
+     </v-list-item>
+    </v-list>
+   </v-menu>
   </v-toolbar>
  </div>
 
@@ -153,11 +172,14 @@
  import { handleFileUpload } from "@/typescript/DateiFunktionen"
  import { alsSVGSpeichern } from "@/typescript/DateiFunktionen"
  import { alsPNGSpeichern } from "@/typescript/DateiFunktionen"
+ import { system1Analyse1Element } from "@/typescript/parameterstudie"
+ import { system1Analyse2Element } from "@/typescript/parameterstudie"
+ import { system2Analyse1Element } from "@/typescript/parameterstudie"
 
  const systemStore = useSystemStore()
 
  //  Beim Start des Programms wird ein System vorgeladen
- preloadSystem()
+ preloadSystem(1)
 
  const svgContainer: Ref<HTMLElement | null> = ref(null)
 
@@ -180,10 +202,12 @@
  }
 
  function handleStartBerechnung(): void {
+  //Der Fehlerdialog wird geöffnet, wenn vor der Berechnung noch Fehler vorhanden sind,
+  //oder wenn nach der Berechnung Fehler vorhanden sind.
   if (!systemStore.system.berechnen()) {
-   console.log("Fehler bei Berechnung")
    toggleFehlerDialog()
-   console.log(fehlerDialog.value)
+  } else if (systemStore.system.Fehlerliste.length) {
+   toggleFehlerDialog()
   }
  }
 
@@ -202,13 +226,13 @@
  .svg-container {
   position: relative; /* Stellt sicher, dass die absolut positionierten Elemente relativ zum Container positioniert werden */
   width: 100%; /* Breite des SVG-Containers */
-  height: 75%; /* Höhe des SVG-Containers */
+  height: 70%; /* Höhe des SVG-Containers */
  }
 
  .table-container {
   position: relative;
   width: 100%;
-  height: 25%;
+  height: 30%;
   display: flex;
   flex-direction: column;
   overflow-y: hidden;

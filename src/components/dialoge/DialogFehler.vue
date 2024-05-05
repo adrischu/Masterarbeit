@@ -1,12 +1,15 @@
 <template>
  <v-dialog
-  max-width="500px"
+  max-width="300px"
   transition="dialog-bottom-transition"
   v-model="dialog"
  >
   <v-card>
    <v-card-title>Achtung</v-card-title>
-   <v-card-text>Bitte erst Eingabefehler beheben, bevor die Berechnung gestartet wird.</v-card-text>
+   <v-card-text>
+    Es sind vor oder während der Berechnung Fehler aufgetreten. Bitte in Tabellenreiter "Fehler"
+    überprüfen.
+   </v-card-text>
   </v-card>
  </v-dialog>
 </template>

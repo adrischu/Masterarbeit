@@ -83,7 +83,11 @@ export function startBerechnungen(system: System): void {
    )
    console.log("Absoluter Fehler in Iteration " + iteration + ": " + iterationsFehler)
    lastfall.letzerVerformungsvektor_kurz = lastfall.Verformungsvektor_kurz.slice()
-  } while (iteration + 1 <= maxIterationen && iterationsFehler > settingsStore.maxIterationsFehler)
+  } while (
+   iteration + 1 <= maxIterationen &&
+   iterationsFehler > settingsStore.maxIterationsFehler &&
+   lastfall.Fehlerliste.length === 0
+  )
 
   //Gibt Fehlermeldung aus, wenn nach max Iterationen noch keine Konvergenz gefunden wurde.
   if (
@@ -91,13 +95,25 @@ export function startBerechnungen(system: System): void {
    iteration === maxIterationen &&
    iterationsFehler > settingsStore.maxIterationsFehler
   ) {
-   //TODO: Ordentliche Fehlerausgabe in Website implementieren.
-   console.log("Es wurde nach " + iteration + " Iteration noch keine Konvergenz gefunden.")
+   lastfall.Fehlerliste.push(
+    new Fehler(
+     "Berechnung",
+     `Es wurde nach ${iteration} Iteration noch keine Konvergenz gefunden.`,
+    ),
+   )
+   console.log(`Es wurde nach ${iteration} Iteration noch keine Konvergenz gefunden.`)
   }
-
-  schnittgrößenBestimmen(system, lastfall)
-  lagerkräfteBestimmen(system, lastfall)
-  lastfall.istBerechnet = true
+  if (lastfall.Fehlerliste.length) {
+   //Fehler bei Berechnung des Lastfalls. Fehler werden auf Systemfehler überschrieben und Lastfall ist "nicht berechnet"
+   lastfall.Fehlerliste.forEach((fehler) => {
+    system.Fehlerliste.push(fehler)
+   })
+  } else {
+   //Erfolgreiche Berechnung des Lastfalls
+   schnittgrößenBestimmen(system, lastfall)
+   lagerkräfteBestimmen(system, lastfall)
+   lastfall.istBerechnet = true
+  }
  })
 }
 /**
@@ -121,8 +137,10 @@ export function ergebnisseLöschen(system: System): void {
   lastfall.letzerVerformungsvektor_kurz = []
   lastfall.Verformungsvektor_lang = []
   lastfall.Lastvektor = []
+  lastfall.Lagerkräfte = []
   lastfall.M_K_kurz = []
   lastfall.M_K_lang = []
+  lastfall.Fehlerliste = []
   lastfall.istBerechnet = false
  })
  system.Stabliste.forEach((stab) => {
@@ -371,7 +389,6 @@ function randbedingungenEinarbeiten(system: System, lastfall: Lastfall) {
  * @param lastfall Aktuelles Lastfallobjekt.
  */
 function gleichungssystemLösen(system: System, lastfall: Lastfall) {
- const systemStore = useSystemStore()
  //Da der Lastvektor in der Funktion gauss zum Verformungsvektor
  //umgeformt wird, werden diese beiden hier gleichgesetzt.
  lastfall.Verformungsvektor_kurz = lastfall.Lastvektor.slice()
@@ -382,8 +399,11 @@ function gleichungssystemLösen(system: System, lastfall: Lastfall) {
    lastfall.Verformungsvektor_kurz,
   )
  ) {
-  systemStore.system.Fehlerliste.push(
-   new Fehler("Berechnung", "Singuläre Steifigkeitsmatrix. System ist instabil oder kinematisch."),
+  lastfall.Fehlerliste.push(
+   new Fehler(
+    "Berechnung",
+    `LF${lastfall.Nummer}: Singuläre Steifigkeitsmatrix. System ist instabil oder kinematisch.`,
+   ),
   )
   console.log("Singuläre Steifigkeitsmatrix")
  }
@@ -481,7 +501,7 @@ function lagerkräfteBestimmen(system: System, lastfall: Lastfall) {
  //Kräfte aus Stabenden
  lastfall.Elementliste.forEach((element) => {
   const kräfte_global = matMultiplyVec(matTrans(element.T), element.F)!
-  for (let i = 0; i <= element.nGleichungen; i++) {
+  for (let i = 0; i < element.nGleichungen; i++) {
    lastfall.Lagerkräfte[element.Inzidenzen[i]] -= kräfte_global[i]
   }
  })

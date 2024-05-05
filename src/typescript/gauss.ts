@@ -1,4 +1,8 @@
-//Funktion wurde mit Einverständnis von Prof. Dr. Detlef Rothe (hda) übernommen.
+/**
+ * Funktion wurde mit Einverständnis von Prof. Dr. Detlef Rothe (hda) aus seinem Programm d2beam übernommen.
+ * Danke an Herrn Rothe für die Erlaubnis!
+ * Es wurden einige Änderung gegenüber dem Originalcode gemacht.
+ */
 
 /** ### Gauss-Algorithmus
  * Funktion zur Lösung linearer Gleichungen der Form "A*x=b". Es wird x gesucht.

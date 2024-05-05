@@ -108,6 +108,28 @@
     fill="none"
     :stroke-dasharray="graphicSettings.GESTRICHELT_VORVERFORMUNG"
    />
+   <!-- Text für Vorkrümmung -->
+   <text
+    v-if="vorverformung.textVorkruemmung"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    :fill="graphicSettings.FARBE_STABLAST"
+    :font-size="`${graphicSettings.SCHRIFTGROESSE_STABLAST}px`"
+    :x="vorverformung.textVorkruemmung!.point.x"
+    :y="vorverformung.textVorkruemmung!.point.z"
+    >{{ vorverformung.textVorkruemmung!.text }}</text
+   >
+   <!-- Text für Schiefstellung -->
+   <text
+    v-if="vorverformung.textSchiefstellung"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    :fill="graphicSettings.FARBE_STABLAST"
+    :font-size="`${graphicSettings.SCHRIFTGROESSE_STABLAST}px`"
+    :x="vorverformung.textSchiefstellung!.point.x"
+    :y="vorverformung.textSchiefstellung!.point.z"
+    >{{ vorverformung.textSchiefstellung!.text }}</text
+   >
   </g>
  </g>
 </template>
@@ -330,6 +352,8 @@
    straightLine: string
    middleLine: string
    endLine: string
+   textVorkruemmung: { point: Vector; text: string } | null
+   textSchiefstellung: { point: Vector; text: string } | null
    key: string
   }[] = []
 
@@ -346,6 +370,11 @@
     let middleLine: string = ""
     /**Kurve die den Endstich durch phi0 anzeigt. */
     let endLine: string = ""
+    /**Stelle und anzuzeigender Text für die Vorkrümmung */
+    let textVorkruemmung: { point: Vector; text: string } | null = null
+    /**Stelle und anzuzeigender Text für die Schiefstelluug */
+    let textSchiefstellung: { point: Vector; text: string } | null = null
+
     /**Individueller Key für "v-for" Vue-Komponente */
     const key: string = stablast.Stab!.Nummer + "_" + stablast.Nummer
     const L = stablast.Stab!.Länge
@@ -386,6 +415,10 @@
        .moveAlongVector(stabvektor, t)
        .movePolar(yphi0 * props.scaleVorverformungen, angle + Math.PI / 2)
       middleLine = `${lineMiddle.x},${lineMiddle.z} ${curvePoint.x},${curvePoint.z}`
+      textVorkruemmung = {
+       point: curvePoint,
+       text: `w0/L=${vorverformung.w0zuL}`,
+      }
      }
 
      //Nachfolgende Schleife ermittelt die gestrichelte Linie die nur durch ph0 entsteht
@@ -397,9 +430,21 @@
      //Muss nur angezeigt werden wenn auch eine Verdrehung da ist.
      if (vorverformung.phi0 && i === nPunkte - 1) {
       endLine = `${ende.value.x},${ende.value.z} ${curvePoint.x},${curvePoint.z}`
+      textSchiefstellung = {
+       point: curvePoint,
+       text: `ϕ0=${vorverformung.w0zuL}`,
+      }
      }
     }
-    vorverformungen.push({ totalCurve, straightLine, middleLine, endLine, key })
+    vorverformungen.push({
+     totalCurve,
+     straightLine,
+     middleLine,
+     endLine,
+     textVorkruemmung,
+     textSchiefstellung,
+     key,
+    })
    })
   return vorverformungen
  })

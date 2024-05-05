@@ -38,7 +38,7 @@ export const useGraphicSettingsStore = defineStore("graphicSettingsStore", {
   /**Dieser Abstand in px wird mindestens zwischen System und Fensterrand eingehalten. */
   ABSTAND_GRAFIKRAND: 250 as number,
   //Nachkommastellen
-  NACHKOMMASTELLEN_SCHNITTGROESSEN: 2 as number,
+  NACHKOMMASTELLEN_SCHNITTGROESSEN: 4 as number,
   NACHKOMMASTELLEN_LASTWERTE: 2 as number,
   //Schriftgrößen
   SCHRIFTGROESSE_SCHNITTGROESSEN: 15 as number,

@@ -20,7 +20,7 @@
   v-for="reaktion in reaktionsVektoren"
   :key="reaktion.path"
  >
-  <!-- Lastpfeile -->
+  <!-- Lagerpfeile -->
   <path
    :d="reaktion.path"
    :stroke="graphicSettings.FARBE_LAGERKRAEFTE"
@@ -29,7 +29,7 @@
    fill="none"
   />
 
-  <!-- Lastwerte -->
+  <!-- Lagerwerte -->
   <text
    text-anchor="middle"
    dominant-baseline="middle"
@@ -41,9 +41,9 @@
    {{
     Math.round(
      (reaktion.text.value * einheit.vonSI + Number.EPSILON) *
-      10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE,
+      10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN,
     ) /
-    10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE
+    10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN
    }}{{ graphicSettings.EINHEIT_SHOW ? einheit.text : "" }}
   </text>
  </g>

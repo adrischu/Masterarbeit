@@ -1,7 +1,7 @@
 <template>
  <div
   id="tabelle-selection"
-  style="flex: none"
+  style="flex: none; display: flex; flex-direction: column"
  >
   <v-toolbar density="compact">
    <!-- Auswahl ob System oder Last -->
@@ -9,12 +9,15 @@
     <v-tab value="system">System</v-tab>
     <v-tab value="lasten">Lasten</v-tab>
     <v-tab value="fehler">Fehler</v-tab>
+    <v-tab value="ergebnisse">Ergebnisse</v-tab>
    </v-tabs>
    <v-divider vertical />
    <v-divider
     style="margin-left: 3px"
     vertical
-   />
+  /></v-toolbar>
+  <v-divider></v-divider>
+  <v-toolbar density="compact">
    <!-- Auswahl welche Tabelle aus System -->
    <v-tabs
     v-if="tabellentyp === 'system'"
@@ -36,6 +39,13 @@
     <v-tab value="knotenlast">Knotenlasten LF{{ lastfall.Nummer }}</v-tab>
     <v-tab value="streckenlast">Streckenlasten LF{{ lastfall.Nummer }}</v-tab>
     <v-tab value="vorverformung">Vorverformungen LF{{ lastfall.Nummer }}</v-tab>
+   </v-tabs>
+   <v-tabs
+    v-if="tabellentyp === 'ergebnisse'"
+    v-model="tabellenUntertyp"
+   >
+    <v-tab value="knotenergebnisse">Knotenergebnisse LF{{ lastfall.Nummer }}</v-tab>
+    <v-tab value="stabergebnisse">Stabergebnisse LF{{ lastfall.Nummer }}</v-tab>
    </v-tabs>
   </v-toolbar>
  </div>
@@ -154,34 +164,55 @@
       :tableHeight="tableHeight"
      />
     </v-window-item>
+
+    <v-window-item
+     class="tabelle-variabel"
+     :value="`knotenergebnisse${lf.Nummer}`"
+     transition="false"
+     reverse-transition="false"
+    >
+     <TabelleKnotenergebnisse
+      :lastfall="lf"
+      :tableHeight="tableHeight"
+     />
+    </v-window-item>
+
+    <v-window-item
+     class="tabelle-variabel"
+     :value="`stabergebnisse${lf.Nummer}`"
+     transition="false"
+     reverse-transition="false"
+    >
+     <TabelleStabergebnisse
+      :lastfall="lf"
+      :tableHeight="tableHeight"
+     />
+    </v-window-item>
    </div>
+
    <v-window-item
     class="tabelle-variabel"
     value="fehler"
     transition="false"
     reverse-transition="false"
    >
-    <v-table
-     class="eingabetabelle-tabelle"
-     density="compact"
-     hover
-     fixed-header
-     :height="tableHeight"
-    >
-     <tr>
-      <th>Typ</th>
-      <th>Beschreibung</th>
-     </tr>
-     <tbody>
-      <tr
-       v-for="fehler in systemStore.system.Fehlerliste"
-       :key="fehler.Nachricht"
-      >
-       <td>{{ fehler.Typ }}</td>
-       <td>{{ fehler.Nachricht }}</td>
-      </tr>
-     </tbody>
-    </v-table>
+    <TabelleFehler
+     class="tabelle-variabel"
+     value="empty"
+     transition="false"
+     reverse-transition="false"
+     :tableHeight="tableHeight"
+    ></TabelleFehler>
+   </v-window-item>
+
+   <!-- Wenn keine passende Tabelle ausgewählt -->
+   <v-window-item
+    class="tabelle-variabel"
+    value="empty"
+    transition="false"
+    reverse-transition="false"
+   >
+    <div></div>
    </v-window-item>
   </v-window>
  </div>
@@ -201,6 +232,9 @@
  import type Lastfall from "@/typescript/classes/Lastfall"
  import TabelleStablastStreckenlast from "./TabelleStablastStreckenlast.vue"
  import TabelleStablastVorverformung from "./TabelleStablastVorverformung.vue"
+ import TabelleKnotenergebnisse from "./TabelleKnotenergebnisse.vue"
+ import TabelleStabergebnisse from "./TabelleStabergebnisse.vue"
+ import TabelleFehler from "./TabelleFehler.vue"
 
  const systemStore = useSystemStore()
  let tabellentyp = ref<String>("start")
@@ -220,8 +254,15 @@
    case "system": {
     return tabellenUntertyp.value
    }
+   case "ergebnisse": {
+    if (props.lastfall.istBerechnet) {
+     return `${tabellenUntertyp.value}${props.lastfall.Nummer}`
+    } else {
+     return "empty"
+    }
+   }
    default:
-    return ""
+    return "empty"
   }
  })
  const tabelleEingabe: Ref<HTMLElement | null> = ref(null)

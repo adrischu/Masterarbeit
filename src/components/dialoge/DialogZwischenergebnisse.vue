@@ -5,11 +5,10 @@
   fullscreen
  >
   <template v-slot:activator="{ props: activatorProps }">
-   <!-- <v-btn
-    icon="mdi-book-open-variant"
+   <v-btn
+    icon="mdi-table-large"
     v-bind="activatorProps"
-   ></v-btn> -->
-   <v-btn v-bind="activatorProps">Handbuch</v-btn>
+   ></v-btn>
   </template>
 
   <v-card>
@@ -20,7 +19,7 @@
     elevation="10"
     :border="true"
    >
-    <v-toolbar-title>Handbuch</v-toolbar-title>
+    <v-toolbar-title>Ergebnisse</v-toolbar-title>
     <v-spacer></v-spacer>
 
     <v-toolbar-items>

@@ -2,16 +2,21 @@
 
 - Absatz zu "Stand der Forschung und Normung" fertig bearbeiten.
 - Teil zur Untersuchung der Näherungsansätze und Stabilitätsuntersuchung schreiben
-- Programmplausibilisierung schreiben
+- Teil für Benutzeroberfläche?
+- Stablänge in die ersten paar Abbildungen einpflegen. Glaube der Wert ist aktuell noch nicht definiert.
+- Überprüfen, ob alle Akürzungen in der Abkürzungstabelle enthalten sind
+- Überprüfen, ob alle griechischen Buchstaben in den Erklärungen am Anfang enthalten sind
+- Irgendwo beschreiben, dass die Lastn für kubisch und pdelta nach theorie I. Ordnung ermittelt werden und rechtfertigen.
+- bilder von ergebnisse in thesis einarbeiten. möglicherweise in den teil der Ergebnisplausibilierung.
+-
 - Abstract deutsch
 - Abstract englisch
-- Teil für Benutzeroberfläche?
 
 # PROGRAMMIEREN
 
-- Lizenzen einfügen?
+- Ausgabe von Schnittgrößen unter einem bestimmten Wert unterdrücken. Manchmal werden Größewn angezeigt, (1e-16) obwohl der Wert eigentlich Null sein sollte.
 
-- Undefined in Lagerkraftarray untersuchen.
+- Zwischenergebnisse ausgeben (Lastvektoren, Steifigkeitsmatrizen, Verformungsvektoren)
 
 - Überprüfen ob alle Keys von v-for Schleifen einzigartig sind-
 
@@ -21,15 +26,14 @@
 
 - in d2beam wird bevor man die Seite verlässt ein Fenster aufgeploppt, das warnt dass nicht gespeichert ist. Implementieren!
 
+- Tooltips hinzufügen für alle Buttons
+
 ## Statik
 
-- Ermittlung der Knotenersatzlasten nach kubischem oder p-Delta Ansatz recherchieren und implementieren. -> aktuell nach Th1. So richtig?
 - Evtl System einbauen, dass es erlaubt, Lasten automatisch zu steigern (von x bis xx in xxx abständen o.Ä.). Es könnten hier jeweils alle Theorien berechnet werden und dann Last-Verformungskurven anhand der Ergebnisse erstellt werden können.
 - Aktuell werden Lagerfedern immer gewertet. Sie sollten aber nur gewertet werden wenn der entsprechende Freiheitsgrad NICHT gehalten ist.
 
 ## Knotentabelle, Stabtabelle usw.
-
-- Mechanismen einbauen, sodass immer automatisch die nächste Knoten/Stabnummer für ein neues Objekt genommen wird.
 
 - Nach Eingabe eines Objektes und bestätigen mit Enter oder Klick auf Button: Fokus immer automatisch wieder auf erstes Zeile der grün hinterlegten Zeile (oder zweite und Nummer automatisch hochzählen?!) legen.
 
@@ -51,22 +55,16 @@
 
 # Fehlerüberprüfung
 
-- Jeden Knoten darauf überprüfen, ob er Teil eines Stabes ist.
-
-- Fehler für Singuläre Steifigkeitsmatrix angeben.
-
-TODO Besprechung:
-
-- Schnittgrößenermittlung nach Näherungsansätzen soll funktionieren
-- Abspeicherfunktion (Prog Rothe: Dateien.ts) -> speichern als json (muss async Funktion sein)
-- (Vorverformungen)
-
 Aufbau Masterarbeittext:
 
 - Grundlegender Aufbau und Zusammenhang des Programmes soll erkärt werden.
 - Vergleichsbeispiel mit RSTAB
 - Herleitung der Formeln
 -
+
+# Möglichge Weiterbearbeitungen
+
+- weitere Plausibilisierungen einarbeiten für: Streckenlast in x
 
 # Ganz am Ende
 
