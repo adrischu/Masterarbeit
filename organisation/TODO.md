@@ -31,7 +31,6 @@
 ## Statik
 
 - Evtl System einbauen, dass es erlaubt, Lasten automatisch zu steigern (von x bis xx in xxx abständen o.Ä.). Es könnten hier jeweils alle Theorien berechnet werden und dann Last-Verformungskurven anhand der Ergebnisse erstellt werden können.
-- Aktuell werden Lagerfedern immer gewertet. Sie sollten aber nur gewertet werden wenn der entsprechende Freiheitsgrad NICHT gehalten ist.
 
 ## Knotentabelle, Stabtabelle usw.
 

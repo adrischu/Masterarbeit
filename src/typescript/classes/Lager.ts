@@ -65,11 +65,12 @@ export default class Lager implements isStatikobjekt {
     selectList: [0, 1],
    },
    {
-    title: "<sub>X</sub>",
+    title: "k<sub>X</sub>",
     unit: "N/m",
     value: this.Feder[0],
     inputType: "input",
     inputFormat: "number",
+    disabled: this.Lagerung[0],
    },
    {
     title: "k<sub>Z</sub>",
@@ -77,6 +78,7 @@ export default class Lager implements isStatikobjekt {
     value: this.Feder[1],
     inputType: "input",
     inputFormat: "number",
+    disabled: this.Lagerung[1],
    },
    {
     title: "k<sub>&phi;</sub>",
@@ -84,6 +86,7 @@ export default class Lager implements isStatikobjekt {
     value: this.Feder[2],
     inputType: "input",
     inputFormat: "number",
+    disabled: this.Lagerung[2],
    },
   ]
  }

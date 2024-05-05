@@ -277,4 +277,8 @@
  input {
   width: 100%;
  }
+
+ input:disabled {
+  color: #b0b0b0;
+ }
 </style>

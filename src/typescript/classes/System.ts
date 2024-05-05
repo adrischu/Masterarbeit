@@ -369,7 +369,7 @@ export default class System {
      this.Fehlerliste.push(
       new Fehler(
        "Eingabe",
-       `Knotenlast ${knotenlast.Nummer}: Knoten ${knotenlast.Knotennummer} existiert nicht.`,
+       `LF ${lastfall.Nummer}: Knotenlast ${knotenlast.Nummer}: Knoten ${knotenlast.Knotennummer} existiert nicht.`,
       ),
      )
     }
@@ -381,7 +381,7 @@ export default class System {
      this.Fehlerliste.push(
       new Fehler(
        "Eingabe",
-       `Stablast ${stablast.Nummer}: Stab ${stablast.Stabnummer} existiert nicht.`,
+       `LF ${lastfall.Nummer}: Stablast ${stablast.Nummer}: Stab ${stablast.Stabnummer} existiert nicht.`,
       ),
      )
     }

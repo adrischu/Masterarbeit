@@ -81,7 +81,7 @@ export function startBerechnungen(system: System): void {
     lastfall.Verformungsvektor_kurz,
     lastfall.letzerVerformungsvektor_kurz,
    )
-   console.log("Absoluter Fehler in Iteration " + iteration + ": " + iterationsFehler)
+   console.log(`Absoluter Fehler in Iteration ${iteration} ":  ${iterationsFehler}`)
    lastfall.letzerVerformungsvektor_kurz = lastfall.Verformungsvektor_kurz.slice()
   } while (
    iteration + 1 <= maxIterationen &&
@@ -98,10 +98,12 @@ export function startBerechnungen(system: System): void {
    lastfall.Fehlerliste.push(
     new Fehler(
      "Berechnung",
-     `Es wurde nach ${iteration} Iteration noch keine Konvergenz gefunden.`,
+     `LF${lastfall.Nummer}: Es wurde nach ${iteration} Iteration noch keine Konvergenz gefunden.`,
     ),
    )
-   console.log(`Es wurde nach ${iteration} Iteration noch keine Konvergenz gefunden.`)
+   console.log(
+    `LF${lastfall.Nummer}: Es wurde nach ${iteration} Iteration noch keine Konvergenz gefunden.`,
+   )
   }
   if (lastfall.Fehlerliste.length) {
    //Fehler bei Berechnung des Lastfalls. Fehler werden auf Systemfehler überschrieben und Lastfall ist "nicht berechnet"
@@ -194,11 +196,11 @@ function freiheitsgradeDefinieren(system: System): void {
  system.Freiheitsgrade = freiheitsgrade
 
  //Nicht-gehaltene Inzidenzen aus Knotenverschiebungen
- //Falls ein Lager UND eine Feder vorhanden ist, wird die Knotenverschiebung als nicht-gehalten angesehen
+ //Nur gelagerte Freiheitsgrade gelten als gehalten. Federn sind KEINE Lagerung.
  const verformungsInzidenzen: number[] = []
  system.Knotenliste.forEach((knoten) => {
   for (let i = 0; i <= 2; i++) {
-   if (!(knoten.Lager!.Lagerung[i] && knoten.Lager?.Feder[i] === 0)) {
+   if (!knoten.Lager!.Lagerung[i]) {
     verformungsInzidenzen.push(knoten.Inzidenzen[i])
    }
   }
@@ -351,11 +353,14 @@ function steifigkeitsmatrixAufstellen(system: System, lastfall: Lastfall) {
   // }
  })
 
- //Federkräfte addieren
+ /**
+  * Federkräfte addieren
+  * Federkräfte dürfen nur addiert werden, wenn der Freiheitsgrad NICHT gelagert ist.
+  */
  system.Knotenliste.forEach((knoten) => {
   for (let i = 0; i <= 2; i++) {
-   if (knoten.Lager?.Lagerung[i] && knoten.Lager.Feder[i] !== 0) {
-    lastfall.M_K_lang[knoten.Inzidenzen[i]][knoten.Inzidenzen[i]] += knoten.Lager.Feder[i]
+   if (!knoten.Lager!.Lagerung[i]) {
+    lastfall.M_K_lang[knoten.Inzidenzen[i]][knoten.Inzidenzen[i]] += knoten.Lager!.Feder[i]
    }
   }
  })

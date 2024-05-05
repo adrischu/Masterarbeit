@@ -179,7 +179,7 @@
  const systemStore = useSystemStore()
 
  //  Beim Start des Programms wird ein System vorgeladen
- preloadSystem(1)
+ preloadSystem(3)
 
  const svgContainer: Ref<HTMLElement | null> = ref(null)
 

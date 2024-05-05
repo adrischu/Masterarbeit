@@ -178,49 +178,6 @@
   :x="knoten.Koordinaten.x * transform.scale + transform.x"
   :y="knoten.Koordinaten.z * transform.scale + transform.y"
  />
- <!-- Beispielverwendung der Symbole -->
- <!-- <use
-  href="#xZPhi"
-  x="50"
-  y="50"
-  :transform="'scale(' + scale + ')'"
- />
- <use
-  href="#zPhi"
-  x="200"
-  y="50"
-  :transform="'scale(' + scale + ')'"
- />
- <use
-  href="#xPhi"
-  x="350"
-  y="50"
-  :transform="'scale(' + scale + ')'"
- />
- <use
-  href="#xZ"
-  x="50"
-  y="200"
-  :transform="'scale(' + scale + ')'"
- />
- <use
-  href="#phi"
-  x="200"
-  y="200"
-  :transform="'scale(' + scale + ')'"
- />
- <use
-  href="#z"
-  x="350"
-  y="200"
-  :transform="'scale(' + scale + ')'"
- />
- <use
-  href="#x"
-  x="200"
-  y="350"
-  :transform="'scale(' + scale + ')'"
- /> -->
 </template>
 
 <script setup lang="ts">
@@ -236,13 +193,14 @@
 
  let federRef = computed(() => {
   let federRef = []
-  if (props.knoten.Lager?.Feder[0]) {
+  let lager = props.knoten.Lager!
+  if (!lager.Lagerung[0] && lager.Feder[0]) {
    federRef.push("federX")
   }
-  if (props.knoten.Lager?.Feder[1]) {
+  if (!lager.Lagerung[1] && lager.Feder[1]) {
    federRef.push("federZ")
   }
-  if (props.knoten.Lager?.Feder[2]) {
+  if (!lager.Lagerung[2] && lager.Feder[2]) {
    federRef.push("federPhi")
   }
   return federRef
@@ -255,11 +213,11 @@
 
   //Falls Federn vorhanden sind, wird das Lagerzeichen so reduziert als ob in diese Richtung
   //keine Lagerung vorhanden ist. Das Federsymbol wird dann zusätzlich eingefügt.
-  for (let i = 0; i <= 2; i++) {
-   if (props.knoten.Lager?.Feder[i]) {
-    tempLager[i] = false
-   }
-  }
+  //   for (let i = 0; i <= 2; i++) {
+  //    if (props.knoten.Lager?.Feder[i]) {
+  //     tempLager[i] = false
+  //    }
+  //   }
 
   lagerRef = tempLager[0] ? lagerRef.concat("x") : lagerRef
   lagerRef = tempLager[1] ? lagerRef.concat("z") : lagerRef
