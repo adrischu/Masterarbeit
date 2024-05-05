@@ -292,6 +292,71 @@ export default class Balkenelement implements isElement {
  }
 
  /**
+  * Gibt die elastische Steifigkeitsmatrix zurück (Matrix nach Th1)
+  */
+ public k_el_lok(): number[][] {
+  /**Biegesteifigkeit */
+  const EI = this.EI
+  /**Dehnsteifigkeit */
+  const EA = this.EA
+  /**Stablänge */
+  const L = this.Stab.Länge
+  // prettier-ignore
+  return [
+    [  (EA) / L ,            0             ,           0         , -(EA) / L ,            0             ,          0          ],
+    [     0     ,  (12 * EI) / (L * L * L) , -(6 * EI) / (L * L) ,     0     , -(12 * EI) / (L * L * L) , -(6 * EI) / (L * L) ],
+    [     0     ,    -(6 * EI) / (L * L)   ,     (4 * EI) / L    ,     0     ,  (6 * EI) / (L * L)      ,  (2 * EI) / L       ],
+    [ (-EA) / L ,            0             ,           0         ,  (EA) / L ,            0             ,          0          ],
+    [     0     , (-12 * EI) / (L * L * L) ,  (6 * EI) / (L * L) ,     0     ,  (12 * EI) / (L * L * L) ,  (6 * EI) / (L * L) ],
+    [     0     ,   (-6 * EI) / (L * L)    ,     (2 * EI) / L    ,     0     ,  (6 * EI) / (L * L)      ,  (4 * EI) / L       ],
+  ]
+ }
+
+ /**
+  * Gibt die geometrische Steifigkeitsmatrix zurück (Matrix nach Th1)
+  */
+ public k_geo_lok(): number[][] {
+  // Bei Theorie 1. Ordnung und Theorie 2 Ordnung (trig) gibt es keine geometrische Matrix
+  if (this.Theorie === Theorie.Theorie_1 || this.Theorie === Theorie.Theorie_2_trig) {
+   const k = []
+   for (let i = 0; i < 6; i++) {
+    k.push(Array(6).fill(0))
+   }
+   return k
+  }
+
+  /**Biegesteifigkeit */
+  const EI = this.EI
+  /**Dehnsteifigkeit */
+  const EA = this.EA
+  /**Stablänge */
+  const L = this.Stab.Länge
+  /**Gemittelte Normalkraft */
+  const N = this.Nmean
+  if (this.Theorie === Theorie.Theorie_2_kub) {
+   // prettier-ignore
+   return [
+    [ 0 ,          0           ,         0         , 0 ,          0           ,         0        ],
+    [ 0 ,  (36 * N) / (30 * L) ,   -(3 * N) / 30   , 0 , -(36 * N) / (30 * L) ,   -(3 * N) / 30  ],
+    [ 0 ,    -(3 * N) / 30     ,  (4 * L * N) / 30 , 0 ,     (3 * N) / 30     ,   -(L * N) / 30  ],
+    [ 0 ,          0           ,         0         , 0 ,          0           ,         0        ],
+    [ 0 , -(36 * N) / (30 * L) ,    (3 * N) / 30   , 0 ,  (36 * N) / (30 * L) ,    (3 * N) / 30  ],
+    [ 0 ,    -(3 * N) / 30     ,   -(L * N) / 30   , 0 ,     (3 * N) / 30     ,  (4 * L * N) / 30],
+   ]
+  } else {
+   // prettier-ignore
+   return [
+    [ 0 ,   0   , 0 , 0 ,   0    , 0 ],
+    [ 0 , N / L , 0 , 0 , -N / L , 0 ],
+    [ 0 ,   0   , 0 , 0 ,   0    , 0 ],
+    [ 0 ,   0   , 0 , 0 ,   0    , 0 ],
+    [ 0 , -N / L, 0 , 0 ,  N / L , 0 ],
+    [ 0 ,   0   , 0 , 0 ,   0    , 0 ],
+   ]
+  }
+ }
+
+ /**
   * Berechnet für die Ausgabepunkte entlang des Stabes die Größen N,V,M,ux,uz,phi.
   * @note Hier werden nur die Größen für einen unbelasteten Stab mit Stabendverformungen
   * wi,phii,wk,phik ermittelt.

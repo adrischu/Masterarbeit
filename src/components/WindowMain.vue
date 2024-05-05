@@ -149,7 +149,7 @@
  </div>
  <!-- Div für Fußzeile -->
  <div class="footer">
-  &copy; Adrian Schubert {{ new Date().getFullYear() }} - current Commit: 23.04.2024 00:18
+  &copy; Adrian Schubert {{ new Date().getFullYear() }} - current Commit: 05.05.2024 19:48
  </div>
 
  <DialogFehler
@@ -188,7 +188,7 @@
  }>()
 
  let lastfall: Ref<Lastfall> = ref(systemStore.system.Lastfallliste[0])
- let ergebnisgroesse = ref(4)
+ let ergebnisgroesse = ref(2)
  let ergebnisgroessenAuswahl: { title: string; value: number }[] = [
   { title: "N", value: 0 },
   { title: "V", value: 1 },

@@ -40,6 +40,7 @@ export const useGraphicSettingsStore = defineStore("graphicSettingsStore", {
   //Nachkommastellen
   NACHKOMMASTELLEN_SCHNITTGROESSEN: 4 as number,
   NACHKOMMASTELLEN_LASTWERTE: 2 as number,
+  NACHKOMMASTELLEN_MATRIZEN: 1 as number,
   //Schriftgrößen
   SCHRIFTGROESSE_SCHNITTGROESSEN: 15 as number,
   SCHRIFTGROESSE_STABLAST: 15 as number,

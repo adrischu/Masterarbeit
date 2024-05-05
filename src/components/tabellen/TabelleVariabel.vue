@@ -8,14 +8,24 @@
    <v-tabs v-model="tabellentyp">
     <v-tab value="system">System</v-tab>
     <v-tab value="lasten">Lasten</v-tab>
-    <v-tab value="fehler">Fehler</v-tab>
-    <v-tab value="ergebnisse">Ergebnisse</v-tab>
+    <v-tab
+     :disabled="system.Fehlerliste.length === 0"
+     value="fehler"
+     >Fehler</v-tab
+    >
+    <v-tab
+     :disabled="!lastfall.istBerechnet"
+     value="ergebnisse"
+     >Ergebnisse</v-tab
+    >
    </v-tabs>
+
    <v-divider vertical />
    <v-divider
     style="margin-left: 3px"
     vertical
-  /></v-toolbar>
+   />
+  </v-toolbar>
   <v-divider></v-divider>
   <v-toolbar density="compact">
    <!-- Auswahl welche Tabelle aus System -->
@@ -46,6 +56,7 @@
    >
     <v-tab value="knotenergebnisse">Knotenergebnisse LF{{ lastfall.Nummer }}</v-tab>
     <v-tab value="stabergebnisse">Stabergebnisse LF{{ lastfall.Nummer }}</v-tab>
+    <DialogZwischenergebnisse :lastfall="lastfall"></DialogZwischenergebnisse>
    </v-tabs>
   </v-toolbar>
  </div>
@@ -126,7 +137,7 @@
    </v-window-item>
    <!-- Knotenlasten -->
    <div
-    v-for="lf in systemStore.system.Lastfallliste"
+    v-for="lf in system.Lastfallliste"
     :key="lf.Nummer"
    >
     <v-window-item
@@ -235,8 +246,9 @@
  import TabelleKnotenergebnisse from "./TabelleKnotenergebnisse.vue"
  import TabelleStabergebnisse from "./TabelleStabergebnisse.vue"
  import TabelleFehler from "./TabelleFehler.vue"
+ import DialogZwischenergebnisse from "../dialoge/DialogZwischenergebnisse.vue"
 
- const systemStore = useSystemStore()
+ const system = useSystemStore().system
  let tabellentyp = ref<String>("start")
  let tabellenUntertyp = ref<String>("knoten")
  let tabelleID = computed(() => {
@@ -267,7 +279,6 @@
  })
  const tabelleEingabe: Ref<HTMLElement | null> = ref(null)
  const tableHeight = computed(() => {
-  console.log(tabelleEingabe.value?.scrollHeight)
   return tabelleEingabe.value!.scrollHeight
  })
 
