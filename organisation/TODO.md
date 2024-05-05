@@ -28,6 +28,8 @@
 
 - Tooltips hinzufügen für alle Buttons
 
+- Nachkommastellen in der Zwischenergebnisausgabe
+
 ## Statik
 
 - Evtl System einbauen, dass es erlaubt, Lasten automatisch zu steigern (von x bis xx in xxx abständen o.Ä.). Es könnten hier jeweils alle Theorien berechnet werden und dann Last-Verformungskurven anhand der Ergebnisse erstellt werden können.

@@ -34,10 +34,7 @@
       v-for="(el, index) in row"
       :key="index"
      >
-      {{
-       Math.round((el + Number.EPSILON) * 10 ** graphicSettings.NACHKOMMASTELLEN_MATRIZEN) /
-       10 ** graphicSettings.NACHKOMMASTELLEN_MATRIZEN
-      }}
+      {{ Math.round((el + Number.EPSILON) * 10 ** nachkommastellen) / 10 ** nachkommastellen }}
      </td>
      <td
       style="padding-left: 15px; border-left: 2px solid black"
@@ -63,7 +60,8 @@
  const graphicSettings = useGraphicSettingsStore()
  defineProps<{
   name?: string
-  matrix: number[] | number[][]
+  matrix: number[][]
+  nachkommastellen: number
   upperHeader?: any[]
   rightHeader?: any[]
  }>()

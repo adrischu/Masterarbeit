@@ -49,6 +49,7 @@
      <TabelleMatrix
       :name="matrixName(element)"
       :matrix="element.k_lok()"
+      :nachkommastellen="0"
       :upper-header="k_upperHeader"
       :right-header="k_rightHeader"
      />
@@ -62,6 +63,7 @@
       <TabelleMatrix
        :name="`<u>k</u><sub>el,${element.Nummer}</sub>`"
        :matrix="element.k_el_lok()"
+       :nachkommastellen="0"
        :upper-header="k_upperHeader"
        :right-header="k_rightHeader"
       />
@@ -71,6 +73,7 @@
       <TabelleMatrix
        :name="`<u>k</u><sub>geo,${element.Nummer}</sub>`"
        :matrix="element.k_geo_lok()"
+       :nachkommastellen="0"
        :upper-header="k_upperHeader"
        :right-header="k_rightHeader"
       />
@@ -81,6 +84,7 @@
      <TabelleMatrix
       :name="`<u>T</u><sub>${element.Nummer}</sub>`"
       :matrix="matTrans(element.T)"
+      :nachkommastellen="3"
       :upper-header="element.Inzidenzen"
       :right-header="element.Inzidenzen"
      />
@@ -92,15 +96,17 @@
      <TabelleMatrix
       :name="`<u>K</u><sub>ges</sub>`"
       :matrix="lastfall.M_K_lang"
+      :nachkommastellen="0"
       :upper-header="gesamtSteifigkeitHeader"
      />
 
      <h3>Gleichungssystem</h3>
      <div style="display: flex; flex-direction: row; overflow-x: auto">
-      <!-- Steifigkeitsmatrix -->;
+      <!-- Steifigkeitsmatrix -->
       <TabelleMatrix
        :name="`<u>K</u><sub>ges,red</sub> * <u>U</u> = <u>R</u>`"
        :matrix="lastfall.M_K_kurz"
+       :nachkommastellen="0"
        :upper-header="gesamtSteifigkeitKondensiertHeader"
        style="flex: none"
       />
@@ -109,6 +115,7 @@
       </div>
       <TabelleMatrix
        :matrix="matTrans(lastfall.Verformungsvektor_kurz)"
+       :nachkommastellen="5"
        :upper-header="[`<u>U</u>`]"
        style="flex: none"
       />
@@ -117,6 +124,7 @@
       </div>
       <TabelleMatrix
        :matrix="matTrans(lastfall.Lastvektor)"
+       :nachkommastellen="2"
        :upper-header="[`<u>R</u>`]"
        style="flex: none"
       />
