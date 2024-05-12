@@ -31,12 +31,7 @@
     </v-toolbar-items>
    </v-toolbar>
 
-   <v-card-item>
-    <math-jax
-     :latex="`x_a+y^2`"
-     :block="true"
-    ></math-jax
-   ></v-card-item>
+   <v-card-item> ></v-card-item>
   </v-card>
  </v-dialog>
 </template>
