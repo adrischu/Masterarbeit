@@ -5,6 +5,8 @@ import Stab from "./Stab"
 import { matMultiplyVec, matTrans } from "../matrix"
 import type Balkenelement from "./Balkenelement"
 import { Theorie } from "../enumerations"
+import type { isEinheit } from "./InterfaceEinheit"
+import { useEinheitenStore } from "@/stores/EinheitenStore"
 
 /**### Trapezlast
  * In dieser Klasse befinden sich Informationen zu:
@@ -49,7 +51,10 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
  /**Integrationskonstanten */
  C4: number
 
+ einheitStreckenlast: isEinheit
+
  constructor(Nummer: number = 1) {
+  const einheiten = useEinheitenStore()
   this.Nummer = Nummer
   this.Lastfallnummer = 0
   this.Stabnummer = 1
@@ -65,6 +70,8 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   this.C2 = 0
   this.C3 = 0
   this.C4 = 0
+
+  this.einheitStreckenlast = einheiten.kN_m
  }
 
  get values() {
@@ -74,8 +81,8 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
    this.Koordinatensystem,
    this.Richtung,
    this.Projektion,
-   this.pl,
-   this.pr,
+   this.pl * this.einheitStreckenlast.vonSI,
+   this.pr * this.einheitStreckenlast.vonSI,
   ]
  }
 
@@ -93,8 +100,8 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   this.Koordinatensystem = Koordinatensystem
   this.Richtung = Richtung
   this.Projektion = Projektion
-  this.pl = pl
-  this.pr = pr
+  this.pl = pl * this.einheitStreckenlast.nachSI
+  this.pr = pr * this.einheitStreckenlast.nachSI
  }
 
  /**
@@ -397,14 +404,14 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
     value: this.pl,
     inputType: "input",
     inputFormat: "number",
-    unit: "N/m",
+    unit: this.einheitStreckenlast,
    },
    {
     title: "p<sub>Ende</sub>",
     value: this.pl,
     inputType: "input",
     inputFormat: "number",
-    unit: "N/m",
+    unit: this.einheitStreckenlast,
    },
   ]
  }

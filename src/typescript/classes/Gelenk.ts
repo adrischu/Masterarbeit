@@ -1,3 +1,5 @@
+import { useEinheitenStore } from "@/stores/EinheitenStore.js"
+import type { isEinheit } from "./InterfaceEinheit.js"
 import type { isStatikobjekt } from "./InterfaceStatikobjekt.js"
 
 /**
@@ -11,10 +13,17 @@ export default class Gelenk implements isStatikobjekt {
  Gelenke: [x: boolean, z: boolean, phi: boolean]
  Federn: [x: number, z: number, phi: number]
 
+ einheitWegfeder: isEinheit
+ einheitDrehfeder: isEinheit
+
  constructor(Nummer: number = 0) {
+  const einheiten = useEinheitenStore()
   this.Nummer = Nummer
   this.Gelenke = [false, false, false]
   this.Federn = [0, 0, 0]
+
+  this.einheitWegfeder = einheiten.kN_m
+  this.einheitDrehfeder = einheiten.kNm_rad
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein
@@ -25,9 +34,9 @@ export default class Gelenk implements isStatikobjekt {
    this.Gelenke[0],
    this.Gelenke[1],
    this.Gelenke[2],
-   this.Federn[0],
-   this.Federn[1],
-   this.Federn[2],
+   this.Federn[0] * this.einheitWegfeder.vonSI,
+   this.Federn[1] * this.einheitWegfeder.vonSI,
+   this.Federn[2] * this.einheitDrehfeder.vonSI,
   ]
  }
 
@@ -42,7 +51,11 @@ export default class Gelenk implements isStatikobjekt {
  ]) {
   this.Nummer = Nummer
   this.Gelenke = [gelenkX, gelenkZ, gelenkPhi]
-  this.Federn = [federX, federZ, federPhi]
+  this.Federn = [
+   federX * this.einheitWegfeder.nachSI,
+   federZ * this.einheitWegfeder.nachSI,
+   federPhi * this.einheitDrehfeder.nachSI,
+  ]
  }
 
  get header() {
@@ -66,7 +79,7 @@ export default class Gelenk implements isStatikobjekt {
    },
    {
     title: "k<sub>N</sub>",
-    unit: "N/m",
+    unit: this.einheitWegfeder,
     value: this.Federn[0],
     inputType: "input",
     inputFormat: "number",
@@ -74,7 +87,7 @@ export default class Gelenk implements isStatikobjekt {
    },
    {
     title: "k<sub>V</sub>",
-    unit: "N/m",
+    unit: this.einheitWegfeder,
     value: this.Federn[1],
     inputType: "input",
     inputFormat: "number",
@@ -82,7 +95,7 @@ export default class Gelenk implements isStatikobjekt {
    },
    {
     title: "k<sub>M</sub>",
-    unit: "Nm/rad",
+    unit: this.einheitDrehfeder,
     value: this.Federn[2],
     inputType: "input",
     inputFormat: "number",

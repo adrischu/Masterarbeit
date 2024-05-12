@@ -37,9 +37,9 @@ export default class Knotenlast implements isStatikobjekt {
   return [
    this.Nummer,
    this.Knotennummer,
-   this.Lastvektor[0],
-   this.Lastvektor[1],
-   this.Lastvektor[2],
+   this.Lastvektor[0] * this.einheitKraft.vonSI,
+   this.Lastvektor[1] * this.einheitKraft.vonSI,
+   this.Lastvektor[2] * this.einheitMoment.vonSI,
   ]
  }
 
@@ -52,14 +52,13 @@ export default class Knotenlast implements isStatikobjekt {
  ]) {
   this.Nummer = Nummer
   this.Knotennummer = Knotennummer
-  this.Lastvektor[0] = xLast
-  this.Lastvektor[1] = zLast
-  this.Lastvektor[2] = phiLast
+  this.Lastvektor[0] = xLast * this.einheitKraft.nachSI
+  this.Lastvektor[1] = zLast * this.einheitKraft.nachSI
+  this.Lastvektor[2] = phiLast * this.einheitMoment.nachSI
  }
 
  get header() {
   const systemStore = useSystemStore()
-  const einheiten = useEinheitenStore()
   return [
    { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
@@ -71,21 +70,21 @@ export default class Knotenlast implements isStatikobjekt {
    },
    {
     title: "F<sub>x</sub>",
-    unit: "N",
+    unit: this.einheitKraft,
     value: this.Lastvektor[0],
     inputType: "input",
     inputFormat: "number",
    },
    {
     title: "F<sub>z</sub>",
-    unit: "N",
+    unit: this.einheitKraft,
     value: this.Lastvektor[1],
     inputType: "input",
     inputFormat: "number",
    },
    {
     title: "M<sub>y</sub>",
-    unit: "N",
+    unit: this.einheitMoment,
     value: this.Lastvektor[2],
     inputType: "input",
     inputFormat: "number",

@@ -3,6 +3,8 @@ import Lager from "./Lager"
 import Vector from "./Vector"
 import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 import type Stab from "./Stab"
+import type { isEinheit } from "./InterfaceEinheit"
+import { useEinheitenStore } from "@/stores/EinheitenStore"
 
 export default class Knoten implements isStatikobjekt {
  //Werte werden bei Erstellung eines Knotens definiert.
@@ -11,42 +13,47 @@ export default class Knoten implements isStatikobjekt {
  Koordinaten: Vector
  Lagernummer: number
  Lager: Lager | null
- //Lagerdrehung gegen den Uhrzeigersinn
- Drehung: number
  /**Liste aller angreifenden Stäbe */
  Stabliste: Stab[]
  //folgende Werte werden erst bei der Berechnung definiert.
  /**Inzidenzen des Knoten für u,w,phi */
  Inzidenzen: number[]
 
+ einheitKoordinate: isEinheit
+
  constructor(Nummer: number = 0) {
+  const einheiten = useEinheitenStore()
   this.Nummer = Nummer
   this.Koordinaten = new Vector(0, 0)
   this.Lagernummer = 0
   this.Lager = null
-  this.Drehung = 0
   this.Inzidenzen = []
   this.Stabliste = []
+
+  this.einheitKoordinate = einheiten.m
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein
  //wie 'set values' und 'get header'
  get values() {
-  return [this.Nummer, this.Koordinaten!.x, this.Koordinaten!.z, this.Lagernummer, this.Drehung]
+  return [
+   this.Nummer,
+   this.Koordinaten!.x * this.einheitKoordinate.vonSI,
+   this.Koordinaten!.z * this.einheitKoordinate.vonSI,
+   this.Lagernummer,
+  ]
  }
 
- set values([Nummer, x, z, Lagernummer, Drehung]: [
+ set values([Nummer, x, z, Lagernummer]: [
   Nummer: number,
   x: number,
   z: number,
   Lagernummer: number,
-  Drehung: number,
  ]) {
   this.Nummer = Nummer
-  this.Koordinaten.x = x
-  this.Koordinaten.z = z
+  this.Koordinaten.x = x * this.einheitKoordinate.nachSI
+  this.Koordinaten.z = z * this.einheitKoordinate.nachSI
   this.Lagernummer = Lagernummer
-  this.Drehung = Drehung
  }
 
  get header() {
@@ -55,14 +62,14 @@ export default class Knoten implements isStatikobjekt {
    { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
     title: "x",
-    unit: "m",
+    unit: this.einheitKoordinate,
     value: this.Koordinaten.x,
     inputType: "input",
     inputFormat: "number",
    },
    {
     title: "z",
-    unit: "m",
+    unit: this.einheitKoordinate,
     value: this.Koordinaten.z,
     inputType: "input",
     inputFormat: "number",
@@ -76,13 +83,6 @@ export default class Knoten implements isStatikobjekt {
      systemStore.system.Lagerliste.map((lager) => `Lager ${lager.Nummer}`),
     ),
     selectListValues: [0].concat(systemStore.system.Lagerliste.map((lager) => lager.Nummer)),
-   },
-   {
-    title: "Drehung",
-    unit: "rad",
-    value: this.Drehung,
-    inputType: "input",
-    inputFormat: "number",
    },
   ]
  }

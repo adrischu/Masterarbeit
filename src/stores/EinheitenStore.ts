@@ -38,7 +38,7 @@ export const useEinheitenStore = defineStore("einheitenStore", {
   MNm: { typ: "Moment", text: "MNm", vonSI: 1e-6, nachSI: 1e6 } as isEinheit,
   kNcm: { typ: "Moment", text: "kNcm", vonSI: 1e-1, nachSI: 1e1 } as isEinheit,
 
-  //Streckenlasten
+  //Streckenlasten oder Wegfedern
   N_m: { typ: "Streckenlast", text: "N/m", vonSI: 1, nachSI: 1 } as isEinheit,
   kN_m: { typ: "Streckenlast", text: "kN/m", vonSI: 1e-3, nachSI: 1e3 } as isEinheit,
 
@@ -52,8 +52,8 @@ export const useEinheitenStore = defineStore("einheitenStore", {
   cm4: {
    typ: "Flächenträgheitsmoment",
    text: "cm<sup>4</sup>",
-   vonSI: 10e8,
-   nachSI: 10e-8,
+   vonSI: 1e8,
+   nachSI: 1e-8,
   } as isEinheit,
 
   //Winkel
@@ -61,5 +61,9 @@ export const useEinheitenStore = defineStore("einheitenStore", {
   mrad: { typ: "Winkel", text: "mrad", vonSI: 1e3, nachSI: 1e-3 } as isEinheit,
   grad: { typ: "Winkel", text: "°", vonSI: 180 / Math.PI, nachSI: Math.PI / 180 } as isEinheit,
   gon: { typ: "Winkel", text: "gon", vonSI: 200 / Math.PI, nachSI: Math.PI / 200 } as isEinheit,
+
+  //Drehfedern
+  Nm_rad: { typ: "Drehfeder", text: "Nm/rad", vonSI: 1, nachSI: 1 } as isEinheit,
+  kNm_rad: { typ: "Drehfeder", text: "kNm/rad", vonSI: 1e-3, nachSI: 1e3 } as isEinheit,
  }),
 })

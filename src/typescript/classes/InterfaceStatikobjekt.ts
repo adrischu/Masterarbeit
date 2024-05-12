@@ -10,7 +10,7 @@ export interface isStatikobjekt {
 
  get header(): {
   title: string //Angezeigter Name im Tabellenkopf
-  unit?: string //Angezeigte Einheit im Tabellenkopf
+  unit?: isEinheit //Angezeigte Einheit im Tabellenkopf
   einheitTest?: isEinheit
   value: string | number | boolean //Angezeigter Wert im Tabellenkörper
   inputType: string | "fixed" | "input" | "select" | "checkbox" //Eingabetyp

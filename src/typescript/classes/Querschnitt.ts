@@ -1,6 +1,8 @@
 import { useSystemStore } from "@/stores/SystemStore"
 import type Material from "./Material"
 import type { isStatikobjekt } from "./InterfaceStatikobjekt"
+import type { isEinheit } from "./InterfaceEinheit"
+import { useEinheitenStore } from "@/stores/EinheitenStore"
 
 export default class Querschnitt implements isStatikobjekt {
  Nummer: number
@@ -11,19 +13,32 @@ export default class Querschnitt implements isStatikobjekt {
  A: number //Fläche in m²
  I: number //Flächenträgheitsmoment (um y) in m^4
 
+ einheitFlaeche: isEinheit
+ einheitTraeg: isEinheit
+
  constructor(Nummer: number = 0) {
+  const einheiten = useEinheitenStore()
   this.Nummer = Nummer
   this.Name = "neuer Querschnitt"
   this.Materialnummer = 1
   this.Material = null
   this.A = 0
   this.I = 0
+
+  this.einheitFlaeche = einheiten.cm2
+  this.einheitTraeg = einheiten.cm4
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein
  //wie 'set values' und 'get header'
  get values() {
-  return [this.Nummer, this.Name, this.Materialnummer, this.A, this.I]
+  return [
+   this.Nummer,
+   this.Name,
+   this.Materialnummer,
+   this.A * this.einheitFlaeche.vonSI,
+   this.I * this.einheitTraeg.vonSI,
+  ]
  }
 
  set values([Nummer, Name, Materialnummer, A, I]: [
@@ -36,8 +51,8 @@ export default class Querschnitt implements isStatikobjekt {
   this.Nummer = Nummer
   this.Name = Name
   this.Materialnummer = Materialnummer
-  this.A = A
-  this.I = I
+  this.A = A * this.einheitFlaeche.nachSI
+  this.I = I * this.einheitTraeg.nachSI
  }
 
  get header() {
@@ -61,14 +76,14 @@ export default class Querschnitt implements isStatikobjekt {
    },
    {
     title: "A",
-    unit: "m<sup>2</sup>",
+    unit: this.einheitFlaeche,
     value: this.A,
     inputType: "input",
     inputFormat: "number",
    },
    {
     title: "I",
-    unit: "m<sup>4</sup>",
+    unit: this.einheitTraeg,
     value: this.I,
     inputType: "input",
     inputFormat: "number",

@@ -18,7 +18,7 @@
  const componentKey = ref(0)
 
  //  Beim Start des Programms wird ein System vorgeladen
- preloadSystem(1)
+ preloadSystem(3)
 
  const forceRerender = () => {
   componentKey.value += 1

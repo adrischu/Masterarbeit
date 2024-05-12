@@ -18,7 +18,7 @@
      <span v-html="headerItem.title"></span>
      <span
       v-if="headerItem.unit"
-      v-html="` [${headerItem.unit}]`"
+      v-html="` [${headerItem.unit.text}]`"
      ></span>
      <v-btn
       v-if="headerItem.tooltip"
