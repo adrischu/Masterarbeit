@@ -117,6 +117,7 @@ export function preloadSystem(systemNummer: number = 1): void {
   case 0: {
    //Leeres System
    systemStore.system.delete()
+   systemStore.system.addStatikobjekt("Lastfall", [1, "LF1", Theorie.Theorie_1], -1)
    break
   }
   case 1: {

@@ -288,6 +288,12 @@ export default class System {
   */
  checkSystem(): void {
   this.Fehlerliste = []
+
+  //Überprüft ob mindestens ein Stab existiert.
+  if (this.Stabliste.length === 0) {
+   this.Fehlerliste.push(new Fehler("Eingabe", `Es wird mindestens ein Stab benötigt.`))
+  }
+
   //Überprüft ob alle zugewiesenen Lager existieren.
   this.Knotenliste.forEach((knoten) => {
    if (!knoten.Lager) {
@@ -359,6 +365,11 @@ export default class System {
       `Stab ${stab.Nummer}: Endgelenk (Nr. ${stab.Endgelenknummer}) existiert nicht.`,
      ),
     )
+   }
+
+   //    Überprüft ob Stablänge größer null ist
+   if (stab.Länge === 0) {
+    this.Fehlerliste.push(new Fehler("Eingabe", `Stab ${stab.Nummer}: Stablänge ist 0.`))
    }
   })
 

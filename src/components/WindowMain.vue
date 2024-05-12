@@ -10,26 +10,28 @@
    <!--  -->
    <!-- File-Upload -->
    <!--  -->
-   <label for="file-upload">
-    <i class="fas fa-upload">
-     <v-icon
-      style="cursor: pointer"
-      icon="mdi-upload"
-     ></v-icon>
+   <div style="width: 48px">
+    <label for="file-upload">
+     <i class="fas fa-upload">
+      <v-icon
+       style="cursor: pointer"
+       icon="mdi-upload"
+      ></v-icon>
 
-     <!-- <v-btn
+      <!-- <v-btn
        disabled
        icon="mdi-upload"
       ></v-btn> -->
-    </i>
-   </label>
-   <input
-    id="file-upload"
-    type="file"
-    ref="fileInput"
-    style="display: none"
-    @change="clickFileUpload"
-   />
+     </i>
+    </label>
+    <input
+     id="file-upload"
+     type="file"
+     ref="fileInput"
+     style="display: none"
+     @change="clickFileUpload"
+    />
+   </div>
 
    <!--  -->
    <!-- File Save -->
@@ -38,6 +40,18 @@
     @click="saveSystemToFile"
     icon="mdi-floppy"
    ></v-btn>
+
+   <!--  -->
+   <!-- Delete System -->
+   <!--  -->
+   <DialogDeleteSystem
+    @accept-delete="
+     () => {
+      preloadSystem(0)
+      emit('force-rerender')
+     }
+    "
+   />
 
    <v-divider
     class="divider"
@@ -51,42 +65,6 @@
     icon="mdi-calculator"
     @click="handleStartBerechnung()"
    ></v-btn>
-
-   <!--  -->
-   <!-- Lastfallauswahl -->
-   <!--  -->
-   <v-select
-    v-model="lastfall"
-    :items="systemStore.system.Lastfallliste"
-    :item-props="lastfallProps"
-    return-object
-    hide-details
-   ></v-select>
-
-   <v-divider
-    class="divider"
-    vertical
-   />
-
-   <!--  -->
-   <!-- Ergebnisgröße Auswahl -->
-   <!--  -->
-   <v-select
-    hide-details
-    v-model="ergebnisgroesse"
-    :items="ergebnisgroessenAuswahl"
-    :disabled="!lastfall.istBerechnet"
-    ><template #selection="{ item }">
-     <span v-html="item.raw.title"></span>
-    </template>
-    <template #item="{ item, props }">
-     <v-list-item v-bind="props">
-      <template #title>
-       <span v-html="item.raw.title"></span>
-      </template>
-     </v-list-item>
-    </template>
-   </v-select>
 
    <!--  -->
    <!-- Sichtbarkeiten -->
@@ -132,12 +110,48 @@
     </v-list>
    </v-menu>
 
+   <!--  -->
+   <!-- Lastfallauswahl -->
+   <!--  -->
+   <v-select
+    v-model="lastfall"
+    :items="systemStore.system.Lastfallliste"
+    :item-props="lastfallProps"
+    return-object
+    hide-details
+   ></v-select>
+
+   <v-divider
+    class="divider"
+    vertical
+   />
+
+   <!--  -->
+   <!-- Ergebnisgröße Auswahl -->
+   <!--  -->
+   <v-select
+    hide-details
+    v-model="ergebnisgroesse"
+    :items="ergebnisgroessenAuswahl"
+    :disabled="!lastfall.istBerechnet"
+    ><template #selection="{ item }">
+     <span v-html="item.raw.title"></span>
+    </template>
+    <template #item="{ item, props }">
+     <v-list-item v-bind="props">
+      <template #title>
+       <span v-html="item.raw.title"></span>
+      </template>
+     </v-list-item>
+    </template>
+   </v-select>
+
    <v-spacer></v-spacer>
 
    <!--  -->
    <!-- Parameteranalyse -->
    <!--  -->
-   <v-menu>
+   <!-- <v-menu>
     <template v-slot:activator="{ props }">
      <v-btn
       icon="mdi-chart-line"
@@ -155,12 +169,12 @@
       <v-btn @click="system2Analyse1Element">System 1 - 2 Elemente</v-btn>
      </v-list-item>
     </v-list>
-   </v-menu>
+   </v-menu> -->
 
    <!--  -->
    <!-- "Mehr-Menü" -->
    <!--  -->
-   <v-menu>
+   <v-menu :close-on-content-click="true">
     <template v-slot:activator="{ props }">
      <v-btn
       icon="mdi-dots-vertical"
@@ -220,13 +234,13 @@
 <script setup lang="ts">
  import { ref, type Ref } from "vue"
  import { useSystemStore } from "@/stores/SystemStore"
- import { preloadSystem } from "@/typescript/SystemPreload"
  import type Lastfall from "@/typescript/classes/Lastfall"
  import TabelleVariabel from "./tabellen/TabelleVariabel.vue"
  import FensterGrafik from "./FensterGrafik.vue"
  import DialogEinstellungen from "./dialoge/DialogEinstellungen.vue"
  import DialogHandbuch from "./dialoge/DialogHandbuch.vue"
  import DialogFehler from "./dialoge/DialogFehler.vue"
+ import DialogDeleteSystem from "./dialoge/DialogDeleteSystem.vue"
  import { saveSystemToFile } from "@/typescript/DateiFunktionen"
  import { handleFileUpload } from "@/typescript/DateiFunktionen"
  import { alsSVGSpeichern } from "@/typescript/DateiFunktionen"
@@ -235,6 +249,7 @@
  import { system1Analyse2Element } from "@/typescript/parameterstudie"
  import { system2Analyse1Element } from "@/typescript/parameterstudie"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
+ import { preloadSystem } from "@/typescript/SystemPreload"
 
  const systemStore = useSystemStore()
  const graphicSettings = useGraphicSettingsStore()
@@ -281,6 +296,8 @@
    }
   }
  }
+
+ function handleDeleteSystem() {}
 </script>
 
 <style>

@@ -119,11 +119,8 @@
      <select
       v-if="objectlist[objectIndex].header[itemIndex].inputType === 'select'"
       v-model="data[objectIndex][itemIndex]"
-      @focusout="handleEdit(object, objectIndex)"
+      @change="handleEdit(object, objectIndex)"
      >
-      <option :value="data[objectIndex][itemIndex]">
-       {{ data[objectIndex][itemIndex] }}
-      </option>
       <option
        v-for="(selectItem, selectIndex) in objectlist[objectIndex].header[itemIndex].selectListKeys"
        :key="selectItem"
@@ -141,20 +138,22 @@
      ></v-checkbox-btn>
     </td>
     <td>
-     <v-btn
-      @click="handleDelete(objectIndex)"
-      icon
-      color="red"
-      size="x-small"
-      ><v-icon>mdi-minus</v-icon
-      ><v-tooltip
-       activator="parent"
-       location="end"
-       open-delay="500"
+     <g v-if="!(newStatikObjekt.Typ === 'Lastfall' && objectIndex === 0)">
+      <v-btn
+       @click="handleDelete(objectIndex)"
+       icon
+       color="red"
+       size="x-small"
+       ><v-icon>mdi-minus</v-icon
+       ><v-tooltip
+        activator="parent"
+        location="end"
+        open-delay="500"
+       >
+        {{ newStatikObjekt.Typ }} entfernen
+       </v-tooltip></v-btn
       >
-       {{ newStatikObjekt.Typ }} entfernen
-      </v-tooltip></v-btn
-     >
+     </g>
     </td>
    </tr>
   </tbody>
@@ -212,9 +211,13 @@
  }
 
  function handleEdit(objectData: any[], index: number) {
-  systemStore.system.editStatikobjekt(newStatikObjekt.Typ, objectData, index, props.lastfallnummer)
-  console.log(`${newStatikObjekt.Typ} geändert`)
-  updateData()
+  // Das Edit-Event wird nur nach oben weitergeleitet,
+  //wenn der alte und der neue Wert sich unterscheiden
+  if (objectData.toString() != props.objectlist[index].values.toString()) {
+   systemStore.system.editStatikobjekt(newStatikObjekt.Typ, objectData, index, props.lastfallnummer)
+   console.log(`${newStatikObjekt.Typ} geändert`)
+   updateData()
+  }
  }
 
  function handleDelete(index: number) {

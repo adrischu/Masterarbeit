@@ -1,6 +1,8 @@
 import { useSystemStore } from "@/stores/SystemStore"
 import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 import Knoten from "./Knoten"
+import { useEinheitenStore } from "@/stores/EinheitenStore"
+import type { isEinheit } from "./InterfaceEinheit"
 
 export default class Knotenlast implements isStatikobjekt {
  Nummer: number
@@ -11,13 +13,22 @@ export default class Knotenlast implements isStatikobjekt {
  Lastvektor: [x: number, z: number, phi: number]
  istZeichenbar: boolean
 
+ einheitKraft: isEinheit
+ einheitMoment: isEinheit
+
  constructor(Nummer: number = 0) {
+  const einheiten = useEinheitenStore()
+
   this.Nummer = Nummer
   this.Lastfallnummer = 1
   this.Knotennummer = 1
   this.Knoten = null
   this.Lastvektor = [0, 0, 0]
   this.istZeichenbar = true
+
+  //Einheiten für Eingabe
+  this.einheitKraft = einheiten.kN
+  this.einheitMoment = einheiten.kNm
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein
@@ -48,6 +59,7 @@ export default class Knotenlast implements isStatikobjekt {
 
  get header() {
   const systemStore = useSystemStore()
+  const einheiten = useEinheitenStore()
   return [
    { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
@@ -59,19 +71,21 @@ export default class Knotenlast implements isStatikobjekt {
    },
    {
     title: "F<sub>x</sub>",
-    unit: "m",
+    unit: "N",
     value: this.Lastvektor[0],
     inputType: "input",
     inputFormat: "number",
    },
    {
     title: "F<sub>z</sub>",
+    unit: "N",
     value: this.Lastvektor[1],
     inputType: "input",
     inputFormat: "number",
    },
    {
     title: "M<sub>y</sub>",
+    unit: "N",
     value: this.Lastvektor[2],
     inputType: "input",
     inputFormat: "number",

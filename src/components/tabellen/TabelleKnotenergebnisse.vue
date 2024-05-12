@@ -69,30 +69,9 @@
   props.lastfall.Balkenelementliste
 
   system.Knotenliste.forEach((knoten) => {
-   const inzX = knoten.Inzidenzen[0]
-   const inzZ = knoten.Inzidenzen[1]
-   const inzPhi = knoten.Inzidenzen[2]
-
-   const ux =
-    Math.round(
-     (props.lastfall.Verformungsvektor_lang[inzX] * einheitVerformung.vonSI + Number.EPSILON) *
-      10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN,
-    ) /
-    10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN
-
-   const uz =
-    Math.round(
-     (props.lastfall.Verformungsvektor_lang[inzZ] * einheitVerformung.vonSI + Number.EPSILON) *
-      10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN,
-    ) /
-    10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN
-
-   const phi =
-    Math.round(
-     (props.lastfall.Verformungsvektor_lang[inzPhi] * einheitVerdrehung.vonSI + Number.EPSILON) *
-      10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN,
-    ) /
-    10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN
+   const ux = verformung(knoten.Inzidenzen[0])
+   const uz = verformung(knoten.Inzidenzen[1])
+   const phi = verformung(knoten.Inzidenzen[2])
 
    data.push({
     nummer: knoten.Nummer.toString(),
@@ -102,8 +81,42 @@
    })
   })
 
+  props.lastfall.Balkenelementliste.forEach((element) => {
+   if (element.Stab.Anfangsgelenknummer) {
+    const ux = verformung(element.Inzidenzen[0])
+    const uz = verformung(element.Inzidenzen[1])
+    const phi = verformung(element.Inzidenzen[2])
+    data.push({
+     nummer: `Stab${element.Stab.Nummer.toString()}A`,
+     ux: ux,
+     uz: uz,
+     phi: phi,
+    })
+   }
+   if (element.Stab.Endgelenknummer) {
+    const ux = verformung(element.Inzidenzen[3])
+    const uz = verformung(element.Inzidenzen[4])
+    const phi = verformung(element.Inzidenzen[5])
+    data.push({
+     nummer: `Stab${element.Stab.Nummer.toString()}E`,
+     ux: ux,
+     uz: uz,
+     phi: phi,
+    })
+   }
+  })
   return data
  })
+
+ function verformung(inz: number) {
+  return (
+   Math.round(
+    (props.lastfall.Verformungsvektor_lang[inz] * einheitVerdrehung.vonSI + Number.EPSILON) *
+     10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN,
+   ) /
+   10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN
+  )
+ }
 </script>
 
 <style scoped>

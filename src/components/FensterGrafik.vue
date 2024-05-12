@@ -7,17 +7,20 @@
   :height="graphHeight"
  >
   <!-- Ergebnisgrößen -->
-  <g v-if="lastfall.istBerechnet && graphicSettings.SICHTBARKEIT_SCHNITTGROESSEN">
-   <ErgebnisKomponente
-    v-for="element in lastfall.Balkenelementliste"
-    :key="element.Nummer"
-    :element="element"
-    :transform="transform"
-    :getErgebnisListe="getErgebnisListe"
-    :scaleSchnittgroesse="scaleSchnittgroesse"
-    :einheit="getEinheit!"
-   />
+  <g v-if="lastfall">
+   <g v-if="lastfall.istBerechnet && graphicSettings.SICHTBARKEIT_SCHNITTGROESSEN">
+    <ErgebnisKomponente
+     v-for="element in lastfall.Balkenelementliste"
+     :key="element.Nummer"
+     :element="element"
+     :transform="transform"
+     :getErgebnisListe="getErgebnisListe"
+     :scaleSchnittgroesse="scaleSchnittgroesse"
+     :einheit="getEinheit!"
+    />
+   </g>
   </g>
+
   <!-- Stäbe -->
   <g
    v-for="stab in systemStore.system.Stabliste"
@@ -50,56 +53,60 @@
   />
 
   <!-- Lasten -->
-  <g v-if="graphicSettings.SICHTBARKEIT_LASTEN">
-   <!-- Stablasten -->
-   <g v-if="stablasten.length">
-    <g
-     v-for="stab in systemStore.system.Stabliste"
-     :key="stab.Nummer"
-    >
-     <StablastKomponente
-      v-if="stab.istZeichenbar"
-      :stab="stab"
-      :lasten="stablasten.filter((stablast) => stablast.Stab === stab)"
+  <g v-if="lastfall">
+   <g v-if="graphicSettings.SICHTBARKEIT_LASTEN">
+    <!-- Stablasten -->
+    <g v-if="stablasten.length">
+     <g
+      v-for="stab in systemStore.system.Stabliste"
+      :key="stab.Nummer"
+     >
+      <StablastKomponente
+       v-if="stab.istZeichenbar"
+       :stab="stab"
+       :lasten="stablasten.filter((stablast) => stablast.Stab === stab)"
+       :transform="transform"
+       :scaleLasten="scaleStablasten"
+       :scaleVorverformungen="scaleVorverformungen"
+      />
+     </g>
+    </g>
+
+    <!-- Knotenlasten -->
+    <g v-if="knotenlasten.length">
+     <KnotenlastKomponente
+      v-for="knoten in systemStore.system.Knotenliste"
+      :key="knoten.Nummer"
+      :knoten="knoten"
+      :lasten="knotenlasten.filter((knotenlast) => knotenlast.Knoten === knoten)"
       :transform="transform"
-      :scaleLasten="scaleStablasten"
-      :scaleVorverformungen="scaleVorverformungen"
+      :scaleLasten="scaleKnotenlasten"
      />
     </g>
-   </g>
-
-   <!-- Knotenlasten -->
-   <g v-if="knotenlasten.length">
-    <KnotenlastKomponente
-     v-for="knoten in systemStore.system.Knotenliste"
-     :key="knoten.Nummer"
-     :knoten="knoten"
-     :lasten="knotenlasten.filter((knotenlast) => knotenlast.Knoten === knoten)"
-     :transform="transform"
-     :scaleLasten="scaleKnotenlasten"
-    />
    </g>
   </g>
 
   <!-- Lagerkräfte -->
-  <g v-if="lastfall.istBerechnet && graphicSettings.SICHTBARKEIT_LAGERKRAEFTE">
-   <LagerkraefteKomponente
-    v-for="knoten in systemStore.system.Knotenliste"
-    :key="knoten.Nummer"
-    :knoten="knoten"
-    :transform="transform"
-    :lagerreaktionen="lastfall.Lagerkräfte"
-   />
-  </g>
-  <!-- Verformtes System -->
-  <g v-if="lastfall.istBerechnet && graphicSettings.SICHTBARKEIT_VERFORMUNG">
-   <VerformungKomponente
-    v-for="element in lastfall.Balkenelementliste"
-    :key="element.Nummer"
-    :element="element"
-    :transform="transform"
-    :scaleVerformung="scaleVerformung"
-   />
+  <g v-if="lastfall">
+   <g v-if="lastfall.istBerechnet && graphicSettings.SICHTBARKEIT_LAGERKRAEFTE">
+    <LagerkraefteKomponente
+     v-for="knoten in systemStore.system.Knotenliste"
+     :key="knoten.Nummer"
+     :knoten="knoten"
+     :transform="transform"
+     :lagerreaktionen="lastfall.Lagerkräfte"
+    />
+   </g>
+   <!-- Verformtes System -->
+   <g v-if="lastfall.istBerechnet && graphicSettings.SICHTBARKEIT_VERFORMUNG">
+    <VerformungKomponente
+     v-for="element in lastfall.Balkenelementliste"
+     :key="element.Nummer"
+     :element="element"
+     :transform="transform"
+     :scaleVerformung="scaleVerformung"
+    />
+   </g>
   </g>
  </svg>
 </template>
@@ -296,6 +303,7 @@
  })
 
  const scaleKnotenlasten = computed(() => {
+  if (props.lastfall.Knotenlastliste.length === 0) return 0
   let max = 0
   props.lastfall.Knotenlastliste.forEach((knotenlast) => {
    max = Math.max(
@@ -336,11 +344,19 @@
   const systemWidth = maxX - minX
   const systemHeight = maxY - minY
 
+  let scale: number
+
+  //Falls durch 0 geteilt wird, wird ein kleiner Skalierungsfaktor gegeben.
   const scaleWidth = (graphWidth.value - grafikRand) / systemWidth
   const scaleHeight = (graphHeight.value - grafikRand) / systemHeight
-  const scale = Math.min(scaleWidth, scaleHeight)
+  scale = Math.min(scaleWidth, scaleHeight)
+
+  if (scale === Infinity) scale = 1
+  scale = Math.max(1, scale)
+
   const translateX = (graphWidth.value - (maxX + minX) * scale) / 2
   const translateY = (graphHeight.value - (maxY + minY) * scale) / 2
+  console.log(scale)
   return { x: translateX, y: translateY, scale: scale }
  })
 
