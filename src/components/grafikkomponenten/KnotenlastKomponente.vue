@@ -33,6 +33,7 @@
 
   <!-- Lastwerte -->
   <text
+   v-if="graphicSettings.SICHTBARKEIT_WERTE"
    text-anchor="middle"
    dominant-baseline="middle"
    :fill="graphicSettings.FARBE_STABLAST"
@@ -87,12 +88,12 @@
    //Kräfte in global x-Richtung
    if (last.Lastvektor[0]) {
     const lastwert = last.Lastvektor[0]
-    dir = 0
+    dir = -Math.PI
     k1 = knotenpunkt.value.movePolar(graphicSettings.ABSTAND_KNOTENLAST, dir)
     k2 = k1.movePolar(pfeillänge, dir)
     const textpunkt = k2.movePolar(15, -Math.PI / 4)
     const path =
-     lastwert > 0 ? `M ${k1.x} ${k1.z} L ${k2.x} ${k2.z}` : `M ${k2.x} ${k2.z} L ${k1.x} ${k1.z}`
+     lastwert > 0 ? `M ${k2.x} ${k2.z} L ${k1.x} ${k1.z}` : `M ${k1.x} ${k1.z} L ${k2.x} ${k2.z}`
     lastVektoren.push({ path: path, text: { point: textpunkt, value: Math.abs(lastwert) } })
    }
    //Kräfte in global z-Richtung

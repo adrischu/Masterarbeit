@@ -35,13 +35,13 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
  //Berechnungsparameter
  Knotenersatzlasten: number[]
  /**Integrationskonstanten */
- A: number
+ C1: number
  /**Integrationskonstanten */
- B: number
+ C2: number
  /**Integrationskonstanten */
- C: number
+ C3: number
  /**Integrationskonstanten */
- D: number
+ C4: number
 
  constructor(Nummer: number = 1) {
   this.Nummer = Nummer
@@ -52,10 +52,10 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
   this.phi0 = 0
   this.w0zuL = 0
   this.Knotenersatzlasten = []
-  this.A = 0
-  this.B = 0
-  this.C = 0
-  this.D = 0
+  this.C1 = 0
+  this.C2 = 0
+  this.C3 = 0
+  this.C4 = 0
  }
 
  get values() {
@@ -95,26 +95,26 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
    //Drucknormalkraft
    if (Nmean < 0) {
     const nenner = 6 * e ** 3 * EI * (1 + sine * (sine - e) + cose * (cose - 2))
-    this.A =
+    this.C1 =
      (pL * L ** 4 * (3 * sine - 2 * e * cose - e)) / nenner +
      (pR * L ** 4 * (3 * sine - e * cose - 2 * e)) / nenner
-    this.B =
+    this.C2 =
      (pL * L ** 4 * (-2 * e * sine - 3 * cose + 3)) / nenner +
      (pR * L ** 4 * (-e * sine - 3 * cose + 3)) / nenner
-    this.C = -this.B
-    this.D = -this.A
+    this.C3 = -this.C2
+    this.C4 = -this.C1
    }
    //Zugnormalkraft
    else if (Nmean > 0) {
     const nenner = 6 * e ** 3 * EI * (1 + coshe * (coshe - 2) + sinhe * (e - sinhe))
-    this.A =
+    this.C1 =
      (pL * L ** 4 * (-3 * sinhe + 2 * e * coshe + e)) / nenner +
      (pR * L ** 4 * (-3 * sinhe + e * coshe + 2 * e)) / nenner
-    this.B =
+    this.C2 =
      (pL * L ** 4 * (-2 * e * sinhe + 3 * coshe - 3)) / nenner +
      (pR * L ** 4 * (-e * sinhe + 3 * coshe - 3)) / nenner
-    this.C = -this.B
-    this.D = -this.A
+    this.C3 = -this.C2
+    this.C4 = -this.C1
    }
   }
  }
@@ -144,21 +144,21 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
   let MR = -((pzL + 1.5 * pzR) * L * L) / 30 //Rechtes Auflagermoment
 
   if (this.Element!.Theorie === Theorie.Theorie_2_trig) {
-   const A = this.A
-   const B = this.B
+   const C1 = this.C1
+   const C2 = this.C2
    //Drucknormalkraft
    if (Nmean < 0) {
     const cose = Math.cos(e)
     const sine = Math.sin(e)
-    ML = -EI * (e / L) ** 2 * A + pzL * (L / e) ** 2
-    MR = EI * (e / L) ** 2 * (A * cose + B * sine) - pzR * (L / e) ** 2
+    ML = -EI * (e / L) ** 2 * C1 + pzL * (L / e) ** 2
+    MR = EI * (e / L) ** 2 * (C1 * cose + C2 * sine) - pzR * (L / e) ** 2
    }
    //Zurnormalkraft
    else if (Nmean > 0) {
     const coshe = Math.cosh(e)
     const sinhe = Math.sinh(e)
-    ML = EI * (e / L) ** 2 * A - pzL * (L / e) ** 2
-    MR = -EI * (e / L) ** 2 * (A * coshe + B * sinhe) + pzR * (L / e) ** 2
+    ML = EI * (e / L) ** 2 * C1 - pzL * (L / e) ** 2
+    MR = -EI * (e / L) ** 2 * (C1 * coshe + C2 * sinhe) + pzR * (L / e) ** 2
    }
   }
   //Lasten in axialer Richtung werden durch Vorverformungen nicht erzeugt.
@@ -232,30 +232,30 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
   }
   //Theorie 2 Trigonometrischer Ansatz
   else if (stabtheorie === Theorie.Theorie_2_trig) {
-   const A = this.A
-   const B = this.B
-   const C = this.C
-   const D = this.D
+   const C1 = this.C1
+   const C2 = this.C2
+   const C3 = this.C3
+   const C4 = this.C4
 
    //Drucknormalraft
    if (Nmean < 0) {
     const cos = Math.cos((e * x) / L)
     const sin = Math.sin((e * x) / L)
-    uz = A * cos + B * sin + ((C * e) / L) * x + D + (L / 6 / EI / e / e) * (x ** 3 * dpz + x * x * 3 * pzl * L)
-    phi = (e / L) * (A * sin - B * cos - C) - (L / 6 / EI / e / e) * (3 * x * x * dpz + 6 * x * pzl * L)
-    V = EI * (e / L) ** 3 * (-A * sin + B * cos) - (L / 6 / e / e) * (-6 * pzl + 6 * pzr)
+    uz = C1 * cos + C2 * sin + ((C3 * e) / L) * x + C4 + (L / 6 / EI / e / e) * (x ** 3 * dpz + x * x * 3 * pzl * L)
+    phi = (e / L) * (C1 * sin - C2 * cos - C3) - (L / 6 / EI / e / e) * (3 * x * x * dpz + 6 * x * pzl * L)
+    V = EI * (e / L) ** 3 * (-C1 * sin + C2 * cos) - (L / 6 / e / e) * (-6 * pzl + 6 * pzr)
     T = V - Nmean * phi
-    M = EI * (e / L) ** 2 * (A * cos + B * sin) - (L / 6 / e / e) * (6 * x * dpz + 6 * pzl * L)
+    M = EI * (e / L) ** 2 * (C1 * cos + C2 * sin) - (L / 6 / e / e) * (6 * x * dpz + 6 * pzl * L)
    }
    //Zugnormalkraft
    else if (Nmean > 0) {
     const cosh = Math.cosh((e * x) / L)
     const sinh = Math.sinh((e * x) / L)
-    uz = A * cosh + B * sinh + ((C * e) / L) * x + D - (L / 6 / EI / e / e) * (x ** 3 * dpz + x * x * 3 * pzl * L)
-    phi = -(e / L) * (A * sinh + B * cosh + C) + (L / 6 / EI / e / e) * (3 * x * x * dpz + 6 * x * pzl * L)
-    V = -EI * (e / L) ** 3 * (A * sinh + B * cosh) + (L / 6 / e / e) * (-6 * pzl + 6 * pzr )
+    uz = C1 * cosh + C2 * sinh + ((C3 * e) / L) * x + C4 - (L / 6 / EI / e / e) * (x ** 3 * dpz + x * x * 3 * pzl * L)
+    phi = -(e / L) * (C1 * sinh + C2 * cosh + C3) + (L / 6 / EI / e / e) * (3 * x * x * dpz + 6 * x * pzl * L)
+    V = -EI * (e / L) ** 3 * (C1 * sinh + C2 * cosh) + (L / 6 / e / e) * (-6 * pzl + 6 * pzr )
     T = V - Nmean * phi
-    M = -((EI * e * e) / L / L) * (A * cosh + B * sinh) + (L / 6 / e / e) * (6 * x * dpz + 6 * pzl * L)
+    M = -((EI * e * e) / L / L) * (C1 * cosh + C2 * sinh) + (L / 6 / e / e) * (6 * x * dpz + 6 * pzl * L)
    }
   }
 

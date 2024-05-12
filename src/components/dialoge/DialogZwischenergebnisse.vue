@@ -8,6 +8,7 @@
    <v-btn
     icon="mdi-table-large"
     v-bind="activatorProps"
+    density="compact"
    ></v-btn>
   </template>
 
@@ -47,7 +48,7 @@
      <h3>Elementsteifigkeitsmatrix</h3>
      <!-- Elementsteifigkeitsmatrix -->
      <TabelleMatrix
-      :name="matrixName(element)"
+      :name="matrixName"
       :matrix="element.k_lok()"
       :nachkommastellen="0"
       :upper-header="k_upperHeader"
@@ -146,6 +147,7 @@
  import TabelleMatrix from "../tabellen/TabelleMatrix.vue"
  import { Theorie } from "@/typescript/enumerations"
  import { matTrans } from "@/typescript/matrix"
+ import { onBeforeUpdate } from "vue"
 
  const graphicSettings = useGraphicSettingsStore()
  const settings = useSettingsStore()
@@ -208,15 +210,17 @@
   )
  })
 
- const matrixName = function (element: Balkenelement) {
-  if (element.Theorie === Theorie.Theorie_1) {
-   return `<u>k</u><sub>I,${element.Nummer}</sub>`
-  } else if (element.Theorie === Theorie.Theorie_2_trig) {
-   return `<u>k</u><sub>II,${element.Nummer}</sub>`
+ const matrixName = computed(() => {
+  if (element.value.Theorie === Theorie.Theorie_1) {
+   return `<u>k</u><sub>I,${element.value.Nummer}</sub>`
   } else {
-   return `<u>k</u><sub>II,${element.Nummer}</sub>`
+   return `<u>k</u><sub>II,${element.value.Nummer}</sub>`
   }
- }
+ })
+
+ onBeforeUpdate(() => {
+  element.value = props.lastfall.Balkenelementliste[0]
+ })
 </script>
 
 <style scoped>

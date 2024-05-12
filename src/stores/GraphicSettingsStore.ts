@@ -47,7 +47,7 @@ export const useGraphicSettingsStore = defineStore("graphicSettingsStore", {
   //DARSTELLUNGSSKALIERUNGEN
   SKALIERUNG_STABLASTEN: 1 as number,
   SKALIERUNG_VERFORMUNGEN: 1 as number,
-  SKALIERUNG_SCHNITTGROESSEN: 1 as number,
+  SKALIERUNG_SCHNITTGROESSEN: 0.8 as number,
   SKALIERUNG_KNOTENLASTEN: 1 as number,
 
   RADIUS_KNOTEN: 4 as number,
@@ -61,5 +61,12 @@ export const useGraphicSettingsStore = defineStore("graphicSettingsStore", {
   EINHEIT_ERGEBNIS_WINKEL: useEinheitenStore().mrad,
   EINHEIT_LASTEN_KRAFT: useEinheitenStore().kN,
   EINHEIT_LASTEN_STRECKENLAST: useEinheitenStore().kN_m,
+
+  //SICHTBARKEITEN
+  SICHTBARKEIT_LASTEN: true,
+  SICHTBARKEIT_VERFORMUNG: false,
+  SICHTBARKEIT_SCHNITTGROESSEN: true,
+  SICHTBARKEIT_LAGERKRAEFTE: true,
+  SICHTBARKEIT_WERTE: true,
  }),
 })

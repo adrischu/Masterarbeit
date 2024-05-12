@@ -18,5 +18,6 @@ export const useSettingsStore = defineStore("settingsStore", {
    *  - Hat keinen Einfluss auf die Berechnung.
    */
   schnittgrößenAufVerformtesSystemBeziehen: false as boolean,
+  quasiNull: 1e-5 as number,
  }),
 })

@@ -7,7 +7,7 @@
   :height="graphHeight"
  >
   <!-- Ergebnisgrößen -->
-  <g v-if="lastfall.istBerechnet">
+  <g v-if="lastfall.istBerechnet && graphicSettings.SICHTBARKEIT_SCHNITTGROESSEN">
    <ErgebnisKomponente
     v-for="element in lastfall.Balkenelementliste"
     :key="element.Nummer"
@@ -49,37 +49,40 @@
    :transform="transform"
   />
 
-  <!-- Stablasten -->
-  <g v-if="stablasten.length">
-   <g
-    v-for="stab in systemStore.system.Stabliste"
-    :key="stab.Nummer"
-   >
-    <StablastKomponente
-     v-if="stab.istZeichenbar"
-     :stab="stab"
-     :lasten="stablasten.filter((stablast) => stablast.Stab === stab)"
+  <!-- Lasten -->
+  <g v-if="graphicSettings.SICHTBARKEIT_LASTEN">
+   <!-- Stablasten -->
+   <g v-if="stablasten.length">
+    <g
+     v-for="stab in systemStore.system.Stabliste"
+     :key="stab.Nummer"
+    >
+     <StablastKomponente
+      v-if="stab.istZeichenbar"
+      :stab="stab"
+      :lasten="stablasten.filter((stablast) => stablast.Stab === stab)"
+      :transform="transform"
+      :scaleLasten="scaleStablasten"
+      :scaleVorverformungen="scaleVorverformungen"
+     />
+    </g>
+   </g>
+
+   <!-- Knotenlasten -->
+   <g v-if="knotenlasten.length">
+    <KnotenlastKomponente
+     v-for="knoten in systemStore.system.Knotenliste"
+     :key="knoten.Nummer"
+     :knoten="knoten"
+     :lasten="knotenlasten.filter((knotenlast) => knotenlast.Knoten === knoten)"
      :transform="transform"
-     :scaleLasten="scaleStablasten"
-     :scaleVorverformungen="scaleVorverformungen"
+     :scaleLasten="scaleKnotenlasten"
     />
    </g>
   </g>
 
-  <!-- Knotenlasten -->
-  <g v-if="knotenlasten.length">
-   <KnotenlastKomponente
-    v-for="knoten in systemStore.system.Knotenliste"
-    :key="knoten.Nummer"
-    :knoten="knoten"
-    :lasten="knotenlasten.filter((knotenlast) => knotenlast.Knoten === knoten)"
-    :transform="transform"
-    :scaleLasten="scaleKnotenlasten"
-   />
-  </g>
-
   <!-- Lagerkräfte -->
-  <g v-if="lastfall.istBerechnet">
+  <g v-if="lastfall.istBerechnet && graphicSettings.SICHTBARKEIT_LAGERKRAEFTE">
    <LagerkraefteKomponente
     v-for="knoten in systemStore.system.Knotenliste"
     :key="knoten.Nummer"
@@ -89,7 +92,7 @@
    />
   </g>
   <!-- Verformtes System -->
-  <g v-if="lastfall.istBerechnet">
+  <g v-if="lastfall.istBerechnet && graphicSettings.SICHTBARKEIT_VERFORMUNG">
    <VerformungKomponente
     v-for="element in lastfall.Balkenelementliste"
     :key="element.Nummer"

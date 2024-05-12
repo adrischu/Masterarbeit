@@ -15,7 +15,7 @@ import { useSettingsStore } from "../../stores/SettingsStore"
 import type { isElement } from "./InterfaceElement"
 
 /**
- * ### Klasse Starrelement
+ * ### Klasse Balkenelement
  * - Biegesteifes, dehnsteifes, schubstarres Balkenelement
  * - Unterliegt Bernoulli-Hypothese
  * - Unterliegt Normalenhypothese
@@ -42,10 +42,10 @@ export default class Balkenelement implements isElement {
   */
  nGleichungen: number = 6
  //Integrationskonstanten der Nichtlinearen DGL (trigonometrische Funktionen)
- A: number
- B: number
- C: number
- D: number
+ C1: number
+ C2: number
+ C3: number
+ C4: number
 
  //Schnittgrößen ("normale" Vorzeichenkonvention) entlang des Stabs
  /**mittere Normalkraft. Wird für die Ermittlung der Stabkennzahl verwendet. */
@@ -84,10 +84,10 @@ export default class Balkenelement implements isElement {
   this.uz = Array(this.Ausgabepunkte)
   this.phi = Array(this.Ausgabepunkte)
 
-  this.A = 0
-  this.B = 0
-  this.C = 0
-  this.D = 0
+  this.C1 = 0
+  this.C2 = 0
+  this.C3 = 0
+  this.C4 = 0
  }
 
  /**
@@ -168,19 +168,19 @@ export default class Balkenelement implements isElement {
    //Fall für Drucknormalkraft
    case this.Nmean < 0: {
     const nenner = (e / L) * (e * sine + 2 * cose - 2)
-    this.A = ((sine - e) * (phii - phik) + (e / L - (e / L) * cose) * (wk - wi + phii * L)) / nenner
-    this.B = ((1 - cose) * (phii - phik) + (-e / L) * sine * (wk - wi + phii * L)) / nenner
-    this.C = (-phii * L) / e - this.B
-    this.D = wi - this.A
+    this.C1 = ((sine - e) * (phii - phik) + (e / L - (e / L) * cose) * (wk - wi + phii * L)) / nenner
+    this.C2 = ((1 - cose) * (phii - phik) + (-e / L) * sine * (wk - wi + phii * L)) / nenner
+    this.C3 = (-phii * L) / e - this.C2
+    this.C4 = wi - this.C1
     break
    }
    //Fall für Zugnormalkraft
    case this.Nmean > 0: {
     const nenner = (e / L) * (e * sinhe - 2 * coshe + 2)
-    this.A = ((e - sinhe) * (phii - phik) + (e / L * coshe - e / L) * (wk - wi + phii * L)) / nenner
-    this.B = ((coshe - 1) * (phii - phik) + (-e / L) * sinhe * (wk - wi + phii * L)) / nenner
-    this.C = (-phii * L) / e - this.B
-    this.D = wi - this.A
+    this.C1 = ((e - sinhe) * (phii - phik) + (e / L * coshe - e / L) * (wk - wi + phii * L)) / nenner
+    this.C2 = ((coshe - 1) * (phii - phik) + (-e / L) * sinhe * (wk - wi + phii * L)) / nenner
+    this.C3 = (-phii * L) / e - this.C2
+    this.C4 = wi - this.C1
     break
    }
    default: {
@@ -324,11 +324,6 @@ export default class Balkenelement implements isElement {
    }
    return k
   }
-
-  /**Biegesteifigkeit */
-  const EI = this.EI
-  /**Dehnsteifigkeit */
-  const EA = this.EA
   /**Stablänge */
   const L = this.Stab.Länge
   /**Gemittelte Normalkraft */
@@ -394,13 +389,13 @@ export default class Balkenelement implements isElement {
 
   if (this.Theorie === Theorie.Theorie_2_trig) this.berechneIntegrationskonstanten()
   /**Integrationskonstante */
-  const A = this.A
+  const C1 = this.C1
   /**Integrationskonstante */
-  const B = this.B
+  const C2 = this.C2
   /**Integrationskonstante */
-  const C = this.C
+  const C3 = this.C3
   /**Integrationskonstante */
-  const D = this.D
+  const C4 = this.C4
   /**Stabkennzahl
    * - epsilon = L * ( |N| / EI ) ^ 0.5
    */
@@ -450,21 +445,21 @@ export default class Balkenelement implements isElement {
     if (Nmean < 0) {
      const sin = Math.sin((e / l) * x)
      const cos = Math.cos((e / l) * x)
-     this.uz[i] = A * cos + B * sin + ((C * e) / l) * x + D
-     this.phi[i] = (e / l) * (A * sin - B * cos - C)
+     this.uz[i] = C1 * cos + C2 * sin + ((C3 * e) / l) * x + C4
+     this.phi[i] = (e / l) * (C1 * sin - C2 * cos - C3)
      //Nachfolgend wird eigentlich die Transversalkraft berechnet, für die Bezeichnung wurde trotzdem V gewählt
-     this.V[i] = EI * (e / l) ** 3 * (-A * sin + B * cos) - Nmean * this.phi[i]
-     this.M[i] = EI * (e / l) ** 2 * (A * cos + B * sin)
+     this.V[i] = EI * (e / l) ** 3 * (-C1 * sin + C2 * cos) - Nmean * this.phi[i]
+     this.M[i] = EI * (e / l) ** 2 * (C1 * cos + C2 * sin)
     }
     //für Zugnormalkraft
     else {
      const sinh = Math.sinh((e / l) * x)
      const cosh = Math.cosh((e / l) * x)
-     this.uz[i] = A * cosh + B * sinh + ((C * e) / l) * x + D
-     this.phi[i] = -(e / l) * (A * sinh + B * cosh + C)
+     this.uz[i] = C1 * cosh + C2 * sinh + ((C3 * e) / l) * x + C4
+     this.phi[i] = -(e / l) * (C1 * sinh + C2 * cosh + C3)
      //Nachfolgend wird eigentlich die Transversalkraft berechnet, für die Bezeichnung wurde trotzdem V gewählt
-     this.V[i] = -EI * (e / l) ** 3 * (A * sinh + B * cosh) - Nmean * this.phi[i]
-     this.M[i] = -EI * (e / l) ** 2 * (A * cosh + B * sinh)
+     this.V[i] = -EI * (e / l) ** 3 * (C1 * sinh + C2 * cosh) - Nmean * this.phi[i]
+     this.M[i] = -EI * (e / l) ** 2 * (C1 * cosh + C2 * sinh)
     }
    }
 

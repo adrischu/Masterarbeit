@@ -71,6 +71,7 @@
      <v-checkbox-btn
       v-if="headerItem.inputType === 'checkbox'"
       v-model="newObjectValues[itemIndex]"
+      density="compact"
      ></v-checkbox-btn>
     </td>
     <td>
@@ -136,6 +137,7 @@
       v-if="objectlist[objectIndex].header[itemIndex].inputType === 'checkbox'"
       v-model="data[objectIndex][itemIndex]"
       @change="handleEdit(object, objectIndex)"
+      density="compact"
      ></v-checkbox-btn>
     </td>
     <td>

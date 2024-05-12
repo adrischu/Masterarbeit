@@ -7,7 +7,7 @@ import { Theorie } from "./enumerations"
 import type { isStablast } from "./classes/InterfaceStablast"
 import { useSettingsStore } from "@/stores/SettingsStore"
 import Stab from "./classes/Stab"
-import Starrelement from "./classes/Starrelement"
+import Federelement from "./classes/Federelement"
 import { useSystemStore } from "@/stores/SystemStore"
 import Fehler from "./classes/Fehler"
 
@@ -254,8 +254,8 @@ function elementeAufstellen(system: System, lastfall: Lastfall) {
 
  system.Stabliste.forEach((stab) => {
   if (stab.Anfangsgelenknummer) {
-   //Neuen Starrstab zwischen Anfangsknoten und Stab erstellen
-   const starrelement: Starrelement = new Starrelement(
+   //Neues Federelement zwischen Anfangsknoten und Stab erstellen
+   const federelement: Federelement = new Federelement(
     lastfall.Elementliste.length,
     stab,
     stab.Anfangsgelenk!,
@@ -265,17 +265,17 @@ function elementeAufstellen(system: System, lastfall: Lastfall) {
      stab.Inzidenzen[2],
     ),
    )
-   lastfall.Elementliste.push(starrelement)
+   lastfall.Elementliste.push(federelement)
   }
   if (stab.Endgelenknummer) {
-   //Neuen Starrstab zwischen Stab und Endknoten erstellen
-   const starrelement: Starrelement = new Starrelement(
+   //Neues Federelement zwischen Stab und Endknoten erstellen
+   const federelement: Federelement = new Federelement(
     lastfall.Elementliste.length,
     stab,
     stab.Endgelenk!,
     [stab.Inzidenzen[3], stab.Inzidenzen[4], stab.Inzidenzen[5]].concat(stab.Endknoten!.Inzidenzen),
    )
-   lastfall.Elementliste.push(starrelement)
+   lastfall.Elementliste.push(federelement)
   }
  })
 }
@@ -337,13 +337,17 @@ function steifigkeitsmatrixAufstellen(system: System, lastfall: Lastfall) {
   Array(system.Freiheitsgrade).fill(0),
  )
 
- //Elemente der Elementsteifigkeitsmatrix zu Gesamtsteifigkeitsmatrix (unkondensiert) addieren
+ /**
+  * unkondensierte Gesamtsteifigkeitsmatrix aufbauen
+  */
  lastfall.Elementliste.forEach((element) => {
   console.log(`kglob Element${element.Nummer}`)
   console.table(element.k_glob())
   element.k_glob().forEach((row, rowIndex) => {
    row.forEach((val, colIndex) => {
-    lastfall.M_K_lang[element.Inzidenzen[rowIndex]][element.Inzidenzen[colIndex]] += val
+    const i = element.Inzidenzen[rowIndex]
+    const j = element.Inzidenzen[colIndex]
+    lastfall.M_K_lang[i][j] += val
    })
   })
   // for (let rows: number = 0; rows < element.nGleichungen; rows++) {
@@ -360,7 +364,8 @@ function steifigkeitsmatrixAufstellen(system: System, lastfall: Lastfall) {
  system.Knotenliste.forEach((knoten) => {
   for (let i = 0; i <= 2; i++) {
    if (!knoten.Lager!.Lagerung[i]) {
-    lastfall.M_K_lang[knoten.Inzidenzen[i]][knoten.Inzidenzen[i]] += knoten.Lager!.Feder[i]
+    const j = knoten.Inzidenzen[i]
+    lastfall.M_K_lang[j][j] += knoten.Lager!.Feder[i]
    }
   }
  })
@@ -442,7 +447,6 @@ function elementkräfteBestimmen(system: System, lastfall: Lastfall) {
   //Knotenersatzlasten müssen erst ins lokale System transformiert werden.
   element.Stablasten.forEach((stablast) => {
    matMultiplyVec(element.T, stablast.Knotenersatzlasten)!.forEach((lastterm, index) => {
-    console.log(`${index}: ${element.F[index]} + ${lastterm}`)
     element.F[index] += lastterm
    })
   })

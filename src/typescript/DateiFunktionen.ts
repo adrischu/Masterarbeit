@@ -1,33 +1,42 @@
+import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
+import { useSettingsStore } from "@/stores/SettingsStore"
 import { useSystemStore } from "@/stores/SystemStore"
 
 /**Funktion zum Einlesen eines Systems aus einer Datei */
-export function handleFileUpload(event: Event) {
+
+export function handleFileUpload(event: Event): FileReader | undefined {
  const systemStore = useSystemStore()
  const fileInput = event!.target as HTMLInputElement // Typumwandlung zu HTMLInputElement
  const file = fileInput.files?.[0] // Verwenden des optionalen Zugriffsoperators
-
  if (!file) return
-
  const reader = new FileReader()
  reader.onload = (e) => {
   const content = e.target?.result
   if (content) {
-   const systemData = JSON.parse(content as string) // Parsen Sie die JSON-Daten
-   systemStore.importSystem(systemData) // Aktualisieren Sie das System im Store
+   const saveData = JSON.parse(content as string) // Parsen Sie die JSON-Daten
+   systemStore.importSystem(saveData.system) // Aktualisieren Sie das System im Store
+   useSettingsStore().$state = saveData.settings
+   useGraphicSettingsStore().$state = saveData.graphicSettings
    console.log("System erfolgreich eingelesen. Neues System:", systemStore.system)
   }
  }
  reader.readAsText(file)
+ return reader
 }
 
 /** Funktion zum Speichern des Systems an einem benutzerdefinierten Speicherort */
 export function saveSystemToFile() {
  const systemStore = useSystemStore()
  // Konvertiere das System in JSON
- const systemData = JSON.stringify(systemStore.exportSystem())
-
+ //  const systemData = JSON.stringify(systemStore.exportSystem())
+ const saveData = {
+  system: systemStore.exportSystem(),
+  settings: useSettingsStore().$state,
+  graphicSettings: useGraphicSettingsStore().$state,
+ }
+ const jsonData = JSON.stringify(saveData)
  // Erstelle einen neuen Blob mit den Systemdaten
- const blob = new Blob([systemData], { type: "application/json" })
+ const blob = new Blob([jsonData], { type: "application/json" })
 
  // Öffne den Dateidialog für den Benutzer
  const link = document.createElement("a")

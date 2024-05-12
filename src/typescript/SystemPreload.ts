@@ -2,6 +2,7 @@ import { useSystemStore } from "@/stores/SystemStore"
 import System from "./classes/System"
 import { Theorie } from "./enumerations"
 import { useSettingsStore } from "@/stores/SettingsStore"
+import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
 
 /**Loaded System
  * 1: Vergleichsrechnung mit RSTAB8 zur Überprüfung des trigonometrischen Ansatzes
@@ -10,6 +11,7 @@ import { useSettingsStore } from "@/stores/SettingsStore"
 export function preloadSystem(systemNummer: number = 1): void {
  const settings = useSettingsStore()
  const systemStore = useSystemStore()
+ const graphicSettings = useGraphicSettingsStore()
  /**Loaded System
   * 1: Vergleichsrechnung mit RSTAB8 zur Überprüfung des trigonometrischen Ansatzes
   * 2: Vergleichsrechnung Kargarm zur Überprüfung der Näherungsansätze
@@ -123,7 +125,7 @@ export function preloadSystem(systemNummer: number = 1): void {
     */
    systemStore.system.delete()
    systemStore.system.addStatikobjekt("Lager", [1, true, true, true, 0, 0, 0], -1)
-   systemStore.system.addStatikobjekt("Lager", [2, true, true, false, 0, 3000000, 0], -1)
+   systemStore.system.addStatikobjekt("Lager", [2, true, false, false, 0, 3000000, 0], -1)
    systemStore.system.addStatikobjekt("Knoten", [1, 0, 0, 1, 0], -1)
    systemStore.system.addStatikobjekt("Knoten", [2, 10, -5, 0, 0], -1)
    systemStore.system.addStatikobjekt("Knoten", [3, 20, 0, 2, 0], -1)
@@ -136,19 +138,13 @@ export function preloadSystem(systemNummer: number = 1): void {
    systemStore.system.addStatikobjekt("Knotenlast", [1, 2, -4000000, 0, 0], 1)
    systemStore.system.addStatikobjekt(
     "StablastStreckenlast",
-    [1, 2, "global", "z", true, 8000, 12000],
+    [1, 2, "lokal", "z", true, 8000, 12000],
     1,
    )
    systemStore.system.addStatikobjekt("StablastVorverformung", [1, 1, -0.005, 0.005], 1)
-   systemStore.system.addStatikobjekt("Lastfall", [2, "LF2", Theorie.Theorie_2_trig], -1)
-   systemStore.system.addStatikobjekt("Knotenlast", [1, 2, -4000000, 0, 0], 2)
-   systemStore.system.addStatikobjekt(
-    "StablastStreckenlast",
-    [1, 2, "lokal", "z", true, 8000, 12000],
-    2,
-   )
-   systemStore.system.addStatikobjekt("StablastVorverformung", [1, 1, -0.005, 0.005], 2)
    settings.schnittgrößenAufVerformtesSystemBeziehen = false
+   graphicSettings.NACHKOMMASTELLEN_LASTWERTE = 0
+   graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN = 4
    break
   }
   case 2: {
@@ -295,6 +291,38 @@ export function preloadSystem(systemNummer: number = 1): void {
    settings.schnittgrößenAufVerformtesSystemBeziehen = false
    break
   }
+  case 6: {
+   /**
+    * Vergleichsrechnung mit RSTAB8 für trigonometrischen Ansatz
+    */
+   systemStore.system.delete()
+   systemStore.system.addStatikobjekt("Lager", [1, true, true, false, 0, 0, 0], -1)
+   systemStore.system.addStatikobjekt("Knoten", [1, 0, 0, 1, 0], -1)
+   systemStore.system.addStatikobjekt("Knoten", [2, 0, -4, 0, 0], -1)
+   systemStore.system.addStatikobjekt("Knoten", [3, 6, -4, 0, 0], -1)
+   systemStore.system.addStatikobjekt("Knoten", [4, 6, 0, 1, 0], -1)
+   systemStore.system.addStatikobjekt("Material", [1, "S235", 210000000000], -1)
+   systemStore.system.addStatikobjekt("Querschnitt", [1, "HEB 300", 1, 0.0149, 0.0002517], -1)
+   systemStore.system.addStatikobjekt("Querschnitt", [2, "HEB 340", 1, 0.0171, 0.0003666], -1)
+   systemStore.system.addStatikobjekt("Stab", [1, 1, 2, 1, 0, 0, 10], -1)
+   systemStore.system.addStatikobjekt("Stab", [2, 2, 3, 2, 0, 0, 10], -1)
+   systemStore.system.addStatikobjekt("Stab", [3, 3, 4, 1, 0, 0, 10], -1)
+   systemStore.system.addStatikobjekt(
+    "Lastfall",
+    [1, "Theorie II. Ordnung", Theorie.Theorie_2_trig],
+    -1,
+   )
+   systemStore.system.addStatikobjekt("Knotenlast", [1, 2, 0, 1000000, 0], 1)
+   systemStore.system.addStatikobjekt("Knotenlast", [1, 3, 0, 500000, 0], 1)
+   systemStore.system.addStatikobjekt(
+    "StablastStreckenlast",
+    [1, 1, "lokal", "z", true, 8000, 12000],
+    1,
+   )
+   settings.schnittgrößenAufVerformtesSystemBeziehen = false
+   break
+  }
+
   default: {
    break
   }

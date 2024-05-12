@@ -3,7 +3,7 @@
   id="tabelle-selection"
   style="flex: none; display: flex; flex-direction: column"
  >
-  <v-toolbar density="compact">
+  <v-toolbar height="35">
    <!-- Auswahl ob System oder Last -->
    <v-tabs v-model="tabellentyp">
     <v-tab value="system">System</v-tab>
@@ -27,7 +27,7 @@
    />
   </v-toolbar>
   <v-divider></v-divider>
-  <v-toolbar density="compact">
+  <v-toolbar height="35">
    <!-- Auswahl welche Tabelle aus System -->
    <v-tabs
     v-if="tabellentyp === 'system'"

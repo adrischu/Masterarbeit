@@ -31,6 +31,7 @@
 
   <!-- Lagerwerte -->
   <text
+   v-if="graphicSettings.SICHTBARKEIT_WERTE"
    text-anchor="middle"
    dominant-baseline="middle"
    :fill="graphicSettings.FARBE_LAGERKRAEFTE"
@@ -40,11 +41,11 @@
   >
    {{
     Math.round(
-     (reaktion.text.value * einheit.vonSI + Number.EPSILON) *
+     (reaktion.text.value * einheit(reaktion.typ).vonSI + Number.EPSILON) *
       10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN,
     ) /
     10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN
-   }}{{ graphicSettings.EINHEIT_SHOW ? einheit.text : "" }}
+   }}{{ graphicSettings.EINHEIT_SHOW ? einheit(reaktion.typ).text : "" }}
   </text>
  </g>
 </template>
@@ -58,7 +59,16 @@
 
  const graphicSettings = useGraphicSettingsStore()
 
- const einheit: isEinheit = graphicSettings.EINHEIT_ERGEBNIS_KRAFT
+ const einheitKraft: isEinheit = graphicSettings.EINHEIT_ERGEBNIS_KRAFT
+ const einheitMoment: isEinheit = graphicSettings.EINHEIT_ERGEBNIS_MOMENT
+
+ function einheit(typ: string) {
+  if (typ === "Kraft") {
+   return einheitKraft
+  } else {
+   return einheitMoment
+  }
+ }
 
  const props = defineProps<{
   knoten: Knoten
@@ -74,14 +84,15 @@
  })
 
  let reaktionsVektoren = computed(() => {
-  let reaktionsVektoren: { path: string; text: { point: Vector; value: number } }[] = []
+  let reaktionsVektoren: { typ: string; path: string; text: { point: Vector; value: number } }[] =
+   []
   let dir: number
   let k1: Vector
   let k2: Vector
   const pfeillänge = 50
   let reaktion: number
   //Lagerreaktion in x
-  if (props.knoten.Lager?.Lagerung[0]) {
+  if (props.knoten.Lager?.Lagerung[0] || props.knoten.Lager?.Feder[0]) {
    reaktion = props.lagerreaktionen[props.knoten.Inzidenzen[0]]
    dir = Math.PI
    k1 = knotenpunkt.value.movePolar(graphicSettings.ABSTAND_KNOTENLAST, dir)
@@ -89,10 +100,14 @@
    const textpunkt = k2.movePolar(15, -Math.PI / 4)
    const path =
     reaktion > 0 ? `M ${k1.x} ${k1.z} L ${k2.x} ${k2.z}` : `M ${k2.x} ${k2.z} L ${k1.x} ${k1.z}`
-   reaktionsVektoren.push({ path: path, text: { point: textpunkt, value: Math.abs(reaktion) } })
+   reaktionsVektoren.push({
+    typ: "Kraft",
+    path: path,
+    text: { point: textpunkt, value: Math.abs(reaktion) },
+   })
   }
   //Lagerreaktion in z
-  if (props.knoten.Lager?.Lagerung[1]) {
+  if (props.knoten.Lager?.Lagerung[1] || props.knoten.Lager?.Feder[1]) {
    reaktion = props.lagerreaktionen[props.knoten.Inzidenzen[1]]
    dir = Math.PI / 2
    k1 = knotenpunkt.value.movePolar(graphicSettings.ABSTAND_KNOTENLAST, dir)
@@ -100,11 +115,15 @@
    const textpunkt = k2.movePolar(15, -Math.PI / 4)
    const path =
     reaktion > 0 ? `M ${k2.x} ${k2.z} L ${k1.x} ${k1.z}` : `M ${k1.x} ${k1.z} L ${k2.x} ${k2.z}`
-   reaktionsVektoren.push({ path: path, text: { point: textpunkt, value: Math.abs(reaktion) } })
+   reaktionsVektoren.push({
+    typ: "Kraft",
+    path: path,
+    text: { point: textpunkt, value: Math.abs(reaktion) },
+   })
   }
 
   //Lagereaktion in phi
-  if (props.knoten.Lager?.Lagerung[2]) {
+  if (props.knoten.Lager?.Lagerung[2] || props.knoten.Lager?.Feder[2]) {
    reaktion = props.lagerreaktionen[props.knoten.Inzidenzen[2]]
    //d="M140,20 a20,20 0 1,0 -20,20" />
    const path =
@@ -112,7 +131,11 @@
      ? `M ${knotenpunkt.value.x + 20} ${knotenpunkt.value.z} a20,20 0 1,0 -20,20`
      : `M ${knotenpunkt.value.x + 20} ${knotenpunkt.value.z} a20,20 0 1,1 -20,-20`
    const textpunkt = knotenpunkt.value.movePolar(35, -Math.PI / 4)
-   reaktionsVektoren.push({ path: path, text: { point: textpunkt, value: Math.abs(reaktion) } })
+   reaktionsVektoren.push({
+    typ: "Momemnt",
+    path: path,
+    text: { point: textpunkt, value: Math.abs(reaktion) },
+   })
   }
   return reaktionsVektoren
  })

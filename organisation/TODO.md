@@ -1,20 +1,24 @@
+# NACH ABGABE
+
+- Einstellungen auch in speicherdatei übernehmen.
+- Handbuch schreiben
+- SPeicehrdatien für Parameterstudie und Vergleichbeispiel in Anhang legen. (und RSTAB dateien)
+- GANZ AM ENDE: Ordner mit Quellcode in Anhang2-Ordner kopieren -> Sticks beschreiben.
+
 # SCHREIBEN
 
 - Absatz zu "Stand der Forschung und Normung" fertig bearbeiten.
-- Teil zur Untersuchung der Näherungsansätze und Stabilitätsuntersuchung schreiben
-- Teil für Benutzeroberfläche?
-- Stablänge in die ersten paar Abbildungen einpflegen. Glaube der Wert ist aktuell noch nicht definiert.
-- Überprüfen, ob alle Akürzungen in der Abkürzungstabelle enthalten sind
-- Überprüfen, ob alle griechischen Buchstaben in den Erklärungen am Anfang enthalten sind
-- Irgendwo beschreiben, dass die Lastn für kubisch und pdelta nach theorie I. Ordnung ermittelt werden und rechtfertigen.
 - bilder von ergebnisse in thesis einarbeiten. möglicherweise in den teil der Ergebnisplausibilierung.
--
-- Abstract deutsch
-- Abstract englisch
+
+# Schreiben BONUS
+
+- Stabilitätsuntersuchung
+
+- Teil für Benutzeroberfläche?
 
 # PROGRAMMIEREN
 
-- Ausgabe von Schnittgrößen unter einem bestimmten Wert unterdrücken. Manchmal werden Größewn angezeigt, (1e-16) obwohl der Wert eigentlich Null sein sollte.
+- Eigenformermittlung /alphacrit
 
 - Zwischenergebnisse ausgeben (Lastvektoren, Steifigkeitsmatrizen, Verformungsvektoren)
 
@@ -54,24 +58,16 @@
 
 - Bei Lastfällen die Zusatzoption "Kopie" hinzufügen. -> Stellt eine Kopie eines anderen Lastfalls dar. So können leicht verschiedene Theorien verglichen werden, während die Lasten jeweils nur bei einem Lastfall erstellt werden müssen.
 
-# Fehlerüberprüfung
-
-Aufbau Masterarbeittext:
-
-- Grundlegender Aufbau und Zusammenhang des Programmes soll erkärt werden.
-- Vergleichsbeispiel mit RSTAB
-- Herleitung der Formeln
--
-
 # Möglichge Weiterbearbeitungen
 
 - weitere Plausibilisierungen einarbeiten für: Streckenlast in x
 
 # Ganz am Ende
 
-- Rahmen von den FOrmeltabellen entfernen.
-- Bei Literaturverweisen eckige Klammern statt runden Klammern verwendeen.
-- Oberen und unteren Rand von FOrmeln einheitlich noch einmal überprüfen.
-- Rechtschreibcheck
 - Zeichensetzungscheck
 - Alle Verweise checken.
+- Vorlage checken auf: Ob alle Seitenumbrüche richtig sind. Manchmal ist auch ein doppelter Umbruch drinnen damit die rechte Seite die nächst beschriebene ist usw...
+- Aufgabenstellung einfügen
+- Seitenzahl und Anlagenzahl einfügen
+- Durchgehen und eventuell allein stehende Überschriften umbrechen.
+- Verzeichnisse als "nach links" ausgerichtet setzen (\Absatz)

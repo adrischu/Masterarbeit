@@ -51,24 +51,26 @@
    />
 
    <!-- Lastwerte -->
-   <text
-    v-for="text in trapezlast.texts"
-    :key="text.value"
-    text-anchor="middle"
-    dominant-baseline="middle"
-    :fill="graphicSettings.FARBE_STABLAST"
-    :font-size="`${graphicSettings.SCHRIFTGROESSE_STABLAST}px`"
-    :x="text.point.x"
-    :y="text.point.z"
-   >
-    {{
-     Math.round(
-      (einheitStreck.vonSI * text.value + Number.EPSILON) *
-       10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE,
-     ) /
-     10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE
-    }}{{ graphicSettings.EINHEIT_SHOW ? einheitStreck.text : "" }}
-   </text>
+   <g v-if="graphicSettings.SICHTBARKEIT_WERTE">
+    <text
+     v-for="text in trapezlast.texts"
+     :key="text.value"
+     text-anchor="middle"
+     dominant-baseline="middle"
+     :fill="graphicSettings.FARBE_STABLAST"
+     :font-size="`${graphicSettings.SCHRIFTGROESSE_STABLAST}px`"
+     :x="text.point.x"
+     :y="text.point.z"
+    >
+     {{
+      Math.round(
+       (einheitStreck.vonSI * text.value + Number.EPSILON) *
+        10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE,
+      ) /
+      10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE
+     }}{{ graphicSettings.EINHEIT_SHOW ? einheitStreck.text : "" }}
+    </text>
+   </g>
   </g>
  </g>
 
@@ -108,28 +110,30 @@
     fill="none"
     :stroke-dasharray="graphicSettings.GESTRICHELT_VORVERFORMUNG"
    />
-   <!-- Text für Vorkrümmung -->
-   <text
-    v-if="vorverformung.textVorkruemmung"
-    text-anchor="middle"
-    dominant-baseline="middle"
-    :fill="graphicSettings.FARBE_STABLAST"
-    :font-size="`${graphicSettings.SCHRIFTGROESSE_STABLAST}px`"
-    :x="vorverformung.textVorkruemmung!.point.x"
-    :y="vorverformung.textVorkruemmung!.point.z"
-    >{{ vorverformung.textVorkruemmung!.text }}</text
-   >
-   <!-- Text für Schiefstellung -->
-   <text
-    v-if="vorverformung.textSchiefstellung"
-    text-anchor="middle"
-    dominant-baseline="middle"
-    :fill="graphicSettings.FARBE_STABLAST"
-    :font-size="`${graphicSettings.SCHRIFTGROESSE_STABLAST}px`"
-    :x="vorverformung.textSchiefstellung!.point.x"
-    :y="vorverformung.textSchiefstellung!.point.z"
-    >{{ vorverformung.textSchiefstellung!.text }}</text
-   >
+   <g v-if="graphicSettings.SICHTBARKEIT_WERTE">
+    <!-- Text für Vorkrümmung -->
+    <text
+     v-if="vorverformung.textVorkruemmung"
+     text-anchor="middle"
+     dominant-baseline="middle"
+     :fill="graphicSettings.FARBE_STABLAST"
+     :font-size="`${graphicSettings.SCHRIFTGROESSE_STABLAST}px`"
+     :x="vorverformung.textVorkruemmung!.point.x"
+     :y="vorverformung.textVorkruemmung!.point.z"
+     >{{ vorverformung.textVorkruemmung!.text }}</text
+    >
+    <!-- Text für Schiefstellung -->
+    <text
+     v-if="vorverformung.textSchiefstellung"
+     text-anchor="middle"
+     dominant-baseline="middle"
+     :fill="graphicSettings.FARBE_STABLAST"
+     :font-size="`${graphicSettings.SCHRIFTGROESSE_STABLAST}px`"
+     :x="vorverformung.textSchiefstellung!.point.x"
+     :y="vorverformung.textSchiefstellung!.point.z"
+     >{{ vorverformung.textSchiefstellung!.text }}</text
+    >
+   </g>
   </g>
  </g>
 </template>
@@ -432,7 +436,7 @@
       endLine = `${ende.value.x},${ende.value.z} ${curvePoint.x},${curvePoint.z}`
       textSchiefstellung = {
        point: curvePoint,
-       text: `ϕ0=${vorverformung.w0zuL}`,
+       text: `ϕ0=${vorverformung.phi0}`,
       }
      }
     }

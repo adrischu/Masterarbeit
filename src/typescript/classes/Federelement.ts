@@ -6,29 +6,29 @@ import type { isStablast } from "./InterfaceStablast"
 import type Stab from "./Stab"
 
 /**
- * ### Klasse Starrelement
+ * ### Klasse Federelement
  * - Element mit sehr hoher Steifigkeit (10^12)
  * - Kann mit Federn (x/z/phi) erweitert werden.
  * - Wird als Gelenkstab an Stabenden eingesetzt.
  */
-export default class Starrelement implements isElement {
+export default class Federelement implements isElement {
  Nummer: number
- Typ: string = "Starrelement"
+ Typ: string = "Federelement"
  /**Der Stab an dessen Anfang/Ende sich das Gelenk befindet. */
  Stab: Stab
  F: number[] //lokale Stabendschnittgrößen nach WGV-Vorzeichen [Nl,Vl,Ml,Nr,Vr,Mr]
  Verformungen: number[]
  Inzidenzen: number[]
  Gelenk: Gelenk
- /**Bisher für Starrelement keine Lasten vorgesehen. */
+ /**Bisher für Federelement keine Lasten vorgesehen. */
  Stablasten: isStablast[] = []
  /**Die Anzahl an Gleichungen für dieses Element. (Spalten und Zeilen der Steifigkeitsmatrix).
-  * Für das Starrelement sind das 6.
+  * Für das Federelement sind das 6.
   */
  nGleichungen: number = 6
 
  /**
-  * Initialisiert ein Starrelement.
+  * Initialisiert ein Federelement.
   * @param Nummer Stabnummer.
   * @param Stab Stabobjekt
   */
@@ -60,7 +60,7 @@ export default class Starrelement implements isElement {
  }
 
  /**
-  * Berechnet und gibt die lokale Elementsteifigkeitsmatrix (6x6) für ein gefedertes Starrelement zurück.
+  * Berechnet und gibt die lokale Elementsteifigkeitsmatrix (6x6) für ein gefedertes Federelement zurück.
   * @returns k_lok lokale Elementsteifigkeitsmatrix.
   */
  public k_lok(): number[][] {
@@ -75,11 +75,11 @@ export default class Starrelement implements isElement {
   /**Stablänge */
   const L = this.Stab.Länge
   /**Wegfeder in lokal x */
-  const kx = this.Gelenk.Gelenke[0] ? Math.abs(this.Gelenk.Federn[0]) : 1e13
+  const kx = this.Gelenk.Gelenke[0] ? Math.abs(this.Gelenk.Federn[0]) : 1e15 //1e14 //1e13
   /**Wegfeder in lokal z */
-  const kz = this.Gelenk.Gelenke[1] ? Math.abs(this.Gelenk.Federn[1]) : 12e13
+  const kz = this.Gelenk.Gelenke[1] ? Math.abs(this.Gelenk.Federn[1]) : 1e15 //1e14 //1e13
   /**Drehfeder um y */
-  const kphi = this.Gelenk.Gelenke[2] ? Math.abs(this.Gelenk.Federn[2]) : 4e13 * L ** 2
+  const kphi = this.Gelenk.Gelenke[2] ? Math.abs(this.Gelenk.Federn[2]) : 1e14 //1e14 //4e13 * L ** 2
 
   // prettier-ignore
   return [
@@ -92,9 +92,9 @@ export default class Starrelement implements isElement {
   ]
  }
 
- /**Die nachfolgenden Funktionen haben für das Starrelement keinen Zweck
+ /**Die nachfolgenden Funktionen haben für das Federelement keinen Zweck
   * Sie sind trotzdem hier definiert, damit "isElement" als allgemeiner Typ verwendet werden kann
-  * und das Starrelement zu diesem Typ passt.
+  * und das Federelement zu diesem Typ passt.
   */
  public AusgabepunkteBerechnen() {
   //Hier muss nichts gemacht werden.

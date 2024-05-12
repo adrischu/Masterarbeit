@@ -19,24 +19,39 @@
    opacity="0.3"
    stroke-opacity="0.3"
   />
-  <text
-   v-for="(p, index) in points"
-   :key="index"
-   text-anchor="middle"
-   dominant-baseline="middle"
-   :fill="p.col"
-   :font-size="`${graphicSettings.SCHRIFTGROESSE_SCHNITTGROESSEN}px`"
-   :x="p.x"
-   :y="p.z"
-  >
-   {{
-    Math.round(
-     (stabGrößen[index] * einheit.vonSI + Number.EPSILON) *
-      10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN,
-    ) /
-    10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN
-   }}{{ graphicSettings.EINHEIT_SHOW ? einheit.text : "" }}
-  </text>
+
+  <g v-if="graphicSettings.SICHTBARKEIT_WERTE">
+   <g
+    v-for="(p, index) in points"
+    :key="index"
+   >
+    <text
+     v-if="
+      Math.abs(
+       Math.round(
+        (stabGrößen[index] * einheit.vonSI + Number.EPSILON) *
+         10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN,
+       ) /
+        10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN,
+      ) > 0
+     "
+     text-anchor="middle"
+     dominant-baseline="middle"
+     :fill="p.col"
+     :font-size="`${graphicSettings.SCHRIFTGROESSE_SCHNITTGROESSEN}px`"
+     :x="p.x"
+     :y="p.z"
+    >
+     {{
+      Math.round(
+       (stabGrößen[index] * einheit.vonSI + Number.EPSILON) *
+        10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN,
+      ) /
+      10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN
+     }}{{ graphicSettings.EINHEIT_SHOW ? einheit.text : "" }}
+    </text>
+   </g>
+  </g>
  </g>
 </template>
 
@@ -46,8 +61,10 @@
  import { computed } from "vue"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
  import type { isEinheit } from "@/typescript/classes/InterfaceEinheit"
+ import { useSettingsStore } from "@/stores/SettingsStore"
 
  const graphicSettings = useGraphicSettingsStore()
+ const settings = useSettingsStore()
 
  const props = defineProps<{
   element: Balkenelement

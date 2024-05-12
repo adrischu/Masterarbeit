@@ -7,7 +7,9 @@
    elevation="10"
    :border="true"
   >
+   <!--  -->
    <!-- File-Upload -->
+   <!--  -->
    <label for="file-upload">
     <i class="fas fa-upload">
      <v-icon
@@ -29,10 +31,12 @@
     @change="clickFileUpload"
    />
 
+   <!--  -->
    <!-- File Save -->
+   <!--  -->
    <v-btn
     @click="saveSystemToFile"
-    icon="mdi-content-save"
+    icon="mdi-floppy"
    ></v-btn>
 
    <v-divider
@@ -40,13 +44,17 @@
     vertical
    />
 
+   <!--  -->
    <!-- Rechenbutton -->
+   <!--  -->
    <v-btn
     icon="mdi-calculator"
     @click="handleStartBerechnung()"
    ></v-btn>
 
+   <!--  -->
    <!-- Lastfallauswahl -->
+   <!--  -->
    <v-select
     v-model="lastfall"
     :items="systemStore.system.Lastfallliste"
@@ -60,7 +68,9 @@
     vertical
    />
 
+   <!--  -->
    <!-- Ergebnisgröße Auswahl -->
+   <!--  -->
    <v-select
     hide-details
     v-model="ergebnisgroesse"
@@ -77,9 +87,56 @@
      </v-list-item>
     </template>
    </v-select>
+
+   <!--  -->
+   <!-- Sichtbarkeiten -->
+   <!--  -->
+   <v-menu :close-on-content-click="false">
+    <template v-slot:activator="{ props }">
+     <v-btn
+      icon="mdi-eye-outline"
+      v-bind="props"
+     />
+    </template>
+    <v-list>
+     <v-list-item>
+      <v-checkbox-btn
+       label="Werte"
+       v-model="graphicSettings.SICHTBARKEIT_WERTE"
+      ></v-checkbox-btn>
+     </v-list-item>
+     <v-list-item>
+      <v-checkbox-btn
+       label="Lasten"
+       v-model="graphicSettings.SICHTBARKEIT_LASTEN"
+      ></v-checkbox-btn>
+     </v-list-item>
+     <v-list-item>
+      <v-checkbox-btn
+       label="Schnittgrößen"
+       v-model="graphicSettings.SICHTBARKEIT_SCHNITTGROESSEN"
+      ></v-checkbox-btn>
+     </v-list-item>
+     <v-list-item>
+      <v-checkbox-btn
+       label="Verformung"
+       v-model="graphicSettings.SICHTBARKEIT_VERFORMUNG"
+      ></v-checkbox-btn>
+     </v-list-item>
+     <v-list-item>
+      <v-checkbox-btn
+       label="Lagerkräfte"
+       v-model="graphicSettings.SICHTBARKEIT_LAGERKRAEFTE"
+      ></v-checkbox-btn>
+     </v-list-item>
+    </v-list>
+   </v-menu>
+
    <v-spacer></v-spacer>
 
+   <!--  -->
    <!-- Parameteranalyse -->
+   <!--  -->
    <v-menu>
     <template v-slot:activator="{ props }">
      <v-btn
@@ -100,7 +157,9 @@
     </v-list>
    </v-menu>
 
+   <!--  -->
    <!-- "Mehr-Menü" -->
+   <!--  -->
    <v-menu>
     <template v-slot:activator="{ props }">
      <v-btn
@@ -175,26 +234,24 @@
  import { system1Analyse1Element } from "@/typescript/parameterstudie"
  import { system1Analyse2Element } from "@/typescript/parameterstudie"
  import { system2Analyse1Element } from "@/typescript/parameterstudie"
+ import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
 
  const systemStore = useSystemStore()
-
- //  Beim Start des Programms wird ein System vorgeladen
- preloadSystem(3)
+ const graphicSettings = useGraphicSettingsStore()
 
  const svgContainer: Ref<HTMLElement | null> = ref(null)
 
  const emit = defineEmits<{
   (event: "force-rerender"): void
  }>()
-
  let lastfall: Ref<Lastfall> = ref(systemStore.system.Lastfallliste[0])
  let ergebnisgroesse = ref(2)
  let ergebnisgroessenAuswahl: { title: string; value: number }[] = [
   { title: "N", value: 0 },
   { title: "V", value: 1 },
   { title: "M", value: 2 },
-  { title: "u<sub>x</sub>", value: 3 },
-  { title: "u<sub>z</sub>", value: 4 },
+  { title: "u", value: 3 },
+  { title: "w", value: 4 },
   { title: "φ", value: 5 },
  ]
  let lastfallProps = function (lastfall: Lastfall) {
@@ -216,9 +273,13 @@
   fehlerDialog.value = !fehlerDialog.value
  }
 
- function clickFileUpload() {
-  handleFileUpload
-  emit("force-rerender")
+ function clickFileUpload(e: Event) {
+  handleFileUpload(e)!.onloadend = (e2) => {
+   const content = e2.target?.result
+   if (content) {
+    emit("force-rerender")
+   }
+  }
  }
 </script>
 
