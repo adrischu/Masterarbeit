@@ -264,7 +264,7 @@
   { title: `V [${graphicSettings.EINHEIT_ERGEBNIS_KRAFT.text}]`, value: 1 },
   { title: `M [${graphicSettings.EINHEIT_ERGEBNIS_MOMENT.text}]`, value: 2 },
   { title: `u [${graphicSettings.EINHEIT_ERGEBNIS_LÄNGE.text}]`, value: 3 },
-  { title: `u [${graphicSettings.EINHEIT_ERGEBNIS_LÄNGE.text}]`, value: 4 },
+  { title: `w [${graphicSettings.EINHEIT_ERGEBNIS_LÄNGE.text}]`, value: 4 },
   { title: `φ [${graphicSettings.EINHEIT_ERGEBNIS_WINKEL.text}]`, value: 5 },
  ]
  let lastfallProps = function (lastfall: Lastfall) {
