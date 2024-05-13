@@ -11,7 +11,7 @@
  import Knoten from "@/typescript/classes/Knoten"
  import TabelleTemplate from "./TabelleTemplate.vue"
 
- const props = defineProps<{
+ defineProps<{
   tableHeight: number
  }>()
 

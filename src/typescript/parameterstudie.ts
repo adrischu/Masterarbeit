@@ -1,6 +1,3 @@
-import Lastfall from "./classes/Lastfall"
-import System from "./classes/System"
-import Vector from "./classes/Vector"
 import { saveTextFile } from "./DateiFunktionen"
 import { preloadSystem } from "./SystemPreload"
 import { useSystemStore } from "@/stores/SystemStore"

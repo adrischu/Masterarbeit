@@ -11,7 +11,7 @@
  import TabelleTemplate from "./TabelleTemplate.vue"
  import Material from "@/typescript/classes/Material"
 
- const props = defineProps<{
+ defineProps<{
   tableHeight: number
  }>()
 

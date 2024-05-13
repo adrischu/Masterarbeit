@@ -72,8 +72,6 @@ export default class Federelement implements isElement {
    * TODO: Eventuell kann hier noch mal nach einem anderen Ansatz gesucht werden.
    */
 
-  /**Stablänge */
-  const L = this.Stab.Länge
   /**Wegfeder in lokal x */
   const kx = this.Gelenk.Gelenke[0] ? Math.abs(this.Gelenk.Federn[0]) : 1e15 //1e14 //1e13
   /**Wegfeder in lokal z */

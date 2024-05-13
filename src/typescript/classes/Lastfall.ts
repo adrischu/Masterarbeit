@@ -7,7 +7,6 @@ import type { isStatikobjekt } from "./InterfaceStatikobjekt"
 import type Knotenlast from "./Knotenlast"
 import type StablastStreckenlast from "./StablastStreckenlast"
 import type StablastVorverformung from "./StablastVorverformung"
-import type Federelement from "./Federelement"
 
 export default class Lastfall implements isStatikobjekt {
  //folgende Werte werden bei Erstellung eines Knotens definiert.

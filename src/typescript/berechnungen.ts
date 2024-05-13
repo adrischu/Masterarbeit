@@ -6,9 +6,7 @@ import { gauss } from "./gauss"
 import { Theorie } from "./enumerations"
 import type { isStablast } from "./classes/InterfaceStablast"
 import { useSettingsStore } from "@/stores/SettingsStore"
-import Stab from "./classes/Stab"
 import Federelement from "./classes/Federelement"
-import { useSystemStore } from "@/stores/SystemStore"
 import Fehler from "./classes/Fehler"
 
 //-------------------------------------------------------------------------------
@@ -50,8 +48,6 @@ export function startBerechnungen(system: System): void {
   let iteration: number = 0
 
   elementeAufstellen(system, lastfall)
-  console.log("Elemente")
-  console.table(lastfall.Elementliste)
 
   do {
    iteration++

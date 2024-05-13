@@ -126,7 +126,6 @@
  import Lastfall from "@/typescript/classes/Lastfall"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
  import type { isStablast } from "@/typescript/classes/InterfaceStablast"
- import type { isEinheit } from "@/typescript/classes/InterfaceEinheit"
 
  const props = defineProps<{
   lastfall: Lastfall
@@ -356,7 +355,6 @@
 
   const translateX = (graphWidth.value - (maxX + minX) * scale) / 2
   const translateY = (graphHeight.value - (maxY + minY) * scale) / 2
-  console.log(scale)
   return { x: translateX, y: translateY, scale: scale }
  })
 

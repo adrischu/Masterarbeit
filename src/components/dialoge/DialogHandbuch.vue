@@ -152,15 +152,7 @@
 </template>
 
 <script setup lang="ts">
- import { nextTick, ref, watch, type Ref } from "vue"
- import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
- import { useSettingsStore } from "@/stores/SettingsStore"
- import { useSystemStore } from "@/stores/SystemStore"
- import { ergebnisseLöschen } from "@/typescript/berechnungen"
-
- const graphicSettings = useGraphicSettingsStore()
- const settings = useSettingsStore()
- const system = useSystemStore().system
+ import {  ref, type Ref } from "vue"
 
  let dialog: Ref<boolean> = ref(false)
 </script>

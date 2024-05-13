@@ -55,9 +55,6 @@
 </template>
 
 <script setup lang="ts">
- import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
-
- const graphicSettings = useGraphicSettingsStore()
  defineProps<{
   name?: string
   matrix: number[][]

@@ -11,7 +11,7 @@
  import Gelenk from "@/typescript/classes/Gelenk"
  import TabelleTemplate from "./TabelleTemplate.vue"
 
- const props = defineProps<{
+ defineProps<{
   tableHeight: number
  }>()
 

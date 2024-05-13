@@ -244,10 +244,10 @@
  import { saveSystemToFile } from "@/typescript/DateiFunktionen"
  import { handleFileUpload } from "@/typescript/DateiFunktionen"
  import { alsSVGSpeichern } from "@/typescript/DateiFunktionen"
- import { alsPNGSpeichern } from "@/typescript/DateiFunktionen"
- import { system1Analyse1Element } from "@/typescript/parameterstudie"
- import { system1Analyse2Element } from "@/typescript/parameterstudie"
- import { system2Analyse1Element } from "@/typescript/parameterstudie"
+ //  import { alsPNGSpeichern } from "@/typescript/DateiFunktionen"
+ //  import { system1Analyse1Element } from "@/typescript/parameterstudie"
+ //  import { system1Analyse2Element } from "@/typescript/parameterstudie"
+ //  import { system2Analyse1Element } from "@/typescript/parameterstudie"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
  import { preloadSystem } from "@/typescript/SystemPreload"
 
@@ -262,12 +262,12 @@
  let lastfall: Ref<Lastfall> = ref(systemStore.system.Lastfallliste[0])
  let ergebnisgroesse = ref(2)
  let ergebnisgroessenAuswahl: { title: string; value: number }[] = [
-  { title: "N", value: 0 },
-  { title: "V", value: 1 },
-  { title: "M", value: 2 },
-  { title: "u", value: 3 },
-  { title: "w", value: 4 },
-  { title: "φ", value: 5 },
+  { title: `N [${graphicSettings.EINHEIT_ERGEBNIS_KRAFT.text}]`, value: 0 },
+  { title: `V [${graphicSettings.EINHEIT_ERGEBNIS_KRAFT.text}]`, value: 1 },
+  { title: `M [${graphicSettings.EINHEIT_ERGEBNIS_MOMENT.text}]`, value: 2 },
+  { title: `u [${graphicSettings.EINHEIT_ERGEBNIS_LÄNGE.text}]`, value: 3 },
+  { title: `u [${graphicSettings.EINHEIT_ERGEBNIS_LÄNGE.text}]`, value: 4 },
+  { title: `φ [${graphicSettings.EINHEIT_ERGEBNIS_WINKEL.text}]`, value: 5 },
  ]
  let lastfallProps = function (lastfall: Lastfall) {
   return { title: `Lastfall ${lastfall.Nummer}`, subtitle: lastfall.Name }
@@ -296,8 +296,6 @@
    }
   }
  }
-
- function handleDeleteSystem() {}
 </script>
 
 <style>

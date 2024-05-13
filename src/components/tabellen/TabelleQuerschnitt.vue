@@ -11,7 +11,7 @@
  import TabelleTemplate from "./TabelleTemplate.vue"
  import Querschnitt from "@/typescript/classes/Querschnitt"
 
- const props = defineProps<{
+ defineProps<{
   tableHeight: number
  }>()
 

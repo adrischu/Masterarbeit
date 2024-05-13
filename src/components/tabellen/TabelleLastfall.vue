@@ -11,7 +11,7 @@
  import TabelleTemplate from "./TabelleTemplate.vue"
  import Lastfall from "@/typescript/classes/Lastfall"
 
- const props = defineProps<{
+ defineProps<{
   tableHeight: number
  }>()
 

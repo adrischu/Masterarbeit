@@ -1,5 +1,4 @@
 import { useSystemStore } from "@/stores/SystemStore"
-import System from "./classes/System"
 import { Theorie } from "./enumerations"
 import { useSettingsStore } from "@/stores/SettingsStore"
 import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"

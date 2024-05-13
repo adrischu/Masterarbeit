@@ -49,7 +49,6 @@ export function saveSystemToFile() {
 
 export async function alsSVGSpeichern() {
  const svg = document!.getElementById("grafik-fenster")!.innerHTML
- console.log(svg)
  const blob = new Blob([svg.toString()], { type: "image/svg+xml;charset=utf-8" })
  const element = document.createElement("a")
  element.download = "statiksystem.svg"

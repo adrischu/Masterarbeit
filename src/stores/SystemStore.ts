@@ -1,6 +1,5 @@
 import { defineStore } from "pinia"
 import System from "@/typescript/classes/System"
-import Knoten from "@/typescript/classes/Knoten"
 
 interface SystemState {
  system: System
@@ -91,8 +90,6 @@ export const useSystemStore = defineStore("systemStore", {
      })
     })
    })
-
-   console.log(systemData)
    return systemData
   },
 

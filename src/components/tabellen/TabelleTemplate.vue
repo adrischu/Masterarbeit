@@ -53,6 +53,7 @@
       v-if="headerItem.inputType === 'fixed' || headerItem.inputType === 'input'"
       :type="headerItem.inputFormat"
       v-model="newObjectValues[itemIndex]"
+      :disabled="headerItem.disabled"
      />
      <!-- Falls DropDownBox vorhanden -->
      <select
@@ -161,7 +162,7 @@
 </template>
 
 <script setup lang="ts">
- import { computed, ref } from "vue"
+ import { ref } from "vue"
  import { type Ref } from "vue"
  import type { isStatikobjekt } from "@/typescript/classes/InterfaceStatikobjekt"
  import { useSystemStore } from "@/stores/SystemStore"
@@ -246,7 +247,7 @@
 
  .eingabetabelle-ersteZeile {
   text-align: center;
-  background-color: rgb(14, 80, 14);
+  background-color: rgb(149, 234, 149);
   height: 10px;
  }
 

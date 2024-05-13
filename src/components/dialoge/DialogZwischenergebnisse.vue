@@ -105,7 +105,7 @@
      <div style="display: flex; flex-direction: row; overflow-x: auto">
       <!-- Steifigkeitsmatrix -->
       <TabelleMatrix
-       :name="`<u>K</u><sub>ges,red</sub> * <u>U</u> = <u>R</u>`"
+       :name="`<u>K</u><sub>ges,red</sub> * <u>U</u> = <u>F</u>`"
        :matrix="lastfall.M_K_kurz"
        :nachkommastellen="0"
        :upper-header="gesamtSteifigkeitKondensiertHeader"
@@ -126,7 +126,7 @@
       <TabelleMatrix
        :matrix="matTrans(lastfall.Lastvektor)"
        :nachkommastellen="2"
-       :upper-header="[`<u>R</u>`]"
+       :upper-header="[`<u>F</u>`]"
        style="flex: none"
       />
      </div>
@@ -139,8 +139,6 @@
 
 <script setup lang="ts">
  import { computed, ref, type Ref } from "vue"
- import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
- import { useSettingsStore } from "@/stores/SettingsStore"
  import { useSystemStore } from "@/stores/SystemStore"
  import type Lastfall from "@/typescript/classes/Lastfall"
  import type Balkenelement from "@/typescript/classes/Balkenelement"
@@ -149,8 +147,6 @@
  import { matTrans } from "@/typescript/matrix"
  import { onBeforeUpdate } from "vue"
 
- const graphicSettings = useGraphicSettingsStore()
- const settings = useSettingsStore()
  const system = useSystemStore().system
 
  let dialog: Ref<boolean> = ref(false)
