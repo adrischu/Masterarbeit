@@ -221,9 +221,7 @@
   </div>
  </div>
  <!-- Div für Fußzeile -->
- <div class="footer">
-  &copy; Adrian Schubert {{ new Date().getFullYear() }} - current Commit: 05.05.2024 19:48
- </div>
+ <div class="footer">&copy; Adrian Schubert - {{ new Date().getFullYear() }} - v1.0.0</div>
 
  <DialogFehler
   v-if="fehlerDialog"

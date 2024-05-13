@@ -247,7 +247,7 @@
 
  .eingabetabelle-ersteZeile {
   text-align: center;
-  background-color: rgb(149, 234, 149);
+  background-color: rgb(178, 246, 178);
   height: 10px;
  }
 
