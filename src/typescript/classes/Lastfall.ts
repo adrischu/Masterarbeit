@@ -42,7 +42,7 @@ export default class Lastfall implements isStatikobjekt {
 
  constructor(Nummer: number = 0) {
   this.Nummer = Nummer
-  this.Name = ""
+  this.Name = `Lastfall ${Nummer}`
   this.Theorie = Theorie.Theorie_1
   this.Knotenlastliste = []
   this.StablastListeStreckenlast = []

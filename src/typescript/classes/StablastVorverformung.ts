@@ -264,15 +264,17 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
 
  /**Definiert den Aufbau einer Vorverformung in der Eingabetabelle. */
  get header() {
-  const systemStore = useSystemStore()
+  const system = useSystemStore().system
   return [
    { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
     title: "Stab",
     value: this.Stabnummer,
     inputType: "select",
-    selectListKeys: systemStore.system.Stabliste.map((stab) => `Stab ${stab.Nummer}`),
-    selectListValues: systemStore.system.Stabliste.map((stab) => stab.Nummer),
+    selectListKeys: [`Stab ${this.Stabnummer}`].concat(
+     system.Stabliste.map((stab) => `Stab ${stab.Nummer}`),
+    ),
+    selectListValues: [this.Stabnummer].concat(system.Stabliste.map((stab) => stab.Nummer)),
    },
    {
     title: "&phi;<sub>0</sub>",

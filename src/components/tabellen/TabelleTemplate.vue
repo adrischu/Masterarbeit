@@ -64,6 +64,7 @@
        v-for="(selectItem, selectIndex) in headerItem.selectListKeys"
        :key="selectItem"
        :value="headerItem.selectListValues![selectIndex]"
+       :hidden="selectIndex === 0"
       >
        {{ selectItem }}
       </option>
@@ -73,6 +74,7 @@
       v-if="headerItem.inputType === 'checkbox'"
       v-model="newObjectValues[itemIndex]"
       density="compact"
+      @change="updateNewStatikObjekt"
      ></v-checkbox-btn>
     </td>
     <td>
@@ -126,6 +128,7 @@
        v-for="(selectItem, selectIndex) in objectlist[objectIndex].header[itemIndex].selectListKeys"
        :key="selectItem"
        :value="objectlist[objectIndex].header[itemIndex].selectListValues![selectIndex]"
+       :hidden="selectIndex === 0"
       >
        {{ selectItem }}
       </option>
@@ -224,6 +227,11 @@
  function handleDelete(index: number) {
   systemStore.system.deleteStatikobjekt(newStatikObjekt.Typ, index, props.lastfallnummer)
   console.log(`${newStatikObjekt.Typ} gelöscht`)
+  updateData()
+ }
+
+ function updateNewStatikObjekt() {
+  newStatikObjekt.values = newObjectValues.value
   updateData()
  }
 

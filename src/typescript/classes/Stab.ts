@@ -29,11 +29,11 @@ export default class Stab implements isStatikobjekt {
 
  constructor(Nummer: number = 1) {
   this.Nummer = Nummer
-  this.Anfangsknotennummer = 0
-  this.Endknotennummer = 0
+  this.Anfangsknotennummer = Nummer
+  this.Endknotennummer = Nummer + 1
   this.Anfangsknoten = null
   this.Endknoten = null
-  this.Querschnittsnummer = 0
+  this.Querschnittsnummer = 1
   this.Querschnitt = null
   this.Anfangsgelenknummer = 0
   this.Anfangsgelenk = null
@@ -104,49 +104,71 @@ export default class Stab implements isStatikobjekt {
  }
 
  get header() {
-  const systemStore = useSystemStore()
+  const system = useSystemStore().system
   return [
    { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
     title: "Anfangsknoten",
     value: this.Anfangsknotennummer,
     inputType: "select",
-    selectListKeys: systemStore.system.Knotenliste.map((knoten) => `Knoten ${knoten.Nummer}`),
-    selectListValues: systemStore.system.Knotenliste.map((knoten) => knoten.Nummer),
+    selectListKeys: [`Knoten ${this.Anfangsknotennummer}`].concat(
+     system.Knotenliste.map((knoten) => `Knoten ${knoten.Nummer}`),
+    ),
+    selectListValues: [this.Anfangsknotennummer].concat(
+     system.Knotenliste.map((knoten) => knoten.Nummer),
+    ),
    },
    {
     title: "Endknoten",
     value: this.Endknotennummer,
     inputType: "select",
-    selectListKeys: systemStore.system.Knotenliste.map((knoten) => `Knoten ${knoten.Nummer}`),
-    selectListValues: systemStore.system.Knotenliste.map((knoten) => knoten.Nummer),
+    selectListKeys: [`Knoten ${this.Endknotennummer}`].concat(
+     system.Knotenliste.map((knoten) => `Knoten ${knoten.Nummer}`),
+    ),
+    selectListValues: [this.Endknotennummer].concat(
+     system.Knotenliste.map((knoten) => knoten.Nummer),
+    ),
    },
    {
     title: "Querschnitt",
     value: this.Querschnittsnummer,
     inputType: "select",
-    selectListKeys: systemStore.system.Querschnittliste.map(
-     (querschnitt) => `${querschnitt.Nummer}: ${querschnitt.Name}`,
+    selectListKeys: [
+     `${this.Querschnittsnummer}: ${
+      system.Querschnittliste.find((querschnitt) => querschnitt.Nummer === this.Querschnittsnummer)
+       ? system.Querschnittliste.find(
+          (querschnitt) => querschnitt.Nummer === this.Querschnittsnummer,
+         )?.Name
+       : "?"
+     }`,
+    ].concat(
+     system.Querschnittliste.map((querschnitt) => `${querschnitt.Nummer}: ${querschnitt.Name}`),
     ),
-    selectListValues: systemStore.system.Querschnittliste.map((querschnitt) => querschnitt.Nummer),
+    selectListValues: [this.Querschnittsnummer].concat(
+     system.Querschnittliste.map((querschnitt) => querschnitt.Nummer),
+    ),
    },
    {
     title: "Anfangsgelenk",
     value: this.Anfangsgelenknummer,
     inputType: "select",
-    selectListKeys: ["kein Gelenk"].concat(
-     systemStore.system.Gelenkliste.map((gelenk) => `Gelenk ${gelenk.Nummer}`),
+    selectListKeys: [
+     this.Anfangsgelenknummer ? `Gelenk ${this.Anfangsgelenknummer}` : "kein Gelenk",
+    ].concat(["kein Gelenk"].concat(system.Gelenkliste.map((gelenk) => `Gelenk ${gelenk.Nummer}`))),
+    selectListValues: [this.Anfangsgelenknummer].concat(
+     [0].concat(system.Gelenkliste.map((gelenk) => gelenk.Nummer)),
     ),
-    selectListValues: [0].concat(systemStore.system.Gelenkliste.map((gelenk) => gelenk.Nummer)),
    },
    {
     title: "Endgelenk",
     value: this.Endgelenknummer,
     inputType: "select",
-    selectListKeys: ["kein Gelenk"].concat(
-     systemStore.system.Gelenkliste.map((gelenk) => `Gelenk ${gelenk.Nummer}`),
+    selectListKeys: [
+     this.Endgelenknummer ? `Gelenk ${this.Endgelenknummer}` : "kein Gelenk",
+    ].concat(["kein Gelenk"].concat(system.Gelenkliste.map((gelenk) => `Gelenk ${gelenk.Nummer}`))),
+    selectListValues: [this.Endgelenknummer].concat(
+     [0].concat(system.Gelenkliste.map((gelenk) => gelenk.Nummer)),
     ),
-    selectListValues: [0].concat(systemStore.system.Gelenkliste.map((gelenk) => gelenk.Nummer)),
    },
    {
     title: "Stababschnitte",

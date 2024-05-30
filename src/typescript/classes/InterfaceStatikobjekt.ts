@@ -19,7 +19,9 @@ export interface isStatikobjekt {
   //Für inputType = 'input'
   inputFormat?: string //Eingabeformat, (nur für inputType=input)
   //FÜr inputType = 'select'
+  /**Liste der Werte die in der DropdownBox angezeigt werden. */
   selectListKeys?: any[] //Mitgegebene Liste für Combobox (nur falls inputType=select)
+  /**Liste der Werte die gespeichert werden können. */
   selectListValues?: any[] //Liste der jeweiligen Werte zur Anzeige in der Combobox
  }[]
 }

@@ -368,8 +368,13 @@ export default class System {
    }
 
    //    Überprüft ob Stablänge größer null ist
-   if (stab.Länge === 0) {
-    this.Fehlerliste.push(new Fehler("Eingabe", `Stab ${stab.Nummer}: Stablänge ist 0.`))
+   try {
+    if (stab.Länge === 0) {
+     this.Fehlerliste.push(new Fehler("Eingabe", `Stab ${stab.Nummer}: Stablänge ist 0.`))
+    }
+   } catch (error) {
+    //Wenn einer der beiden Knoten nicht existiert entsteht hier ein Fehler.
+    //In diesem Fall wird die Länge nicht überprüft und es wird einfach weitergemacht.
    }
   })
 
