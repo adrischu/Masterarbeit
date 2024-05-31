@@ -9,12 +9,17 @@ export interface isStatikobjekt {
  set values(values: any)
 
  get header(): {
-  title: string //Angezeigter Name im Tabellenkopf
-  unit?: isEinheit //Angezeigte Einheit im Tabellenkopf
-  einheitTest?: isEinheit
-  value: string | number | boolean //Angezeigter Wert im Tabellenkörper
-  inputType: string | "fixed" | "input" | "select" | "checkbox" //Eingabetyp
-  disabled?: boolean //Ein Boolean der mitgegeben werden kann und die Eingabe verhindert
+  /**Angezeigter Name im Tabellenkopf */
+  title: string
+  /**Angezeigte Einheit im Tabellenkopf. */
+  unit?: isEinheit
+  /**Angezeigter Wert im Tabellenkörper. */
+  value: string | number | boolean
+  /**Eingabetyp. Der Wert kann auf vier verschiedene Arten in der Tabelle dargestellt werden. */
+  inputType: string | "fixed" | "input" | "select" | "checkbox"
+  /**Hier kann eine Bedingung mitgegeben werden, bei deren Eintreten die Eingabe verhindert wird. */
+  disabled?: boolean
+  /**Hier kann ein Text mitgegeben werden, der als Tooltip in Tabellenkopf angezeigt wird. */
   tooltip?: string //Tooltip im HTML Format
   //Für inputType = 'input'
   inputFormat?: string //Eingabeformat, (nur für inputType=input)

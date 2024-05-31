@@ -97,8 +97,8 @@ export default class Lastfall implements isStatikobjekt {
     title: "Statiktheorie",
     value: this.Theorie,
     inputType: "select",
-    selectListKeys: Object.values(Theorie),
-    selectListValues: Object.values(Theorie),
+    selectListKeys: [this.Theorie].concat(Object.values(Theorie)),
+    selectListValues: [this.Theorie].concat(Object.values(Theorie)),
    },
   ]
  }
