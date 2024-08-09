@@ -45,6 +45,59 @@
       ></v-select
      ></v-card-actions>
 
+     <h3>Schnittgrößen</h3>
+     <v-slider
+      v-model="slider"
+      :max="element.Stab.Länge"
+      :min="0"
+      class="align-center"
+      hide-details
+     >
+      <template v-slot:append>
+       <v-text-field
+        v-model="slider"
+        density="compact"
+        style="width: 70px"
+        type="number"
+        hide-details
+        single-line
+       ></v-text-field>
+      </template>
+     </v-slider>
+
+     <v-table>
+      <!--  -->
+      <!-- Tabellenkopfzeile -->
+      <!--  -->
+      <thead>
+       <tr>
+        <th
+         v-for="headerItem in header"
+         :key="headerItem.title"
+        >
+         <span v-html="headerItem.title"></span>
+         <span
+          v-if="headerItem.unit.text"
+          v-html="` [${headerItem.unit.text}]`"
+         ></span>
+        </th>
+       </tr>
+      </thead>
+      <tbody>
+       <tr>
+        <td
+         v-for="(dataObject, index) in data"
+         :key="index"
+        >
+         {{ dataObject }}
+        </td>
+       </tr>
+      </tbody>
+     </v-table>
+
+     <h3>Stabkennzahl</h3>
+     <div>&epsilon; = {{ element.epsilon }}</div>
+
      <h3>Elementsteifigkeitsmatrix</h3>
      <!-- Elementsteifigkeitsmatrix -->
      <TabelleMatrix
@@ -146,8 +199,13 @@
  import { Theorie } from "@/typescript/enumerations"
  import { matTrans } from "@/typescript/matrix"
  import { onBeforeUpdate } from "vue"
+ import { useEinheitenStore } from "@/stores/EinheitenStore"
+ import { myRound } from "@/typescript/util"
+ import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
 
  const system = useSystemStore().system
+ const graphicSettings = useGraphicSettingsStore()
+ const einheiten = useEinheitenStore()
 
  let dialog: Ref<boolean> = ref(false)
 
@@ -177,6 +235,8 @@
   `F<sub>z,k</sub>`,
   `M<sub>k</sub>`,
  )
+
+ const slider = ref(0)
 
  const gesamtSteifigkeitHeader = computed(() => {
   const res: any[] = []
@@ -212,6 +272,28 @@
   } else {
    return `<u>k</u><sub>II,${element.value.Nummer}</sub>`
   }
+ })
+
+ const einheitVerformung = einheiten.mm
+ const einheitVerdrehung = einheiten.mrad
+ const einheitKraft = einheiten.kN
+ const einheitMoment = einheiten.kNm
+ const header = [
+  { title: "x", unit: einheiten.m },
+  { title: "N", unit: einheitKraft },
+  { title: "V", unit: einheitKraft },
+  { title: "M", unit: einheitMoment },
+  { title: "u<sub>x</sub>", unit: einheitVerformung },
+  { title: "u<sub>z</sub>", unit: einheitVerformung },
+  { title: "&phi;", unit: einheitVerdrehung },
+ ]
+
+ const data = computed(() => {
+  return [slider.value]
+   .concat(element.value.Ausgabepunkt(slider.value))
+   .map((val, i) =>
+    myRound(val * header[i].unit.vonSI, graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN),
+   )
  })
 
  onBeforeUpdate(() => {

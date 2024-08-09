@@ -352,12 +352,11 @@ export default class Balkenelement implements isElement {
  }
 
  /**
-  * Berechnet für die Ausgabepunkte entlang des Stabes die Größen N,V,M,ux,uz,phi.
-  * @note Hier werden nur die Größen für einen unbelasteten Stab mit Stabendverformungen
-  * wi,phii,wk,phik ermittelt.
-  * @note Die Größen aus den Stabblasten werden aus dieser Funktion aus aufgerufen und sind in der jeweiligen Stablastklasse zu finden.
+  * Berechnet für eine bestimmte Stelle x im Stab die Schnittgrößen
+  * @param x Laufvariable für Stelle im Stab
+  * @returns [N,V,M,ux,uz,phi]
   */
- AusgabepunkteBerechnen(): void {
+ Ausgabepunkt(x: number): number[] {
   const settingsStore = useSettingsStore()
   //Stabendgrößen
   /**Normalkraft am linken Rand */
@@ -400,99 +399,124 @@ export default class Balkenelement implements isElement {
    * - epsilon = L * ( |N| / EI ) ^ 0.5
    */
   const e = this.epsilon
+  let N: number = 0
+  let V: number = 0
+  let M: number = 0
+  let ux: number = 0
+  let uz: number = 0
+  let phi: number = 0
+  /**
+   * Grundwerte aus Knotenverschiebungen
+   */
+
+  //Der Anteil des Fachwerkstabes wird unabhängig der Theorie gleich berechnet
+  N = (EA * (uxr - uxl)) / l
+  ux = uxl * (1 - x / l) + (uxr * x) / l
+
+  //Für Th1 und die beiden Näherungsansätze wird der Polynomverschiebungsansatz gewählt.
+  //Bei den Näherungsansätzen für Th2 kommt ein Zusatzmoment aus N dazu. Der Verschiebungsansatz bleibt gleich.
+  if (
+   this.Theorie === Theorie.Theorie_1 ||
+   this.Theorie === Theorie.Theorie_2_kub ||
+   this.Theorie === Theorie.Theorie_2_pDelta
+  ) {
+   V = Vl
+   M = Ml + Vl * x
+   uz =
+    uzl * (1 - (3 * x ** 2) / l ** 2 + (2 * x ** 3) / l ** 3) +
+    phil * (-x + (2 * x ** 2) / l - x ** 3 / l ** 2) +
+    uzr * ((3 * x ** 2) / l ** 2 - (2 * x ** 3) / l ** 3) +
+    phir * (x ** 2 / l - x ** 3 / l ** 2)
+   phi =
+    uzl * ((6 * x) / l ** 2 - (6 * x ** 2) / l ** 3) +
+    phil * (1 - (4 * x) / l + (3 * x ** 2) / l ** 2) +
+    uzr * ((6 * x ** 2) / l ** 3 - (6 * x) / l ** 2) +
+    phir * ((3 * x ** 2) / l ** 2 - (2 * x) / l)
+
+   //Zusatzmoment aus N für Theorie 2. Ordnung
+   if (this.Theorie === Theorie.Theorie_2_kub || this.Theorie === Theorie.Theorie_2_pDelta) {
+    M -= Nl * (uz - uzl)
+   }
+  }
+
+  //Nach Theorie 2 Ordnung - trigonometrischer exakter Ansatz
+  if (this.Theorie === Theorie.Theorie_2_trig) {
+   //für Drucknormalkraft
+   if (Nmean < 0) {
+    const sin = Math.sin((e / l) * x)
+    const cos = Math.cos((e / l) * x)
+    uz = C1 * cos + C2 * sin + ((C3 * e) / l) * x + C4
+    phi = (e / l) * (C1 * sin - C2 * cos - C3)
+    //Nachfolgend wird eigentlich die Transversalkraft berechnet, für die Bezeichnung wurde trotzdem V gewählt
+    V = EI * (e / l) ** 3 * (-C1 * sin + C2 * cos) - Nmean * phi
+    M = EI * (e / l) ** 2 * (C1 * cos + C2 * sin)
+   }
+   //für Zugnormalkraft
+   else {
+    const sinh = Math.sinh((e / l) * x)
+    const cosh = Math.cosh((e / l) * x)
+    uz = C1 * cosh + C2 * sinh + ((C3 * e) / l) * x + C4
+    phi = -(e / l) * (C1 * sinh + C2 * cosh + C3)
+    //Nachfolgend wird eigentlich die Transversalkraft berechnet, für die Bezeichnung wurde trotzdem V gewählt
+    V = -EI * (e / l) ** 3 * (C1 * sinh + C2 * cosh) - Nmean * phi
+    M = -EI * (e / l) ** 2 * (C1 * cosh + C2 * sinh)
+   }
+  }
+
+  //Additive Werte aus Stablasten
+  //Durchläuft für den aktuellen Ausgabepunkt jede dem Stab zugehörige Stablast
+  //und addiert die zusätzlichen Stabgrößen dazu.
+  this.Stablasten.forEach((stablast) => {
+   const Ausgabepunkt = stablast.Ausgabepunkt(x)
+   N += Ausgabepunkt[0]
+   V += Ausgabepunkt[1]
+   M += Ausgabepunkt[2]
+   ux += Ausgabepunkt[3]
+   uz += Ausgabepunkt[4]
+   phi += Ausgabepunkt[5]
+  })
+
+  //Schnittgrößentransformation auf verformtes System falls so eingestellt.
+  //Per Default sind die Schnittgrößen auf das unverformte System bezogen.
+  if (settingsStore.schnittgrößenAufVerformtesSystemBeziehen) {
+   const tempN = N
+   const tempV = V
+   const tempPhi = phi
+
+   //Genaue Umrechnung
+   N = tempV * Math.sin(-tempPhi) + tempN * Math.cos(-tempPhi)
+   V = tempV * Math.cos(-tempPhi) - tempN * Math.sin(-tempPhi)
+
+   //Näherung unter Berücksichtigung kleiner Winkel (sin(phi) = phi und cos(phi) = 1)
+   //Eigentlich gilt diese Vereinfachung für Theorie 2. Ordnung, aber ich sehe hier
+   //keinen Grund ungenauer zu rechnen, da der Aufwand der Gleiche ist.
+   //this.N[i] = tempV * (-tempPhi) + tempN
+   //this.V[i] = tempV - tempN * (-tempPhi)
+  }
+
+  return [N, V, M, ux, uz, phi]
+ }
+
+ /**
+  * Berechnet für die Ausgabepunkte entlang des Stabes die Größen N,V,M,ux,uz,phi.
+  * @note Hier werden nur die Größen für einen unbelasteten Stab mit Stabendverformungen
+  * wi,phii,wk,phik ermittelt.
+  * @note Die Größen aus den Stabblasten werden aus dieser Funktion aus aufgerufen und sind in der jeweiligen Stablastklasse zu finden.
+  */
+ AusgabepunkteBerechnen(): void {
+  /**Stablänge */
+  const l = this.Stab.Länge
 
   for (let i = 0; i < this.Ausgabepunkte; i++) {
    /**aktuelle Position [m] in x Richtung */
    const x = (i / (this.Ausgabepunkte - 1)) * l
-
-   /**
-    * Grundwerte aus Knotenverschiebungen
-    */
-
-   //Der Anteil des Fachwerkstabes wird unabhängig der Theorie gleich berechnet
-   this.N[i] = (EA * (uxr - uxl)) / l
-   this.ux[i] = uxl * (1 - x / l) + (uxr * x) / l
-
-   //Für Th1 und die beiden Näherungsansätze wird der Polynomverschiebungsansatz gewählt.
-   //Bei den Näherungsansätzen für Th2 kommt ein Zusatzmoment aus N dazu. Der Verschiebungsansatz bleibt gleich.
-   if (
-    this.Theorie === Theorie.Theorie_1 ||
-    this.Theorie === Theorie.Theorie_2_kub ||
-    this.Theorie === Theorie.Theorie_2_pDelta
-   ) {
-    this.V[i] = Vl
-    this.M[i] = Ml + Vl * x
-    this.uz[i] =
-     uzl * (1 - (3 * x ** 2) / l ** 2 + (2 * x ** 3) / l ** 3) +
-     phil * (-x + (2 * x ** 2) / l - x ** 3 / l ** 2) +
-     uzr * ((3 * x ** 2) / l ** 2 - (2 * x ** 3) / l ** 3) +
-     phir * (x ** 2 / l - x ** 3 / l ** 2)
-    this.phi[i] =
-     uzl * ((6 * x) / l ** 2 - (6 * x ** 2) / l ** 3) +
-     phil * (1 - (4 * x) / l + (3 * x ** 2) / l ** 2) +
-     uzr * ((6 * x ** 2) / l ** 3 - (6 * x) / l ** 2) +
-     phir * ((3 * x ** 2) / l ** 2 - (2 * x) / l)
-
-    //Zusatzmoment aus N für Theorie 2. Ordnung
-    if (this.Theorie === Theorie.Theorie_2_kub || this.Theorie === Theorie.Theorie_2_pDelta) {
-     this.M[i] -= Nl * (this.uz[i] - uzl)
-    }
-   }
-
-   //Nach Theorie 2 Ordnung - trigonometrischer exakter Ansatz
-   if (this.Theorie === Theorie.Theorie_2_trig) {
-    //für Drucknormalkraft
-    if (Nmean < 0) {
-     const sin = Math.sin((e / l) * x)
-     const cos = Math.cos((e / l) * x)
-     this.uz[i] = C1 * cos + C2 * sin + ((C3 * e) / l) * x + C4
-     this.phi[i] = (e / l) * (C1 * sin - C2 * cos - C3)
-     //Nachfolgend wird eigentlich die Transversalkraft berechnet, für die Bezeichnung wurde trotzdem V gewählt
-     this.V[i] = EI * (e / l) ** 3 * (-C1 * sin + C2 * cos) - Nmean * this.phi[i]
-     this.M[i] = EI * (e / l) ** 2 * (C1 * cos + C2 * sin)
-    }
-    //für Zugnormalkraft
-    else {
-     const sinh = Math.sinh((e / l) * x)
-     const cosh = Math.cosh((e / l) * x)
-     this.uz[i] = C1 * cosh + C2 * sinh + ((C3 * e) / l) * x + C4
-     this.phi[i] = -(e / l) * (C1 * sinh + C2 * cosh + C3)
-     //Nachfolgend wird eigentlich die Transversalkraft berechnet, für die Bezeichnung wurde trotzdem V gewählt
-     this.V[i] = -EI * (e / l) ** 3 * (C1 * sinh + C2 * cosh) - Nmean * this.phi[i]
-     this.M[i] = -EI * (e / l) ** 2 * (C1 * cosh + C2 * sinh)
-    }
-   }
-
-   //Additive Werte aus Stablasten
-   //Durchläuft für den aktuellen Ausgabepunkt jede dem Stab zugehörige Stablast
-   //und addiert die zusätzlichen Stabgrößen dazu.
-   this.Stablasten.forEach((stablast) => {
-    const Ausgabepunkt = stablast.Ausgabepunkt(x)
-    this.N[i] += Ausgabepunkt[0]
-    this.V[i] += Ausgabepunkt[1]
-    this.M[i] += Ausgabepunkt[2]
-    this.ux[i] += Ausgabepunkt[3]
-    this.uz[i] += Ausgabepunkt[4]
-    this.phi[i] += Ausgabepunkt[5]
-   })
-
-   //Schnittgrößentransformation auf verformtes System falls so eingestellt.
-   //Per Default sind die Schnittgrößen auf das unverformte System bezogen.
-   if (settingsStore.schnittgrößenAufVerformtesSystemBeziehen) {
-    const tempN = this.N[i]
-    const tempV = this.V[i]
-    const tempPhi = this.phi[i]
-
-    //Genaue Umrechnung
-    this.N[i] = tempV * Math.sin(-tempPhi) + tempN * Math.cos(-tempPhi)
-    this.V[i] = tempV * Math.cos(-tempPhi) - tempN * Math.sin(-tempPhi)
-
-    //Näherung unter Berücksichtigung kleiner Winkel (sin(phi) = phi und cos(phi) = 1)
-    //Eigentlich gilt diese Vereinfachung für Theorie 2. Ordnung, aber ich sehe hier
-    //keinen Grund ungenauer zu rechnen, da der Aufwand der Gleiche ist.
-    //this.N[i] = tempV * (-tempPhi) + tempN
-    //this.V[i] = tempV - tempN * (-tempPhi)
-   }
+   const schnittgroessen = this.Ausgabepunkt(x)
+   this.N[i] = schnittgroessen[0]
+   this.V[i] = schnittgroessen[1]
+   this.M[i] = schnittgroessen[2]
+   this.ux[i] = schnittgroessen[3]
+   this.uz[i] = schnittgroessen[4]
+   this.phi[i] = schnittgroessen[5]
   } //Schleife über Ausgabepunkte endet hier.
  }
 
