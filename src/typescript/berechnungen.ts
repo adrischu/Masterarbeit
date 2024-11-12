@@ -3,6 +3,7 @@ import { matMultiplyVec, matTrans } from "./matrix"
 import Balkenelement from "./classes/Balkenelement"
 import Lastfall from "./classes/Lastfall"
 import { gauss } from "./gauss"
+import { cholesky } from "./cholesky"
 import { Theorie } from "./enumerations"
 import type { isStablast } from "./classes/InterfaceStablast"
 import { useSettingsStore } from "@/stores/SettingsStore"
@@ -153,10 +154,25 @@ export function ergebnisseLöschen(system: System): void {
 function freiheitsgradeDefinieren(system: System): void {
  //Freiheitsgrade aus Knotenverformungen
  let freiheitsgrade: number = 0
+ const freiheitsgrade_name: string[] = []
  system.Knotenliste.forEach((knoten) => {
   for (let i = 0; i <= 2; i++) {
    knoten.Inzidenzen[i] = freiheitsgrade
    freiheitsgrade++
+   switch (i) {
+    case 0: {
+     freiheitsgrade_name.push(`u<sub>${knoten.Nummer}</sub>`)
+     break
+    }
+    case 1: {
+     freiheitsgrade_name.push(`w<sub>${knoten.Nummer}</sub>`)
+     break
+    }
+    case 2: {
+     freiheitsgrade_name.push(`&phi;<sub>${knoten.Nummer}</sub>`)
+     break
+    }
+   }
   }
  })
 
@@ -180,16 +196,45 @@ function freiheitsgradeDefinieren(system: System): void {
    for (let i = 0; i <= 2; i++) {
     stab.Inzidenzen[i + 0] = freiheitsgrade
     freiheitsgrade++
+    switch (i) {
+     case 0: {
+      freiheitsgrade_name.push(`u<sub>Stab${stab.Nummer},i</sub>`)
+      break
+     }
+     case 1: {
+      freiheitsgrade_name.push(`w<sub>Stab${stab.Nummer},i</sub>`)
+      break
+     }
+     case 2: {
+      freiheitsgrade_name.push(`&phi;<sub>Stab${stab.Nummer},i</sub>`)
+      break
+     }
+    }
    }
   }
   if (stab.Endgelenknummer) {
    for (let i = 0; i <= 2; i++) {
     stab.Inzidenzen[i + 3] = freiheitsgrade
     freiheitsgrade++
+    switch (i) {
+     case 0: {
+      freiheitsgrade_name.push(`u<sub>Stab${stab.Nummer},k</sub>`)
+      break
+     }
+     case 1: {
+      freiheitsgrade_name.push(`w<sub>Stab${stab.Nummer},k</sub>`)
+      break
+     }
+     case 2: {
+      freiheitsgrade_name.push(`&phi;<sub>Stab${stab.Nummer},k</sub>`)
+      break
+     }
+    }
    }
   }
  })
  system.Freiheitsgrade = freiheitsgrade
+ system.Freiheitsgrade_name = freiheitsgrade_name
 
  //Nicht-gehaltene Inzidenzen aus Knotenverschiebungen
  //Nur gelagerte Freiheitsgrade gelten als gehalten. Federn sind KEINE Lagerung.
@@ -398,17 +443,27 @@ function gleichungssystemLösen(system: System, lastfall: Lastfall) {
  //Da der Lastvektor in der Funktion gauss zum Verformungsvektor
  //umgeformt wird, werden diese beiden hier gleichgesetzt.
  lastfall.Verformungsvektor_kurz = lastfall.Lastvektor.slice()
- if (
-  gauss(
-   system.Verformungsinzidenzen.length,
-   lastfall.M_K_kurz.map((row) => [...row]),
-   lastfall.Verformungsvektor_kurz,
-  )
- ) {
+ const solverStatus: number = cholesky(
+  lastfall.M_K_kurz.map((row) => [...row]),
+  lastfall.Verformungsvektor_kurz,
+  system.Verformungsinzidenzen.length,
+ )
+
+ /*
+ gauss(
+  system.Verformungsinzidenzen.length,
+  lastfall.M_K_kurz.map((row) => [...row]),
+  lastfall.Verformungsvektor_kurz,
+ )
+ */
+
+ if (solverStatus) {
   lastfall.Fehlerliste.push(
    new Fehler(
     "Berechnung",
-    `LF${lastfall.Nummer}: Singuläre Steifigkeitsmatrix. System ist instabil oder kinematisch.`,
+    `LF${lastfall.Nummer}: Singuläre Steifigkeitsmatrix bei Zeile ${
+     system.Freiheitsgrade_name[system.Verformungsinzidenzen[solverStatus] - 1]
+    }. System ist instabil oder kinematisch.`,
    ),
   )
   console.log("Singuläre Steifigkeitsmatrix")

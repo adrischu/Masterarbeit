@@ -239,6 +239,9 @@
  const slider = ref(0)
 
  const gesamtSteifigkeitHeader = computed(() => {
+  return system.Freiheitsgrade_name
+ })
+ /*computed(() => {
   const res: any[] = []
   system.Knotenliste.forEach((knoten) => {
    res.push(`u<sub>${knoten.Nummer}</sub>`)
@@ -259,6 +262,7 @@
   })
   return res
  })
+  */
 
  const gesamtSteifigkeitKondensiertHeader = computed(() => {
   return gesamtSteifigkeitHeader.value.filter((val, index) =>

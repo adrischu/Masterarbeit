@@ -31,6 +31,7 @@ export default class System {
  Freiheitsgrade: number
  /**Inzidenznummern der nicht-gehaltenen Freiheitsgrade */
  Verformungsinzidenzen: number[]
+ Freiheitsgrade_name: string[]
 
  constructor() {
   //Die folgenden Listen bilden das System
@@ -47,6 +48,7 @@ export default class System {
   this.istBerechnet = false
   this.Freiheitsgrade = 0
   this.Verformungsinzidenzen = []
+  this.Freiheitsgrade_name = []
  }
 
  delete(): void {
