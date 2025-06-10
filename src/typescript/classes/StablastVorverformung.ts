@@ -74,6 +74,23 @@ export default class StablastVorverformung implements isStatikobjekt, isStablast
   this.w0zuL = e0zuL
  }
 
+ shallowCopy(): StablastVorverformung {
+  const stablast = new StablastVorverformung()
+  stablast.Nummer = this.Nummer
+  stablast.Lastfallnummer = this.Lastfallnummer
+  stablast.Stabnummer = this.Stabnummer
+  stablast.Stab = this.Stab
+  stablast.Element = this.Element
+  stablast.phi0 = this.phi0
+  stablast.w0zuL = this.w0zuL
+  stablast.Knotenersatzlasten = this.Knotenersatzlasten
+  stablast.C1 = this.C1
+  stablast.C2 = this.C2
+  stablast.C3 = this.C3
+  stablast.C4 = this.C4
+  return stablast
+ }
+
  /**
   * Bestimmt und speichert die Integrationskonstanten, die für Ermittlung der Knotenersatzlasten nach der exakten Lösung nach Th2 benötigt werden.
   */

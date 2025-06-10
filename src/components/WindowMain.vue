@@ -113,11 +113,13 @@
    <!--  -->
    <!-- Lastfallauswahl -->
    <!--  -->
+   <!-- item-value="Nummer" sorgt dafür dass nicht das komplette Objekt verglichen wird, was zu "max stack size exceeded" führen kann -->
    <v-select
     v-model="lastfall"
     :items="systemStore.system.Lastfallliste"
     :item-props="lastfallProps"
     return-object
+    item-value="Nummer"
     hide-details
    ></v-select>
 
@@ -207,6 +209,7 @@
    id="grafik-fenster"
    class="svg-container"
    ref="svgContainer"
+   :style="{ height: graphicSettings.HÖHE_GRAFIK + '%' }"
   >
    <FensterGrafik
     :lastfall="lastfall"
@@ -216,7 +219,17 @@
   </div>
 
   <!-- Div für Tabelle -->
-  <div class="table-container">
+  <div
+   class="table-container"
+   :style="{ height: graphicSettings.HÖHE_TABELLE + '%' }"
+  >
+   <!-- Resize Icon -->
+   <v-icon
+    size="30"
+    icon="mdi-unfold-more-horizontal"
+    class="resize-icon"
+    @mousedown="startResizing"
+   />
    <TabelleVariabel :lastfall="lastfall" />
   </div>
  </div>
@@ -251,7 +264,7 @@
 
  const systemStore = useSystemStore()
  const graphicSettings = useGraphicSettingsStore()
-
+ let isResizing = false
  const svgContainer: Ref<HTMLElement | null> = ref(null)
 
  const emit = defineEmits<{
@@ -269,6 +282,29 @@
  ]
  let lastfallProps = function (lastfall: Lastfall) {
   return { title: `Lastfall ${lastfall.Nummer}`, subtitle: lastfall.Name }
+ }
+
+ function startResizing(e: MouseEvent) {
+  e.preventDefault()
+  isResizing = true
+  window.addEventListener("mousemove", resizePanels)
+  window.addEventListener("mouseup", stopResizing)
+ }
+
+ function resizePanels(e: MouseEvent) {
+  if (!isResizing) return
+  const container = document.querySelector(".main-content") as HTMLElement
+  const containerRect = container.getBoundingClientRect()
+  const offsetY = e.clientY - 20 - containerRect.top
+  const newGraphicHeight = Math.min(90, Math.max(15, (offsetY / containerRect.height) * 100))
+  graphicSettings.HÖHE_GRAFIK = newGraphicHeight
+  graphicSettings.HÖHE_TABELLE = 100 - newGraphicHeight
+ }
+
+ function stopResizing() {
+  isResizing = false
+  window.removeEventListener("mousemove", resizePanels)
+  window.removeEventListener("mouseup", stopResizing)
  }
 
  function handleStartBerechnung(): void {
@@ -300,13 +336,13 @@
  .svg-container {
   position: relative; /* Stellt sicher, dass die absolut positionierten Elemente relativ zum Container positioniert werden */
   width: 100%; /* Breite des SVG-Containers */
-  height: 70%; /* Höhe des SVG-Containers */
+  height: 20%; /* Höhe des SVG-Containers */
  }
 
  .table-container {
   position: relative;
   width: 100%;
-  height: 30%;
+  height: 80%;
   display: flex;
   flex-direction: column;
   overflow-y: hidden;
@@ -324,5 +360,21 @@
  .file-input:deep().v-input__control,
  .file-input:deep().v-input__details {
   display: none;
+ }
+
+ .resize-icon {
+  position: absolute;
+  top: 15px; /* Has to be size/2 */
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: row-resize;
+  background: white;
+  border-radius: 50%;
+  padding: 4px;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+  /* z-index: 10; */
+ }
+ .resize-icon:hover {
+  background-color: #eee;
  }
 </style>

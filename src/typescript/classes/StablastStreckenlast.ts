@@ -54,6 +54,7 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
  einheitStreckenlast: isEinheit
 
  constructor(Nummer: number = 1) {
+  //Werte die hier hinzugefügt werden, sollten auch bei "shallowCopy()" hinzugefügt werden.
   const einheiten = useEinheitenStore()
   this.Nummer = Nummer
   this.Lastfallnummer = 0
@@ -113,6 +114,29 @@ export default class StablastStreckenlast implements isStatikobjekt, isStablast 
   * - p[2]: Lastwert links von Streckenlast lokal in z
   * - p[3]: Lastwert rechts von Streckenlast lokal in z
   */
+
+ shallowCopy(): StablastStreckenlast {
+  const stablast = new StablastStreckenlast()
+  stablast.Nummer = this.Nummer
+  stablast.Lastfallnummer = this.Lastfallnummer
+  stablast.Stabnummer = this.Stabnummer
+  stablast.Stab = this.Stab
+  stablast.Element = this.Element
+  stablast.Koordinatensystem = this.Koordinatensystem
+  stablast.Richtung = this.Richtung
+  stablast.Projektion = this.Projektion
+  stablast.pl = this.pl
+  stablast.pr = this.pr
+  stablast.Knotenersatzlasten = this.Knotenersatzlasten
+  stablast.C1 = this.C1
+  stablast.C2 = this.C2
+  stablast.C3 = this.C3
+  stablast.C4 = this.C4
+
+  stablast.einheitStreckenlast = this.einheitStreckenlast
+  return stablast
+ }
+
  get lokaleLastwerte(): number[] {
   const sina = Math.sin(this.Stab!.Winkel)
   const cosa = Math.cos(this.Stab!.Winkel)

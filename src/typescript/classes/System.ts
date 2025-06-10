@@ -264,6 +264,18 @@ export default class System {
    querschnitt.Material = this.searchObjectByNummer(querschnitt.Materialnummer, this.Materialliste)
   })
 
+  //Lastfall bekommt Lastfall zur Kopie
+  this.Lastfallliste.forEach((lastfall) => {
+   lastfall.istKopieVon = this.searchObjectByNummer(lastfall.istKopieVonNummer, this.Lastfallliste)
+   /*if (lastfall.istKopieVonNummer) {
+    this.Lastfallliste.forEach((searchLastfall) => {
+     if (searchLastfall.Nummer === lastfall.istKopieVonNummer) {
+      lastfall.istKopieVon = searchLastfall
+     }
+    })
+   }*/
+  })
+
   //Knotenlasten bekommen Knoten
   this.Lastfallliste.forEach((lastfall) => {
    lastfall.Knotenlastliste.forEach((knotenlast) => {
@@ -381,6 +393,15 @@ export default class System {
   })
 
   this.Lastfallliste.forEach((lastfall) => {
+   //Überprüfe ob Kopielastfall existiert
+   if (lastfall.istKopieVonNummer && !lastfall.istKopieVon) {
+    this.Fehlerliste.push(
+     new Fehler(
+      "Eingabe",
+      `LF ${lastfall.Nummer}: Lastfall ${lastfall.istKopieVonNummer} zum kopieren existiert nicht.`,
+     ),
+    )
+   }
    //Überprüft ob Knoten für Knotenlast existiert
    lastfall.Knotenlastliste.forEach((knotenlast) => {
     if (!knotenlast.Knoten) {

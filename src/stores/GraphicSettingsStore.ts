@@ -69,5 +69,9 @@ export const useGraphicSettingsStore = defineStore("graphicSettingsStore", {
   SICHTBARKEIT_LAGERKRAEFTE: true,
   SICHTBARKEIT_WERTE: true,
   SICHTBARKEIT_ALLEWERTE: true,
+
+  //GRAFIKFENSTER
+  HÖHE_GRAFIK: 70,
+  HÖHE_TABELLE: 30,
  }),
 })

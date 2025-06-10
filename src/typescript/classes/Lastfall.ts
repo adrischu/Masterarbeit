@@ -1,3 +1,4 @@
+import { useSystemStore } from "@/stores/SystemStore"
 import { Theorie } from "../enumerations"
 import type Balkenelement from "./Balkenelement"
 import type Fehler from "./Fehler"
@@ -17,6 +18,9 @@ export default class Lastfall implements isStatikobjekt {
  Knotenlastliste: Knotenlast[]
  StablastListeStreckenlast: StablastStreckenlast[]
  StablastListeVorverformung: StablastVorverformung[]
+
+ istKopieVonNummer: number
+ istKopieVon: Lastfall | null
  //folgende Werte werden erst bei Berechnung definiert.
  Elementliste: isElement[]
  /**Globaler Lastvektor aller gehaltenen und nicht-gehaltenen Freiheitsgrade */
@@ -47,6 +51,8 @@ export default class Lastfall implements isStatikobjekt {
   this.Knotenlastliste = []
   this.StablastListeStreckenlast = []
   this.StablastListeVorverformung = []
+  this.istKopieVon = null
+  this.istKopieVonNummer = 0
   this.Lastvektor = []
   this.Verformungsvektor_kurz = []
   this.letzerVerformungsvektor_kurz = []
@@ -71,13 +77,36 @@ export default class Lastfall implements isStatikobjekt {
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein
  //wie 'set values' und 'get header'
  get values() {
-  return [this.Nummer, this.Name, this.Theorie]
+  return [this.Nummer, this.Name, this.Theorie, this.istKopieVonNummer]
  }
 
- set values([Nummer, Name, Theorie]: [Nummer: number, Name: string, Theorie: Theorie]) {
+ set values([Nummer, Name, Theorie, istKopieVonNummer]: [
+  Nummer: number,
+  Name: string,
+  Theorie: Theorie,
+  istKopieVonNummer: number,
+ ]) {
   this.Nummer = Nummer
   this.Name = Name
   this.Theorie = Theorie
+  this.istKopieVonNummer = istKopieVonNummer
+ }
+
+ get andereLastfallnummern(): number[] {
+  const system = useSystemStore().system
+  const indexArray = system.Lastfallliste.map((item) => item.Nummer)
+  const thisIndex = indexArray.indexOf(this.Nummer)
+  let lastfälle: number[] = []
+  if (thisIndex === -1) {
+   lastfälle = system.Lastfallliste.map((lastfall) => lastfall.Nummer)
+  } else {
+   system.Lastfallliste.forEach((lastfall, index) => {
+    if (index !== thisIndex) {
+     lastfälle.push(lastfall.Nummer)
+    }
+   })
+  }
+  return lastfälle
  }
 
  get Balkenelementliste() {
@@ -100,6 +129,34 @@ export default class Lastfall implements isStatikobjekt {
     selectListKeys: [this.Theorie].concat(Object.values(Theorie)),
     selectListValues: [this.Theorie].concat(Object.values(Theorie)),
    },
+   {
+    title: "Lastfall kopieren",
+    value: this.istKopieVonNummer,
+    inputType: "select",
+    selectListKeys: [
+     this.istKopieVonNummer ? `Lastfall ${this.istKopieVonNummer}` : "Keiner",
+    ].concat(
+     ["Keiner"].concat(this.andereLastfallnummern.map((lastfall) => `Lastfall ${lastfall}`)),
+    ),
+    selectListValues: [this.istKopieVonNummer].concat([0].concat(this.andereLastfallnummern)),
+   },
+   /*
+   {
+    title: "Lastfall kopieren",
+    value: this.istKopieVonNummer,
+    inputType: "select",
+    selectListKeys: ["Keinen"].concat(
+     [`Keinen`].concat(
+      system.Lastfallliste.splice(this.arrayIndex, 1).map(
+       (lastfall) => `Lastfall ${lastfall.Nummer}`,
+      ),
+     ),
+    ),
+    selectListValues: [this.istKopieVonNummer].concat(
+     [0].concat(system.Lastfallliste.splice(this.arrayIndex, 1).map((lastfall) => lastfall.Nummer)),
+    ),
+   },
+   */
   ]
  }
 }

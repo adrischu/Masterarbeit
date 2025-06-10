@@ -116,7 +116,7 @@ export function preloadSystem(systemNummer: number = 1): void {
   case 0: {
    //Leeres System
    systemStore.system.delete()
-   systemStore.system.addStatikobjekt("Lastfall", [1, "LF1", Theorie.Theorie_1], -1)
+   systemStore.system.addStatikobjekt("Lastfall", [1, "LF1", Theorie.Theorie_1, 0], -1)
    break
   }
   case 1: {
@@ -134,7 +134,7 @@ export function preloadSystem(systemNummer: number = 1): void {
    systemStore.system.addStatikobjekt("Gelenk", [1, false, false, true, 0, 0, 0], -1)
    systemStore.system.addStatikobjekt("Stab", [1, 1, 2, 1, 0, 0, 4], -1)
    systemStore.system.addStatikobjekt("Stab", [2, 2, 3, 1, 1, 0, 4], -1)
-   systemStore.system.addStatikobjekt("Lastfall", [1, "LF1", Theorie.Theorie_2_trig], -1)
+   systemStore.system.addStatikobjekt("Lastfall", [1, "LF1", Theorie.Theorie_2_trig, 0], -1)
    systemStore.system.addStatikobjekt("Knotenlast", [1, 2, -4000, 0, 0], 1)
    systemStore.system.addStatikobjekt("StablastStreckenlast", [1, 2, "lokal", "z", true, 8, 12], 1)
    systemStore.system.addStatikobjekt("StablastVorverformung", [1, 1, -0.005, 0.005], 1)
@@ -172,17 +172,21 @@ export function preloadSystem(systemNummer: number = 1): void {
    systemStore.system.addStatikobjekt("Stab", [8, 8, 9, 1, 0, 0, 1], -1)
    systemStore.system.addStatikobjekt("Stab", [9, 9, 10, 1, 0, 0, 1], -1)
    systemStore.system.addStatikobjekt("Stab", [10, 10, 11, 1, 0, 0, 1], -1)
-   systemStore.system.addStatikobjekt("Lastfall", [1, "Theorie I. Ordnung", Theorie.Theorie_1], -1)
+   systemStore.system.addStatikobjekt(
+    "Lastfall",
+    [1, "Theorie I. Ordnung", Theorie.Theorie_1, 0],
+    -1,
+   )
    systemStore.system.addStatikobjekt("Knotenlast", [1, 11, -500, 10, 0], 1)
    systemStore.system.addStatikobjekt(
     "Lastfall",
-    [2, "trigonometrisch", Theorie.Theorie_2_trig],
+    [2, "trigonometrisch", Theorie.Theorie_2_trig, 0],
     -1,
    )
    systemStore.system.addStatikobjekt("Knotenlast", [1, 11, -500, 10, 0], 2)
-   systemStore.system.addStatikobjekt("Lastfall", [3, "kubisch", Theorie.Theorie_2_kub], -1)
+   systemStore.system.addStatikobjekt("Lastfall", [3, "kubisch", Theorie.Theorie_2_kub, 0], -1)
    systemStore.system.addStatikobjekt("Knotenlast", [1, 11, -500, 10, 0], 3)
-   systemStore.system.addStatikobjekt("Lastfall", [4, "pDelta", Theorie.Theorie_2_pDelta], -1)
+   systemStore.system.addStatikobjekt("Lastfall", [4, "pDelta", Theorie.Theorie_2_pDelta, 0], -1)
    systemStore.system.addStatikobjekt("Knotenlast", [1, 11, -500, 10, 0], 4)
    settings.schnittgrößenAufVerformtesSystemBeziehen = false
    break
@@ -198,17 +202,21 @@ export function preloadSystem(systemNummer: number = 1): void {
    systemStore.system.addStatikobjekt("Material", [1, "S235", 210000], -1)
    systemStore.system.addStatikobjekt("Querschnitt", [1, "IPE360", 1, 72.7, 16270], -1)
    systemStore.system.addStatikobjekt("Stab", [1, 1, 2, 1, 0, 0, 6], -1)
-   systemStore.system.addStatikobjekt("Lastfall", [1, "Theorie I. Ordnung", Theorie.Theorie_1], -1)
+   systemStore.system.addStatikobjekt(
+    "Lastfall",
+    [1, "Theorie I. Ordnung", Theorie.Theorie_1, 0],
+    -1,
+   )
    systemStore.system.addStatikobjekt("Knotenlast", [1, 2, -500, 1, 0], 1)
    systemStore.system.addStatikobjekt(
     "Lastfall",
-    [2, "trigonometrisch", Theorie.Theorie_2_trig],
+    [2, "trigonometrisch", Theorie.Theorie_2_trig, 0],
     -1,
    )
    systemStore.system.addStatikobjekt("Knotenlast", [1, 2, -500, 1, 0], 2)
-   systemStore.system.addStatikobjekt("Lastfall", [3, "kubisch", Theorie.Theorie_2_kub], -1)
+   systemStore.system.addStatikobjekt("Lastfall", [3, "kubisch", Theorie.Theorie_2_kub, 0], -1)
    systemStore.system.addStatikobjekt("Knotenlast", [1, 2, -500, 1, 0], 3)
-   systemStore.system.addStatikobjekt("Lastfall", [4, "pDelta", Theorie.Theorie_2_pDelta], -1)
+   systemStore.system.addStatikobjekt("Lastfall", [4, "pDelta", Theorie.Theorie_2_pDelta, 0], -1)
    systemStore.system.addStatikobjekt("Knotenlast", [1, 2, -500, 1, 0], 4)
    break
   }
@@ -241,17 +249,21 @@ export function preloadSystem(systemNummer: number = 1): void {
    systemStore.system.addStatikobjekt("Stab", [8, 8, 9, 1, 0, 0, 1], -1)
    systemStore.system.addStatikobjekt("Stab", [9, 9, 10, 1, 0, 0, 1], -1)
    systemStore.system.addStatikobjekt("Stab", [10, 10, 11, 1, 0, 0, 1], -1)
-   systemStore.system.addStatikobjekt("Lastfall", [1, "Theorie I. Ordnung", Theorie.Theorie_1], -1)
+   systemStore.system.addStatikobjekt(
+    "Lastfall",
+    [1, "Theorie I. Ordnung", Theorie.Theorie_1, 0],
+    -1,
+   )
    systemStore.system.addStatikobjekt("Knotenlast", [1, 11, -500, 1, 0], 1)
    systemStore.system.addStatikobjekt(
     "Lastfall",
-    [2, "trigonometrisch", Theorie.Theorie_2_trig],
+    [2, "trigonometrisch", Theorie.Theorie_2_trig, 0],
     -1,
    )
    systemStore.system.addStatikobjekt("Knotenlast", [1, 11, -500, 1, 0], 2)
-   systemStore.system.addStatikobjekt("Lastfall", [3, "kubisch", Theorie.Theorie_2_kub], -1)
+   systemStore.system.addStatikobjekt("Lastfall", [3, "kubisch", Theorie.Theorie_2_kub, 0], -1)
    systemStore.system.addStatikobjekt("Knotenlast", [1, 11, -500, 1, 0], 3)
-   systemStore.system.addStatikobjekt("Lastfall", [4, "pDelta", Theorie.Theorie_2_pDelta], -1)
+   systemStore.system.addStatikobjekt("Lastfall", [4, "pDelta", Theorie.Theorie_2_pDelta, 0], -1)
    systemStore.system.addStatikobjekt("Knotenlast", [1, 11, -500, 1, 0], 4)
    settings.schnittgrößenAufVerformtesSystemBeziehen = false
    break
@@ -272,16 +284,20 @@ export function preloadSystem(systemNummer: number = 1): void {
    systemStore.system.addStatikobjekt("Stab", [1, 1, 2, 1, 0, 0, 4], -1)
    systemStore.system.addStatikobjekt("Stab", [2, 2, 3, 2, 0, 0, 4], -1)
    systemStore.system.addStatikobjekt("Stab", [3, 3, 4, 1, 0, 0, 4], -1)
-   systemStore.system.addStatikobjekt("Lastfall", [1, "Theorie I. Ordnung", Theorie.Theorie_1], -1)
+   systemStore.system.addStatikobjekt(
+    "Lastfall",
+    [1, "Theorie I. Ordnung", Theorie.Theorie_1, 0],
+    -1,
+   )
    systemStore.system.addStatikobjekt("Knotenlast", [1, 2, 100, 1000, 0], 1)
    systemStore.system.addStatikobjekt("Knotenlast", [1, 3, 0, 500, 0], 1)
-   systemStore.system.addStatikobjekt("Lastfall", [2, "trig", Theorie.Theorie_2_trig], -1)
+   systemStore.system.addStatikobjekt("Lastfall", [2, "trig", Theorie.Theorie_2_trig, 0], -1)
    systemStore.system.addStatikobjekt("Knotenlast", [1, 2, 100, 1000, 0], 2)
    systemStore.system.addStatikobjekt("Knotenlast", [1, 3, 0, 500, 0], 2)
-   systemStore.system.addStatikobjekt("Lastfall", [3, "kubisch", Theorie.Theorie_2_kub], -1)
+   systemStore.system.addStatikobjekt("Lastfall", [3, "kubisch", Theorie.Theorie_2_kub, 0], -1)
    systemStore.system.addStatikobjekt("Knotenlast", [1, 2, 100, 1000, 0], 3)
    systemStore.system.addStatikobjekt("Knotenlast", [1, 3, 0, 500, 0], 3)
-   systemStore.system.addStatikobjekt("Lastfall", [4, "pDelta", Theorie.Theorie_2_pDelta], -1)
+   systemStore.system.addStatikobjekt("Lastfall", [4, "pDelta", Theorie.Theorie_2_pDelta, 0], -1)
    systemStore.system.addStatikobjekt("Knotenlast", [1, 2, 100, 1000, 0], 4)
    systemStore.system.addStatikobjekt("Knotenlast", [1, 3, 0, 500, 0], 4)
    settings.schnittgrößenAufVerformtesSystemBeziehen = false
@@ -305,7 +321,7 @@ export function preloadSystem(systemNummer: number = 1): void {
    systemStore.system.addStatikobjekt("Stab", [3, 3, 4, 1, 0, 0, 10], -1)
    systemStore.system.addStatikobjekt(
     "Lastfall",
-    [1, "Theorie II. Ordnung", Theorie.Theorie_2_trig],
+    [1, "Theorie II. Ordnung", Theorie.Theorie_2_trig, 0],
     -1,
    )
    systemStore.system.addStatikobjekt("Knotenlast", [1, 2, 0, 1000, 0], 1)
@@ -314,7 +330,33 @@ export function preloadSystem(systemNummer: number = 1): void {
    settings.schnittgrößenAufVerformtesSystemBeziehen = false
    break
   }
-
+  case 7: {
+   /**
+    * System mit Lastfall 1 und Lastfall 2 welcher Lastfall 1 kopiert.
+    */
+   systemStore.system.delete()
+   systemStore.system.addStatikobjekt("Lager", [1, true, true, true, 0, 0, 0], -1)
+   systemStore.system.addStatikobjekt("Knoten", [1, 0, 0, 1, 0], -1)
+   systemStore.system.addStatikobjekt("Knoten", [2, 5, 0, 0, 0], -1)
+   systemStore.system.addStatikobjekt("Material", [1, "S235", 210000], -1)
+   systemStore.system.addStatikobjekt("Querschnitt", [1, "HEB 300", 1, 149, 25170], -1)
+   systemStore.system.addStatikobjekt("Stab", [1, 1, 2, 1, 0, 0, 10], -1)
+   systemStore.system.addStatikobjekt(
+    "Lastfall",
+    [1, "Theorie I. Ordnung", Theorie.Theorie_1, 0],
+    -1,
+   )
+   systemStore.system.addStatikobjekt(
+    "Lastfall",
+    [2, "Theorie II. Ordnung", Theorie.Theorie_2_trig, 1],
+    -1,
+   )
+   systemStore.system.addStatikobjekt("Knotenlast", [1, 2, -100, 200, 300], 1)
+   systemStore.system.addStatikobjekt("Knotenlast", [1, 2, 0, 1, 0], 2)
+   systemStore.system.addStatikobjekt("StablastStreckenlast", [1, 1, "lokal", "z", true, 8, 12], 1)
+   settings.schnittgrößenAufVerformtesSystemBeziehen = false
+   break
+  }
   default: {
    break
   }

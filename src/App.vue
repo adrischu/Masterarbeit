@@ -16,9 +16,8 @@
   * Diese Art des "forcedRerenders" ist die von Vue empfohlene.
   */
  const componentKey = ref(0)
-
  //  Beim Start des Programms wird ein System vorgeladen
- preloadSystem(3)
+ preloadSystem(7)
 
  const forceRerender = () => {
   componentKey.value += 1

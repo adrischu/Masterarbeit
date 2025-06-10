@@ -140,13 +140,21 @@
  })
 
  const stablasten = computed(() => {
-  const streckenlasten = props.lastfall.StablastListeStreckenlast as isStablast[]
-  const vorverformungen = props.lastfall.StablastListeVorverformung as isStablast[]
+  const kopierterLastfall = props.lastfall
+  const streckenlasten = kopierterLastfall.istKopieVon
+   ? (kopierterLastfall.istKopieVon.StablastListeStreckenlast as isStablast[])
+   : (kopierterLastfall.StablastListeStreckenlast as isStablast[])
+  const vorverformungen = kopierterLastfall.istKopieVon
+   ? (kopierterLastfall.istKopieVon.StablastListeVorverformung as isStablast[])
+   : (kopierterLastfall.StablastListeVorverformung as isStablast[])
   return streckenlasten.concat(vorverformungen)
  })
 
  const knotenlasten = computed(() => {
-  return props.lastfall.Knotenlastliste
+  const kopierterLastfall = props.lastfall
+  return kopierterLastfall.istKopieVon
+   ? kopierterLastfall.istKopieVon.Knotenlastliste
+   : kopierterLastfall.Knotenlastliste
  })
 
  const getEinheit = computed(() => {
@@ -279,18 +287,20 @@
  })
 
  const scaleStablasten = computed(() => {
-  if (props.lastfall.StablastListeStreckenlast.length === 0) return 0
+  const kopierterLastfall = props.lastfall.istKopieVon ? props.lastfall.istKopieVon : props.lastfall
+  if (kopierterLastfall.StablastListeStreckenlast.length === 0) return 0
   let max = 0
-  props.lastfall.StablastListeStreckenlast.forEach((last) => {
+  kopierterLastfall.StablastListeStreckenlast.forEach((last) => {
    max = Math.max(max, Math.abs(last.pl), Math.abs(last.pr))
   })
   return max === 0 ? 0 : (graphicSettings.SKALIERUNG_STABLASTEN * 60) / max
  })
 
  const scaleVorverformungen = computed(() => {
-  if (props.lastfall.StablastListeVorverformung.length === 0) return 0
+  const kopierterLastfall = props.lastfall.istKopieVon ? props.lastfall.istKopieVon : props.lastfall
+  if (kopierterLastfall.StablastListeVorverformung.length === 0) return 0
   let max = 0
-  props.lastfall.StablastListeVorverformung.forEach((last) => {
+  kopierterLastfall.StablastListeVorverformung.forEach((last) => {
    try {
     const L = last.Stab!.Länge
     max = Math.max(max, Math.abs(last.phi0 * L), Math.abs(last.w0zuL * L))
@@ -302,9 +312,10 @@
  })
 
  const scaleKnotenlasten = computed(() => {
-  if (props.lastfall.Knotenlastliste.length === 0) return 0
+  const kopierterLastfall = props.lastfall.istKopieVon ? props.lastfall.istKopieVon : props.lastfall
+  if (kopierterLastfall.Knotenlastliste.length === 0) return 0
   let max = 0
-  props.lastfall.Knotenlastliste.forEach((knotenlast) => {
+  kopierterLastfall.Knotenlastliste.forEach((knotenlast) => {
    max = Math.max(
     max,
     Math.abs(knotenlast.Lastvektor[0]),

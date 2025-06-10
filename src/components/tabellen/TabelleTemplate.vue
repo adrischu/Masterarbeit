@@ -295,4 +295,9 @@
  input:disabled {
   color: #b0b0b0;
  }
+
+ /* Scrollbar des v-table der Eingabetabelle soll immer sichtbar sein */
+ ::v-deep(.v-table__wrapper) {
+  overflow-y: scroll !important;
+ }
 </style>

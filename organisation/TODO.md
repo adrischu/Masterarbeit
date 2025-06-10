@@ -44,6 +44,8 @@
 
 - Eingabefelder in den Tabellen personalisieren (zB nur positive Werte über 0 annehmen für Nummern..E-Modul..Fläche..)
 
+- Wenn man auf einer aktiven Tabelle ist (zB Knotenlasten LF1) und dann wird auf LF2 gewechselt (welcher eine Kopie eines anderen ist) dann ist man auf Knotenlasten LF2. Dies sollte eigentlich eine nicht bearbeitbare Tabelle sein. Hier sollte eventuell zu "Lastfälle" zurückgesprungen werden.
+
 ## Optik
 
 # EXTRAS

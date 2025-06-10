@@ -46,9 +46,21 @@
     v-model="tabellenUntertyp"
    >
     <v-tab value="lastfall">Lastfälle</v-tab>
-    <v-tab value="knotenlast">Knotenlasten LF{{ lastfall.Nummer }}</v-tab>
-    <v-tab value="streckenlast">Streckenlasten LF{{ lastfall.Nummer }}</v-tab>
-    <v-tab value="vorverformung">Vorverformungen LF{{ lastfall.Nummer }}</v-tab>
+    <v-tab
+     value="knotenlast"
+     :disabled="lastfall.istKopieVon !== null"
+     >Knotenlasten LF{{ lastfall.Nummer }}</v-tab
+    >
+    <v-tab
+     value="streckenlast"
+     :disabled="lastfall.istKopieVon !== null"
+     >Streckenlasten LF{{ lastfall.Nummer }}</v-tab
+    >
+    <v-tab
+     value="vorverformung"
+     :disabled="lastfall.istKopieVon !== null"
+     >Vorverformungen LF{{ lastfall.Nummer }}</v-tab
+    >
    </v-tabs>
    <v-tabs
     v-if="tabellentyp === 'ergebnisse'"
@@ -63,7 +75,7 @@
  <div
   id="tabelle-eingabe"
   ref="tabelleEingabe"
-  style="flex: 1"
+  style="flex: 1; overflow: hidden"
  >
   <!-- Tabellenanzeige -->
   <v-window
@@ -247,6 +259,7 @@
  import TabelleStabergebnisse from "./TabelleStabergebnisse.vue"
  import TabelleFehler from "./TabelleFehler.vue"
  import DialogZwischenergebnisse from "../dialoge/DialogZwischenergebnisse.vue"
+ import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
 
  const system = useSystemStore().system
  let tabellentyp = ref<String>("start")
@@ -279,7 +292,11 @@
  })
  const tabelleEingabe: Ref<HTMLElement | null> = ref(null)
  const tableHeight = computed(() => {
-  return tabelleEingabe.value!.scrollHeight
+  const graphicSettings = useGraphicSettingsStore()
+  //grafikHöhe wird hier nur erstellt, damit die computed-Funktion Veränderung im Wert erkennt und neu auswertet.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const grafikHöhe = graphicSettings.HÖHE_GRAFIK
+  return tabelleEingabe.value!.clientHeight
  })
 
  const props = defineProps<{

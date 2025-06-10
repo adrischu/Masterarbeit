@@ -9,6 +9,9 @@ import type { isStablast } from "./classes/InterfaceStablast"
 import { useSettingsStore } from "@/stores/SettingsStore"
 import Federelement from "./classes/Federelement"
 import Fehler from "./classes/Fehler"
+import StablastStreckenlast from "./classes/StablastStreckenlast"
+import Stab from "./classes/Stab"
+import StablastVorverformung from "./classes/StablastVorverformung"
 
 //-------------------------------------------------------------------------------
 /**
@@ -271,12 +274,20 @@ function freiheitsgradeDefinieren(system: System): void {
 function elementeAufstellen(system: System, lastfall: Lastfall) {
  //Alle Stablasten sammeln und beim Erstellen der Elemente diese den Stablasten zuordnen
  const stablasten: isStablast[] = []
- lastfall.StablastListeStreckenlast.forEach((last) => {
-  stablasten.push(last)
+ //Zu verwendenen Lastfall ermitteln. Falls ein anderer Lastfall
+ //kopiert werden soll wird dieser hier verwendet.
+ //Theorie wird weiterhin aus "lastfall" verwendet.
+ const lf = lastfall.istKopieVon ? lastfall.istKopieVon : lastfall
+ lf.StablastListeStreckenlast.forEach((last) => {
+  //Ein neues Lastobjekt erzeugen, damit bei kopierten Lastfällen keine Referenzkonflikte
+  //beim Originalobjekt entstehen.
+  stablasten.push(last.shallowCopy())
  })
  if (lastfall.Theorie !== Theorie.Theorie_1) {
   lastfall.StablastListeVorverformung.forEach((last) => {
-   stablasten.push(last)
+   //Ein neues Lastobjekt erzeugen, damit bei kopierten Lastfällen keine Referenzkonflikte
+   //beim Originalobjekt entstehen.
+   stablasten.push(last.shallowCopy())
   })
  }
 
@@ -343,8 +354,12 @@ function ermittleStabtheorien(lastfall: Lastfall): void {
  */
 function lastvektorAufstellen(system: System, lastfall: Lastfall) {
  const tempLastvektor: number[] = Array(system.Freiheitsgrade).fill(0)
+ //Zu verwendenen Lastfall ermitteln. Falls ein anderer Lastfall
+ //kopiert werden soll wird dieser hier verwendet.
+ const lf = lastfall.istKopieVon ? lastfall.istKopieVon : lastfall
+
  //Knotenlasten
- lastfall.Knotenlastliste.forEach((knotenlast) => {
+ lf.Knotenlastliste.forEach((knotenlast) => {
   for (let i = 0; i <= 2; i++) {
    tempLastvektor[knotenlast.Knoten!.Inzidenzen[i]] += knotenlast.Lastvektor[i]
   }
