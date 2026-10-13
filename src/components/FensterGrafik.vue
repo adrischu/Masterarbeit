@@ -320,14 +320,18 @@
   if (!auswahlFest) zeigerauswahl.value = null
  }
 
+ /** true, wenn der letzte Zeigerkontakt auf einem Stab begann */
+ let tippAufStab = false
+
  function hintergrundPointerDown(e: PointerEvent) {
+  tippAufStab = !!(e.target as Element)?.classList?.contains("stab-trefferlinie")
   pointerDown(e)
  }
 
  function hintergrundPointerUp(e: PointerEvent) {
   pointerUp(e)
   //Tippen ins Leere schließt die Werteanzeige
-  if (!warVerschiebung() && !(e.target as Element)?.classList?.contains("stab-trefferlinie")) {
+  if (!warVerschiebung() && !tippAufStab) {
    zeigerauswahl.value = null
    auswahlFest = false
   }

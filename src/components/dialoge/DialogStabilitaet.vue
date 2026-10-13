@@ -5,13 +5,6 @@
   :fullscreen="mobile"
   scrollable
  >
-  <template v-slot:activator="{ props: activatorProps }">
-   <v-list-item
-    v-bind="activatorProps"
-    prepend-icon="mdi-arrow-collapse-vertical"
-    title="Stabilität (α_cr)"
-   />
-  </template>
   <v-card>
    <v-toolbar
     density="compact"
@@ -98,11 +91,16 @@
  import { stabilitätsansatz } from "@/typescript/stabilitaet"
  import { myRound } from "@/typescript/util"
 
- const props = defineProps<{ lastfall: Lastfall }>()
+ const props = defineProps<{ lastfall: Lastfall; modelValue: boolean }>()
  const { mobile } = useDisplay()
  const systemStore = useSystemStore()
  const graphicSettings = useGraphicSettingsStore()
- const dialog = ref(false)
+ /** Sichtbarkeit (v-model des Elternelements) */
+ const dialog = computed({
+  get: () => props.modelValue,
+  set: (wert: boolean) => emit("update:modelValue", wert),
+ })
+ const emit = defineEmits<{ (e: "update:modelValue", wert: boolean): void }>()
  const rechnet = ref(false)
  const normalkraft = ref<"Th1" | "Th2">("Th1")
 

@@ -5,13 +5,6 @@
   :fullscreen="mobile"
   scrollable
  >
-  <template v-slot:activator="{ props: activatorProps }">
-   <v-list-item
-    v-bind="activatorProps"
-    prepend-icon="mdi-chart-bell-curve-cumulative"
-    title="Laststeigerung"
-   />
-  </template>
   <v-card>
    <v-toolbar
     density="compact"
@@ -245,9 +238,8 @@
      v-for="kurve in ergebnis?.kurven.filter((k) => k.meldung)"
      :key="`m${kurve.theorie}`"
      class="hinweis"
-    >
-     {{ kurzname[alleTheorien.indexOf(kurve.theorie)] }}: {{ kurve.meldung }}
-    </div>
+     v-html="`${kurzname[alleTheorien.indexOf(kurve.theorie)]}: ${kurve.meldung}`"
+    ></div>
    </v-card-text>
   </v-card>
  </v-dialog>
@@ -269,12 +261,17 @@
  import { myRound } from "@/typescript/util"
  import { textDateiSpeichern } from "@/typescript/DateiFunktionen"
 
- const props = defineProps<{ lastfall: Lastfall }>()
+ const props = defineProps<{ lastfall: Lastfall; modelValue: boolean }>()
  const { mobile } = useDisplay()
  const systemStore = useSystemStore()
  const graphicSettings = useGraphicSettingsStore()
 
- const dialog = ref(false)
+ /** Sichtbarkeit (v-model des Elternelements) */
+ const dialog = computed({
+  get: () => props.modelValue,
+  set: (wert: boolean) => emit("update:modelValue", wert),
+ })
+ const emit = defineEmits<{ (e: "update:modelValue", wert: boolean): void }>()
  const rechnet = ref(false)
  const von = ref(0)
  const bis = ref(1)

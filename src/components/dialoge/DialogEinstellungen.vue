@@ -4,14 +4,6 @@
   transition="dialog-bottom-transition"
   fullscreen
  >
-  <template v-slot:activator="{ props: activatorProps }">
-   <v-list-item
-    v-bind="activatorProps"
-    prepend-icon="mdi-cog-outline"
-    title="Einstellungen"
-   />
-  </template>
-
   <v-card>
    <v-toolbar
     density="compact"
@@ -143,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
- import { ref, type Ref } from "vue"
+ import { computed } from "vue"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
  import { useSettingsStore } from "@/stores/SettingsStore"
  import { useSystemStore } from "@/stores/SystemStore"
@@ -153,5 +145,11 @@
  const settings = useSettingsStore()
  const systemStore = useSystemStore()
 
- let dialog: Ref<boolean> = ref(false)
+ /** Sichtbarkeit (v-model des Elternelements) */
+ const props = defineProps<{ modelValue: boolean }>()
+ const dialog = computed({
+  get: () => props.modelValue,
+  set: (wert: boolean) => emit("update:modelValue", wert),
+ })
+ const emit = defineEmits<{ (e: "update:modelValue", wert: boolean): void }>()
 </script>

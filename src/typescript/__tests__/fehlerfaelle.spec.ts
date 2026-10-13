@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest"
-import { Theorie, lastfall, lagerkräfte, neuesSystem, rechnen, knotenverformung } from "./hilfen"
+import {
+ Theorie,
+ lastfall,
+ lagerkräfte,
+ neuesSystem,
+ rechnen,
+ knotenverformung,
+ stabwert,
+} from "./hilfen"
 import type System from "@/typescript/classes/System"
 
 function kragarm(): System {
@@ -123,5 +131,27 @@ describe("9 Kopierte Lastfälle (S3, S4)", () => {
   expect(lagerkräfte(s, 1)[z] / 1e3).toBeCloseTo(60, 9)
   expect(lagerkräfte(s, 2)[z] / 1e3).toBeCloseTo(60, 9)
   expect(lastfall(s, 2).istBerechnet).toBe(true)
+ })
+})
+
+describe("Knoten mit ausschließlich gelenkig angeschlossenen Stäben", () => {
+ it("Knotenverdrehung ohne Steifigkeit wird automatisch gehalten (keine Fehlermeldung)", () => {
+  const s = neuesSystem()
+  s.addStatikobjekt("Lager", [1, true, true, false, 0, 0, 0], 0, false)
+  s.addStatikobjekt("Lager", [2, false, true, false, 0, 0, 0], 0, false)
+  s.addStatikobjekt("Knoten", [1, 0, 0, 1], 0, false)
+  s.addStatikobjekt("Knoten", [2, 5, 0, 2], 0, false)
+  s.addStatikobjekt("Knoten", [3, 10, 0, 2], 0, false)
+  s.addStatikobjekt("Gelenk", [1, false, false, true, 0, 0, 0], 0, false)
+  //Beide Stäbe am mittleren Knoten gelenkig -> zwei Einfeldträger
+  s.addStatikobjekt("Stab", [1, 1, 2, 1, 0, 1, 10], 0, false)
+  s.addStatikobjekt("Stab", [2, 2, 3, 1, 1, 0, 10], 0, false)
+  s.addStatikobjekt("Lastfall", [1, "LF1", Theorie.Theorie_1, 0], 0, false)
+  s.addStatikobjekt("StablastStreckenlast", [1, 1, "lokal", "z", false, 10, 10], 1, false)
+  expect(rechnen(s)).toBe(true)
+  expect(s.Fehlerliste).toEqual([])
+  //Einfeldträger: M = qL²/8 = 31,25 kNm
+  expect(stabwert(s, 1, 1, 2.5)[2] / 1e3).toBeCloseTo(31.25, 8)
+  expect(Math.abs(stabwert(s, 1, 2, 2.5)[2])).toBeLessThan(1e-6)
  })
 })

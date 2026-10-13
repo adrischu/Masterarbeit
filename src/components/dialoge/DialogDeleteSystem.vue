@@ -4,13 +4,6 @@
   transition="dialog-bottom-transition"
   v-model="dialog"
  >
-  <template v-slot:activator="{ props: activatorProps }">
-   <v-list-item
-    v-bind="activatorProps"
-    prepend-icon="mdi-trash-can-outline"
-    title="Neues System (alles löschen)"
-   />
-  </template>
   <v-card
    text="Soll das aktuelle System wirklich gelöscht werden? (Rückgängig ist möglich.)"
    title="Achtung!"
@@ -27,16 +20,21 @@
 </template>
 
 <script setup lang="ts">
- import { ref } from "vue"
+ import { computed } from "vue"
 
+ /** Sichtbarkeit (v-model des Elternelements) */
+ const props = defineProps<{ modelValue: boolean }>()
  const emit = defineEmits<{
   (event: "accept-delete"): void
+  (event: "update:modelValue", wert: boolean): void
  }>()
+ const dialog = computed({
+  get: () => props.modelValue,
+  set: (wert: boolean) => emit("update:modelValue", wert),
+ })
 
  function handleAccept() {
   emit("accept-delete")
   dialog.value = false
  }
-
- let dialog = ref(false)
 </script>

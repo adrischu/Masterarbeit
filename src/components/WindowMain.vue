@@ -2,12 +2,13 @@
  <div class="header">
   <v-toolbar
    density="compact"
-   class="werkzeugleiste"
+   :class="['werkzeugleiste', { schmal }]"
    color="green-lighten-4"
    elevation="4"
   >
    <!-- Datei öffnen -->
    <v-btn
+    :density="schmal ? 'compact' : 'default'"
     icon="mdi-folder-open-outline"
     title="System öffnen"
     @click="fileInput?.click()"
@@ -22,6 +23,7 @@
 
    <!-- Speichern -->
    <v-btn
+    :density="schmal ? 'compact' : 'default'"
     v-if="!schmal"
     @click="speichern"
     icon="mdi-content-save-outline"
@@ -30,12 +32,14 @@
 
    <!-- Rückgängig / Wiederholen -->
    <v-btn
+    :density="schmal ? 'compact' : 'default'"
     icon="mdi-undo"
     title="Rückgängig (Strg+Z)"
     :disabled="!systemStore.kannRückgängig"
     @click="systemStore.rückgängig()"
    ></v-btn>
    <v-btn
+    :density="schmal ? 'compact' : 'default'"
     v-if="!schmal"
     icon="mdi-redo"
     title="Wiederholen (Strg+Y)"
@@ -50,6 +54,7 @@
 
    <!-- Rechenbutton -->
    <v-btn
+    :density="schmal ? 'compact' : 'default'"
     icon="mdi-calculator"
     title="Berechnen"
     color="green-darken-3"
@@ -60,6 +65,7 @@
    <v-menu :close-on-content-click="false">
     <template v-slot:activator="{ props }">
      <v-btn
+      :density="schmal ? 'compact' : 'default'"
       icon="mdi-eye-outline"
       title="Sichtbarkeit"
       v-bind="props"
@@ -115,7 +121,7 @@
    <v-spacer></v-spacer>
 
    <!-- "Mehr-Menü" (auf schmalen Bildschirmen auch Speichern, Wiederholen, Löschen) -->
-   <v-menu :close-on-content-click="false">
+   <v-menu>
     <template v-slot:activator="{ props }">
      <v-btn
       icon="mdi-dots-vertical"
@@ -137,13 +143,10 @@
       :disabled="!systemStore.kannWiederholen"
       @click="systemStore.wiederholen()"
      />
-     <DialogDeleteSystem
-      @accept-delete="
-       () => {
-        systemStore.vorÄnderung()
-        preloadSystem(0)
-       }
-      "
+     <v-list-item
+      prepend-icon="mdi-trash-can-outline"
+      title="Neues System (alles löschen)"
+      @click="offen.löschen = true"
      />
      <v-list-item
       prepend-icon="mdi-shape-outline"
@@ -151,13 +154,15 @@
       @click="beispielDialog = true"
      />
      <v-divider />
-     <DialogStabilitaet
-      v-if="lastfall"
-      :lastfall="lastfall"
+     <v-list-item
+      prepend-icon="mdi-arrow-collapse-vertical"
+      title="Stabilität (α_cr)"
+      @click="offen.stabilität = true"
      />
-     <DialogLaststeigerung
-      v-if="lastfall"
-      :lastfall="lastfall"
+     <v-list-item
+      prepend-icon="mdi-chart-bell-curve-cumulative"
+      title="Laststeigerung"
+      @click="offen.laststeigerung = true"
      />
      <v-divider />
      <v-list-item
@@ -171,8 +176,16 @@
       @click="pngSpeichern"
      />
      <v-divider />
-     <DialogHandbuch />
-     <DialogEinstellungen />
+     <v-list-item
+      prepend-icon="mdi-book-open-variant"
+      title="Handbuch"
+      @click="offen.handbuch = true"
+     />
+     <v-list-item
+      prepend-icon="mdi-cog-outline"
+      title="Einstellungen"
+      @click="offen.einstellungen = true"
+     />
     </v-list>
    </v-menu>
   </v-toolbar>
@@ -231,9 +244,36 @@
   <span
    v-if="systemStore.ungespeichert"
    class="ungespeichert"
-   >· ungespeicherte Änderungen (automatisch im Browser gesichert)</span
+   title="Änderungen seit dem letzten Speichern. Das System wird automatisch im Browser gesichert."
+   >·
+   {{
+    schmal ? "ungespeichert" : "ungespeicherte Änderungen (automatisch im Browser gesichert)"
+   }}</span
   >
  </div>
+
+ <!-- Dialoge (außerhalb des Menüs, damit sie beim Schließen des Menüs erhalten bleiben) -->
+ <DialogDeleteSystem
+  v-model="offen.löschen"
+  @accept-delete="
+   () => {
+    systemStore.vorÄnderung()
+    preloadSystem(0)
+   }
+  "
+ />
+ <DialogStabilitaet
+  v-if="lastfall"
+  v-model="offen.stabilität"
+  :lastfall="lastfall"
+ />
+ <DialogLaststeigerung
+  v-if="lastfall"
+  v-model="offen.laststeigerung"
+  :lastfall="lastfall"
+ />
+ <DialogHandbuch v-model="offen.handbuch" />
+ <DialogEinstellungen v-model="offen.einstellungen" />
 
  <DialogFehler
   v-if="fehlerDialog"
@@ -268,7 +308,7 @@
 </template>
 
 <script setup lang="ts">
- import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
+ import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
  import { useDisplay } from "vuetify"
  import { useSystemStore } from "@/stores/SystemStore"
  import TabelleVariabel from "./tabellen/TabelleVariabel.vue"
@@ -296,6 +336,14 @@
  const schmal = computed(() => width.value < 600)
 
  const fileInput = ref<HTMLInputElement | null>(null)
+ /** Geöffnete Dialoge */
+ const offen = reactive({
+  löschen: false,
+  stabilität: false,
+  laststeigerung: false,
+  handbuch: false,
+  einstellungen: false,
+ })
  const hauptbereich = ref<HTMLElement | null>(null)
 
  //Lastfallauswahl über die Nummer (bleibt gültig, wenn das System ersetzt wird, z. B. bei Rückgängig)
@@ -489,6 +537,20 @@
  }
  .werkzeugleiste .auswahl-klein {
   max-width: 130px;
+ }
+ .werkzeugleiste .v-toolbar__content {
+  overflow-x: auto;
+  overflow-y: hidden;
+ }
+ .werkzeugleiste.schmal .auswahl {
+  min-width: 70px;
+  max-width: 92px;
+ }
+ .werkzeugleiste.schmal .divider {
+  display: none;
+ }
+ .werkzeugleiste .v-select__selection {
+  white-space: nowrap;
  }
 
  /* Griff zum Ändern der Höhe: Halbkreis mittig über der Tabelle, Greiffläche ≥ 44 px */
