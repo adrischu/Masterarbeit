@@ -1,7 +1,7 @@
 <template>
  <circle
-  :cx="knoten.Koordinaten.x * transform.scale + transform.x"
-  :cy="knoten.Koordinaten.z * transform.scale + transform.y"
+  :cx="p.x"
+  :cy="p.z"
   :r="graphicSettings.RADIUS_KNOTEN"
   fill="red"
  />
@@ -10,11 +10,16 @@
 <script setup lang="ts">
  import type Knoten from "@/typescript/classes/Knoten"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
+ import { computed } from "vue"
+ import { bildpunkt, type Ansicht } from "@/composables/useViewport"
 
  const graphicSettings = useGraphicSettingsStore()
 
- defineProps<{
+ const props = defineProps<{
   knoten: Knoten
-  transform: { x: number; y: number; scale: number }
+  transform: Ansicht
  }>()
+ const p = computed(() =>
+  bildpunkt(props.transform, props.knoten.Koordinaten.x, props.knoten.Koordinaten.z),
+ )
 </script>

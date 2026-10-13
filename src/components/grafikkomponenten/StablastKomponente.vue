@@ -1,21 +1,4 @@
 <template>
- <defs>
-  <!-- A marker to be used as an arrowhead -->
-  <marker
-   id="arrowVert"
-   viewBox="0 0 10 10"
-   refX="10"
-   refY="5"
-   markerWidth="15"
-   markerHeight="15"
-   orient="auto-start-reverse"
-   stroke="none"
-   :fill="graphicSettings.FARBE_STABLAST"
-  >
-   <path d="M 0 0 L 10 5 L 0 10 z" />
-  </marker>
- </defs>
-
  <!-- Ausgabe der Trapezlasten -->
  <g v-if="trapezlasten.length">
   <g
@@ -40,21 +23,21 @@
 
    <!-- Lastpfeile -->
    <line
-    v-for="pfeil in trapezlast.pfeile"
-    :key="pfeil.kp1.x"
+    v-for="(pfeil, pIndex) in trapezlast.pfeile"
+    :key="pIndex"
     :x1="pfeil.kp1.x"
     :y1="pfeil.kp1.z"
     :x2="pfeil.kp2.x"
     :y2="pfeil.kp2.z"
     :stroke="graphicSettings.FARBE_STABLAST"
-    marker-end="url(#arrowVert)"
+    marker-end="url(#sw-pfeil-stablast)"
    />
 
    <!-- Lastwerte -->
    <g v-if="graphicSettings.SICHTBARKEIT_WERTE">
     <text
-     v-for="text in trapezlast.texts"
-     :key="text.value"
+     v-for="(text, tIndex) in trapezlast.texts"
+     :key="tIndex"
      text-anchor="middle"
      dominant-baseline="middle"
      :fill="graphicSettings.FARBE_STABLAST"
@@ -62,12 +45,7 @@
      :x="text.point.x"
      :y="text.point.z"
     >
-     {{
-      Math.round(
-       (einheitStreck.vonSI * text.value + Number.EPSILON) *
-        10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE,
-      ) /
-      10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE
+     {{ myRound(einheitStreck.vonSI * text.value, graphicSettings.NACHKOMMASTELLEN_LASTWERTE)
      }}{{ graphicSettings.EINHEIT_SHOW ? einheitStreck.text : "" }}
     </text>
    </g>
@@ -136,10 +114,63 @@
    </g>
   </g>
  </g>
+
+ <!-- Einzellasten im Feld -->
+ <g
+  v-for="(last, index) in einzellasten"
+  :key="`e${index}`"
+ >
+  <line
+   :x1="last.k1.x"
+   :y1="last.k1.z"
+   :x2="last.k2.x"
+   :y2="last.k2.z"
+   :stroke="graphicSettings.FARBE_STABLAST"
+   stroke-width="1.5"
+   marker-end="url(#sw-pfeil-stablast)"
+  />
+  <text
+   v-if="graphicSettings.SICHTBARKEIT_WERTE"
+   text-anchor="middle"
+   dominant-baseline="middle"
+   :fill="graphicSettings.FARBE_STABLAST"
+   :font-size="`${graphicSettings.SCHRIFTGROESSE_STABLAST}px`"
+   :x="last.text.x"
+   :y="last.text.z"
+  >
+   {{
+    myRound(
+     Math.abs(last.wert) * graphicSettings.EINHEIT_LASTEN_KRAFT.vonSI,
+     graphicSettings.NACHKOMMASTELLEN_LASTWERTE,
+    )
+   }}{{ graphicSettings.EINHEIT_SHOW ? graphicSettings.EINHEIT_LASTEN_KRAFT.text : "" }}
+  </text>
+ </g>
+
+ <!-- Temperaturlasten -->
+ <g
+  v-for="(last, index) in temperaturlasten"
+  :key="`t${index}`"
+ >
+  <text
+   text-anchor="middle"
+   dominant-baseline="middle"
+   fill="rgb(200,80,0)"
+   :font-size="`${graphicSettings.SCHRIFTGROESSE_STABLAST}px`"
+   :x="last.punkt.x"
+   :y="last.punkt.z"
+  >
+   {{ last.text }}
+  </text>
+ </g>
 </template>
 
 <script setup lang="ts">
  import Vector from "@/typescript/classes/Vector"
+ import type StablastEinzellast from "@/typescript/classes/StablastEinzellast"
+ import type StablastTemperatur from "@/typescript/classes/StablastTemperatur"
+ import { bildpunkt, type Ansicht } from "@/composables/useViewport"
+ import { myRound } from "@/typescript/util"
  import { computed } from "vue"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
  import type StablastStreckenlast from "@/typescript/classes/StablastStreckenlast"
@@ -156,25 +187,21 @@
  const props = defineProps<{
   lasten: isStablast[]
   stab: Stab
-  transform: { x: number; y: number; scale: number }
+  transform: Ansicht
   scaleLasten: number
   scaleVorverformungen: number
  }>()
 
  /**Anfangspunkt des Stabes im KS des Grafikfensters */
  let anfang = computed(() => {
-  return new Vector(
-   props.stab.Anfangsknoten!.Koordinaten.x * props.transform.scale + props.transform.x,
-   props.stab.Anfangsknoten!.Koordinaten.z * props.transform.scale + props.transform.y,
-  )
+  const k = props.stab.Anfangsknoten!.Koordinaten
+  return bildpunkt(props.transform, k.x, k.z)
  })
 
  /**Endpunkt des Stabes im KS des Grafikfensters */
  let ende = computed(() => {
-  return new Vector(
-   props.stab.Endknoten!.Koordinaten.x * props.transform.scale + props.transform.x,
-   props.stab.Endknoten!.Koordinaten.z * props.transform.scale + props.transform.y,
-  )
+  const k = props.stab.Endknoten!.Koordinaten
+  return bildpunkt(props.transform, k.x, k.z)
  })
 
  //Berechnung Ausgabeformen für Trapezlast
@@ -451,5 +478,52 @@
     })
    })
   return vorverformungen
+ })
+
+ /** Einzellasten: Pfeil zur Laststelle, Richtung lokal bzw. global */
+ const einzellasten = computed(() => {
+  const pfeillänge = 45
+  return props.lasten
+   .filter((stablast) => stablast.Typ === "StablastEinzellast")
+   .map((stablast) => {
+    const last = stablast as StablastEinzellast
+    const L = props.stab.Länge
+    const t = L > 0 ? Math.min(Math.max(last.a / L, 0), 1) : 0
+    const stelle = anfang.value.moveAlongVector(
+     new Vector(ende.value.x - anfang.value.x, ende.value.z - anfang.value.z),
+     t,
+    )
+    let richtung: number
+    if (last.Koordinatensystem === "lokal") {
+     richtung = props.stab.Winkel + (last.Richtung === "x" ? 0 : Math.PI / 2)
+    } else {
+     richtung = last.Richtung === "x" ? 0 : Math.PI / 2
+    }
+    if (last.F < 0) richtung += Math.PI
+    //Pfeilspitze an der Laststelle
+    const k2 = stelle.movePolar(4, richtung + Math.PI)
+    const k1 = k2.movePolar(pfeillänge, richtung + Math.PI)
+    return { k1, k2, wert: last.F, text: k1.movePolar(12, richtung + Math.PI) }
+   })
+ })
+
+ /** Temperaturlasten als Text an der Stabmitte */
+ const temperaturlasten = computed(() => {
+  return props.lasten
+   .filter((stablast) => stablast.Typ === "StablastTemperatur")
+   .map((stablast, i) => {
+    const last = stablast as StablastTemperatur
+    const mitte = new Vector(
+     (anfang.value.x + ende.value.x) / 2,
+     (anfang.value.z + ende.value.z) / 2,
+    )
+    const teile = []
+    if (last.dTN) teile.push(`ΔT_N=${last.dTN}K`)
+    if (last.dTM) teile.push(`ΔT_M=${last.dTM}K`)
+    return {
+     punkt: mitte.movePolar(-28 - 16 * i, props.stab.Winkel + Math.PI / 2),
+     text: teile.join(" ") || "ΔT=0",
+    }
+   })
  })
 </script>

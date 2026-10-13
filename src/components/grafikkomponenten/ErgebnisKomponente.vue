@@ -2,18 +2,18 @@
  <!-- Weißes Polygon wird unterlegt, damit Farben besser sichtbar sind -->
  <g>
   <polygon
-   v-for="p in polygons"
+   v-for="(p, index) in polygons"
    :points="`${p.k1.x},${p.k1.z} ${p.k2.x},${p.k2.z} ${p.k3.x},${p.k3.z} ${p.k4.x},${p.k4.z}`"
-   :key="p.k1.x"
+   :key="`w${index}`"
    stroke="black"
    fill="white"
    :opacity="0.3"
   />
   <!-- Farbige Polygone -->
   <polygon
-   v-for="p in polygons"
+   v-for="(p, index) in polygons"
    :points="`${p.k1.x},${p.k1.z} ${p.k2.x},${p.k2.z} ${p.k3.x},${p.k3.z} ${p.k4.x},${p.k4.z}`"
-   :key="p.k1.x"
+   :key="`f${index}`"
    :stroke="p.col"
    :fill="p.col"
    opacity="0.3"
@@ -21,175 +21,141 @@
   />
 
   <g v-if="graphicSettings.SICHTBARKEIT_WERTE">
-   <g
-    v-for="(p, index) in points"
-    :key="index"
+   <text
+    v-for="p in beschriftungen"
+    :key="p.index"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    :fill="p.col"
+    :font-size="`${graphicSettings.SCHRIFTGROESSE_SCHNITTGROESSEN}px`"
+    :x="p.x"
+    :y="p.z"
    >
-    <text
-     v-if="
-      Math.abs(
-       Math.round(
-        (stabGrößen[index] * einheit.vonSI + Number.EPSILON) *
-         10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN,
-       ) /
-        10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN,
-      ) > 0
-     "
-     text-anchor="middle"
-     dominant-baseline="middle"
-     :fill="p.col"
-     :font-size="`${graphicSettings.SCHRIFTGROESSE_SCHNITTGROESSEN}px`"
-     :x="p.x"
-     :y="p.z"
-    >
-     {{
-      Math.round(
-       (stabGrößen[index] * einheit.vonSI + Number.EPSILON) *
-        10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN,
-      ) /
-      10 ** graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN
-     }}{{ graphicSettings.EINHEIT_SHOW ? einheit.text : "" }}
-    </text>
-   </g>
+    {{ p.text }}{{ graphicSettings.EINHEIT_SHOW ? einheit.text : "" }}
+   </text>
   </g>
  </g>
 </template>
 
 <script setup lang="ts">
- import Balkenelement from "@/typescript/classes/Balkenelement"
- import Vector from "@/typescript/classes/Vector"
+ import type Vector from "@/typescript/classes/Vector"
  import { computed } from "vue"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
  import type { isEinheit } from "@/typescript/classes/InterfaceEinheit"
- import { useSettingsStore } from "@/stores/SettingsStore"
+ import type { Stabergebnis } from "@/typescript/classes/Ergebnis"
+ import { bildpunkt, type Ansicht } from "@/composables/useViewport"
+ import { myRound } from "@/typescript/util"
 
  const graphicSettings = useGraphicSettingsStore()
- const settings = useSettingsStore()
 
  const props = defineProps<{
-  element: Balkenelement
-  transform: { x: number; y: number; scale: number }
+  ergebnis: Stabergebnis
+  transform: Ansicht
   scaleSchnittgroesse: number
-  getErgebnisListe: (element: Balkenelement) => number[]
+  werte: number[]
   einheit: isEinheit
  }>()
 
- let anfang = computed(() => {
-  return new Vector(
-   props.element.Stab.Anfangsknoten!.Koordinaten.x * props.transform.scale + props.transform.x,
-   props.element.Stab.Anfangsknoten!.Koordinaten.z * props.transform.scale + props.transform.y,
-  )
+ const anfang = computed(() => {
+  const k = props.ergebnis.Stab.Anfangsknoten!.Koordinaten
+  return bildpunkt(props.transform, k.x, k.z)
  })
+ const winkel = computed(() => props.ergebnis.Stab.Stabvektor.direction)
 
- let ende = computed(() => {
-  return new Vector(
-   props.element.Stab.Endknoten!.Koordinaten.x * props.transform.scale + props.transform.x,
-   props.element.Stab.Endknoten!.Koordinaten.z * props.transform.scale + props.transform.y,
-  )
- })
+ /** Punkt auf der Stabachse an der Stelle x [m] */
+ function achspunkt(x: number): Vector {
+  return anfang.value.movePolar(x * props.transform.scale, winkel.value)
+ }
 
- let stabGrößen = computed(() => {
-  return props.getErgebnisListe(props.element)
- })
+ function farbe(wert: number): string {
+  if (wert > 0) return graphicSettings.FARBE_SCHNITTGROESSE_POSITIV
+  if (wert < 0) return graphicSettings.FARBE_SCHNITTGROESSE_NEVATIV
+  return "rgb(0,0,0)"
+ }
 
  //Berechnet Polygone jeweils zwischen zwei Ausgabepunkten.
  let polygons = computed(() => {
   let polygons: { k1: Vector; k2: Vector; k3: Vector; k4: Vector; col: string }[] = []
-  const angle = props.element.Stab.Stabvektor.direction
-  const distance = Math.sqrt(
-   (ende.value.x - anfang.value.x) ** 2 + (ende.value.z - anfang.value.z) ** 2,
-  )
-  const ausgabepunkte = props.element.Ausgabepunkte - 1
-
-  for (let i = 0; i <= ausgabepunkte - 1; i++) {
+  const w = props.werte
+  const x = props.ergebnis.x
+  const s = props.scaleSchnittgroesse
+  const quer = winkel.value + Math.PI / 2
+  for (let i = 0; i < x.length - 1; i++) {
    //Falls das Vorzeichen wechselt, werden zwei Polygone erstellt
-   const vorzeichenWechselt =
-    (Math.sign(stabGrößen.value[i]) === 1 && Math.sign(stabGrößen.value[i + 1]) === -1) ||
-    (Math.sign(stabGrößen.value[i]) === -1 && Math.sign(stabGrößen.value[i + 1]) === 1)
-   if (!vorzeichenWechselt) {
-    const k1 = anfang.value.movePolar((i / ausgabepunkte) * distance, angle)
-    const k2 = k1.movePolar(stabGrößen.value[i] * props.scaleSchnittgroesse, angle + Math.PI / 2)
-    const k4 = anfang.value.movePolar(((i + 1) / ausgabepunkte) * distance, angle)
-    const k3 = k4.movePolar(
-     stabGrößen.value[i + 1] * props.scaleSchnittgroesse,
-     angle + Math.PI / 2,
-    )
-    let col: string
-    if (stabGrößen.value[i] + stabGrößen.value[i + 1] > 0) {
-     col = graphicSettings.FARBE_SCHNITTGROESSE_POSITIV
-    } else {
-     col = graphicSettings.FARBE_SCHNITTGROESSE_NEVATIV
-    }
-    polygons.push({ k1, k2, k3, k4, col })
+   if (Math.sign(w[i]) * Math.sign(w[i + 1]) >= 0) {
+    const k1 = achspunkt(x[i])
+    const k4 = achspunkt(x[i + 1])
+    polygons.push({
+     k1,
+     k2: k1.movePolar(w[i] * s, quer),
+     k3: k4.movePolar(w[i + 1] * s, quer),
+     k4,
+     col: farbe(w[i] + w[i + 1]),
+    })
    } else {
-    const t =
-     Math.abs(stabGrößen.value[i]) /
-     (Math.abs(stabGrößen.value[i]) + Math.abs(stabGrößen.value[i + 1]))
-    let k1 = anfang.value.movePolar((i / ausgabepunkte) * distance, angle)
-    let k2 = k1.movePolar(stabGrößen.value[i] * props.scaleSchnittgroesse, angle + Math.PI / 2)
-    let k4 = anfang.value.movePolar(((i + t) / ausgabepunkte) * distance, angle)
-    let k3 = k4
-    let col: string =
-     stabGrößen.value[i] > 0
-      ? graphicSettings.FARBE_SCHNITTGROESSE_POSITIV
-      : graphicSettings.FARBE_SCHNITTGROESSE_NEVATIV
-
-    polygons.push({ k1, k2, k3, k4, col })
-    const k5 = k4.movePolar(0, 0)
-    const k6 = k5
-    const k8 = anfang.value.movePolar(((i + 1) / ausgabepunkte) * distance, angle)
-    const k7 = k8.movePolar(
-     stabGrößen.value[i + 1] * props.scaleSchnittgroesse,
-     angle + Math.PI / 2,
-    )
-    col =
-     stabGrößen.value[i + 1] > 0
-      ? graphicSettings.FARBE_SCHNITTGROESSE_POSITIV
-      : graphicSettings.FARBE_SCHNITTGROESSE_NEVATIV
-    polygons.push({ k1: k5, k2: k6, k3: k7, k4: k8, col })
+    const t = Math.abs(w[i]) / (Math.abs(w[i]) + Math.abs(w[i + 1]))
+    const k1 = achspunkt(x[i])
+    const k0 = achspunkt(x[i] + t * (x[i + 1] - x[i]))
+    const k8 = achspunkt(x[i + 1])
+    polygons.push({ k1, k2: k1.movePolar(w[i] * s, quer), k3: k0, k4: k0, col: farbe(w[i]) })
+    polygons.push({
+     k1: k0,
+     k2: k0,
+     k3: k8.movePolar(w[i + 1] * s, quer),
+     k4: k8,
+     col: farbe(w[i + 1]),
+    })
    }
   }
   return polygons
  })
 
- //Berechnet die einzelnen Punkte
- let points = computed(() => {
-  let points: { x: number; z: number; col: string }[] = []
-  const angle = props.element.Stab.Stabvektor.direction
-  const distance = Math.sqrt(
-   (ende.value.x - anfang.value.x) ** 2 + (ende.value.z - anfang.value.z) ** 2,
-  )
-  const ausgabepunkte = props.element.Ausgabepunkte - 1
-
-  stabGrößen.value.forEach((stabgröße, i) => {
-   let point = anfang.value //Start am Anfang
-    .movePolar((i / ausgabepunkte) * distance, angle) //Bewegt sich auf Stabachse
-    .movePolar(stabGrößen.value[i] * props.scaleSchnittgroesse, angle + Math.PI / 2)
-    .movePolar(Math.sign(stabGrößen.value[i]) * graphicSettings.ABSTAND_TEXT, angle + Math.PI / 2)
-
-   //Falls die Schnittgröße 0 ist, soll die Zahl über den Stab (nicht bei der gestrichelten Linie) geschoben werden
-   if (Math.sign(stabGrößen.value[i]) === 0) {
-    point = point.movePolar(-1 * graphicSettings.ABSTAND_TEXT, angle + Math.PI / 2)
-   }
-
-   //Schriftfarbe ermitteln pos=blau neg=rot 0=schwarz
-   let col: string
-   switch (true) {
-    case stabGrößen.value[i] < 0: {
-     col = graphicSettings.FARBE_SCHNITTGROESSE_NEVATIV
-     break
-    }
-    case stabGrößen.value[i] > 0: {
-     col = graphicSettings.FARBE_SCHNITTGROESSE_POSITIV
-     break
-    }
-    default: {
-     col = "rgb(0,0,0)"
-     break
+ /**
+  * Beschriftete Stellen: Stabenden, Extremwerte, Werte an Sprüngen.
+  * Mit "alle Werte" (Sichtbarkeitsmenü) werden alle Ausgabepunkte beschriftet.
+  */
+ const beschriftungen = computed(() => {
+  const w = props.werte
+  const n = w.length
+  const indizes = new Set<number>()
+  if (graphicSettings.SICHTBARKEIT_ALLEWERTE) {
+   for (let i = 0; i < n; i++) indizes.add(i)
+  } else {
+   indizes.add(0)
+   indizes.add(n - 1)
+   let iMax = 0
+   for (let i = 1; i < n; i++) if (Math.abs(w[i]) > Math.abs(w[iMax])) iMax = i
+   indizes.add(iMax)
+   for (let i = 1; i < n - 1; i++) {
+    const links = w[i] - w[i - 1]
+    const rechts = w[i + 1] - w[i]
+    //lokale Extremwerte und Sprünge (doppelte Stelle)
+    if (links * rechts < 0 && Math.abs(links) + Math.abs(rechts) > 1e-9 * Math.abs(w[iMax]))
+     indizes.add(i)
+    if (props.ergebnis.x[i] === props.ergebnis.x[i + 1]) {
+     indizes.add(i)
+     indizes.add(i + 1)
     }
    }
-   points.push({ x: point.x, z: point.z, col: col })
-  })
-  return points
+  }
+  const nks = graphicSettings.NACHKOMMASTELLEN_SCHNITTGROESSEN
+  const quer = winkel.value + Math.PI / 2
+  const liste: { index: number; x: number; z: number; col: string; text: number }[] = []
+  ;[...indizes]
+   .sort((a, b) => a - b)
+   .forEach((i) => {
+    const text = myRound(w[i] * props.einheit.vonSI, nks)
+    if (text === 0 && !graphicSettings.SICHTBARKEIT_ALLEWERTE && i !== 0 && i !== n - 1) return
+    if (text === 0 && (i === 0 || i === n - 1) && !graphicSettings.SICHTBARKEIT_ALLEWERTE) return
+    let p = achspunkt(props.ergebnis.x[i])
+     .movePolar(w[i] * props.scaleSchnittgroesse, quer)
+     .movePolar(Math.sign(w[i]) * graphicSettings.ABSTAND_TEXT, quer)
+    if (Math.sign(w[i]) === 0) p = p.movePolar(-graphicSettings.ABSTAND_TEXT, quer)
+    //Bei Sprüngen die beiden Werte etwas auseinanderziehen
+    if (props.ergebnis.x[i] === props.ergebnis.x[i + 1]) p = p.movePolar(-12, winkel.value)
+    if (i > 0 && props.ergebnis.x[i] === props.ergebnis.x[i - 1]) p = p.movePolar(12, winkel.value)
+    liste.push({ index: i, x: p.x, z: p.z, col: farbe(w[i]), text })
+   })
+  return liste
  })
 </script>

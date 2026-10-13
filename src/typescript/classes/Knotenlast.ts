@@ -1,7 +1,7 @@
-import { useSystemStore } from "@/stores/SystemStore"
-import type { isStatikobjekt } from "./InterfaceStatikobjekt"
+import type { isStatikobjekt, Spalte } from "./InterfaceStatikobjekt"
+import type System from "./System"
 import Knoten from "./Knoten"
-import { useEinheitenStore } from "@/stores/EinheitenStore"
+import { EINHEITEN } from "../einheiten"
 import type { isEinheit } from "./InterfaceEinheit"
 
 export default class Knotenlast implements isStatikobjekt {
@@ -17,8 +17,6 @@ export default class Knotenlast implements isStatikobjekt {
  einheitMoment: isEinheit
 
  constructor(Nummer: number = 0) {
-  const einheiten = useEinheitenStore()
-
   this.Nummer = Nummer
   this.Lastfallnummer = 1
   this.Knotennummer = 1
@@ -27,8 +25,8 @@ export default class Knotenlast implements isStatikobjekt {
   this.istZeichenbar = true
 
   //Einheiten für Eingabe
-  this.einheitKraft = einheiten.kN
-  this.einheitMoment = einheiten.kNm
+  this.einheitKraft = EINHEITEN.kN
+  this.einheitMoment = EINHEITEN.kNm
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein
@@ -57,8 +55,7 @@ export default class Knotenlast implements isStatikobjekt {
   this.Lastvektor[2] = phiLast * this.einheitMoment.nachSI
  }
 
- get header() {
-  const system = useSystemStore().system
+ header(system: System): Spalte[] {
   return [
    { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {

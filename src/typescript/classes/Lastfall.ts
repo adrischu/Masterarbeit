@@ -1,13 +1,15 @@
-import { useSystemStore } from "@/stores/SystemStore"
 import { Theorie } from "../enumerations"
 import type Balkenelement from "./Balkenelement"
-import type Fehler from "./Fehler"
+import type { LastfallErgebnis, Stabilitätsergebnis } from "./Ergebnis"
 import type { isElement } from "./InterfaceElement"
 import type { isStablast } from "./InterfaceStablast"
-import type { isStatikobjekt } from "./InterfaceStatikobjekt"
+import type { isStatikobjekt, Spalte } from "./InterfaceStatikobjekt"
 import type Knotenlast from "./Knotenlast"
 import type StablastStreckenlast from "./StablastStreckenlast"
 import type StablastVorverformung from "./StablastVorverformung"
+import type StablastEinzellast from "./StablastEinzellast"
+import type StablastTemperatur from "./StablastTemperatur"
+import type System from "./System"
 
 export default class Lastfall implements isStatikobjekt {
  //folgende Werte werden bei Erstellung eines Knotens definiert.
@@ -18,31 +20,15 @@ export default class Lastfall implements isStatikobjekt {
  Knotenlastliste: Knotenlast[]
  StablastListeStreckenlast: StablastStreckenlast[]
  StablastListeVorverformung: StablastVorverformung[]
+ StablastListeEinzellast: StablastEinzellast[]
+ StablastListeTemperatur: StablastTemperatur[]
 
  istKopieVonNummer: number
  istKopieVon: Lastfall | null
- //folgende Werte werden erst bei Berechnung definiert.
- Elementliste: isElement[]
- /**Globaler Lastvektor aller gehaltenen und nicht-gehaltenen Freiheitsgrade */
- Lastvektor: number[]
- /**Globaler Verformungsvektor aller nicht-gehaltenen Freiheitsgrade */
- Verformungsvektor_kurz: number[]
- /**"Verformungsvektor_kurz" aus vergangener Iteration (Fehlerkontrolle) */
- letzerVerformungsvektor_kurz: number[]
- /**Globaler Verformungsvektor aller gehaltenen und nicht-gehaltenen Freiheitsgrade */
- Verformungsvektor_lang: number[]
- /**Globale Gesamtsteifigkeitsmatrix ohne gestrichene Zeilen und Spalten */
- M_K_lang: number[][]
- /**Globale Gesamtsteifigkeitsmatrix mit gestrichenen Zeilen und Spalten */
- M_K_kurz: number[][]
- /**Knotenkraftvektor aller gehaltenen und nicht-gehaltenen Freiheitsgrade */
- Lagerkräfte: number[]
- /**Fehlerliste, die während der Berechnung als Abbruchkriterium verwendet wird.
-  * Wird nach der Berechnung zur Fehlerliste des Systems dazuaddier und ist ab dann redundant.
-  */
- Fehlerliste: Fehler[]
- /**True bedeutet dass dieser Lastfall berechnet ist */
- istBerechnet: boolean
+ /** Ergebnisse der letzten Berechnung (null = nicht berechnet). Wird nicht reaktiv verfolgt (markRaw). */
+ Ergebnis: LastfallErgebnis | null
+ /** Ergebnis der Stabilitätsuntersuchung (null = nicht berechnet) */
+ Stabilität: Stabilitätsergebnis | null
 
  constructor(Nummer: number = 0) {
   this.Nummer = Nummer
@@ -51,27 +37,60 @@ export default class Lastfall implements isStatikobjekt {
   this.Knotenlastliste = []
   this.StablastListeStreckenlast = []
   this.StablastListeVorverformung = []
+  this.StablastListeEinzellast = []
+  this.StablastListeTemperatur = []
   this.istKopieVon = null
   this.istKopieVonNummer = 0
-  this.Lastvektor = []
-  this.Verformungsvektor_kurz = []
-  this.letzerVerformungsvektor_kurz = []
-  this.Verformungsvektor_lang = []
-  this.Elementliste = []
-  this.M_K_lang = []
-  this.M_K_kurz = []
-  this.Lagerkräfte = []
-  this.Fehlerliste = []
-  this.istBerechnet = false
+  this.Ergebnis = null
+  this.Stabilität = null
+ }
+
+ /** Lastfall, dessen Lasten verwendet werden (bei Kopien der kopierte Lastfall). */
+ get Lastquelle(): Lastfall {
+  return this.istKopieVon ? this.istKopieVon : this
  }
 
  /**Gibt eine Liste aller Stablasten dieses Lastfalls zurück. */
- get Stablastliste() {
-  const streckenlasten = this.StablastListeStreckenlast as isStablast[]
-  const vorverformungen = this.StablastListeVorverformung as isStablast[]
-  const alleLasten = streckenlasten.concat(vorverformungen)
-  return alleLasten
-  //return this.StablastListeStreckenlast as isStablast[]
+ get Stablastliste(): isStablast[] {
+  return (this.StablastListeStreckenlast as isStablast[]).concat(
+   this.StablastListeVorverformung,
+   this.StablastListeEinzellast,
+   this.StablastListeTemperatur,
+  )
+ }
+
+ get istBerechnet(): boolean {
+  return this.Ergebnis !== null
+ }
+
+ //Kurzzugriffe auf die Ergebnisse (leere Werte, wenn nicht berechnet)
+ get Elementliste(): isElement[] {
+  return this.Ergebnis ? this.Ergebnis.Elementliste : []
+ }
+ get Balkenelementliste(): Balkenelement[] {
+  return this.Ergebnis ? this.Ergebnis.Balkenelementliste : []
+ }
+ get Lagerkräfte(): number[] {
+  return this.Ergebnis ? this.Ergebnis.Lagerkräfte : []
+ }
+ get Verformungsvektor_lang(): number[] {
+  return this.Ergebnis ? this.Ergebnis.Verformungsvektor_lang : []
+ }
+
+ /**
+  * Ergebnis [N, V, M, ux, uz, phi] (SI, lokales Stab-KS) an der Stelle x [m] eines Stabes.
+  */
+ stabwert(stabnummer: number, x: number, rechts = false): number[] {
+  const elemente = this.Balkenelementliste.filter((e) => e.Stab.Nummer === stabnummer)
+  if (elemente.length === 0) return [NaN, NaN, NaN, NaN, NaN, NaN]
+  let element = elemente[elemente.length - 1]
+  for (const e of elemente) {
+   if (x <= e.xAnfang + e.L * (1 + 1e-12)) {
+    element = e
+    break
+   }
+  }
+  return element.Ausgabepunkt(Math.min(Math.max(x - element.xAnfang, 0), element.L), rechts)
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein
@@ -89,31 +108,15 @@ export default class Lastfall implements isStatikobjekt {
   this.Nummer = Nummer
   this.Name = Name
   this.Theorie = Theorie
-  this.istKopieVonNummer = istKopieVonNummer
+  this.istKopieVonNummer = istKopieVonNummer ?? 0
  }
 
- get andereLastfallnummern(): number[] {
-  const system = useSystemStore().system
-  const indexArray = system.Lastfallliste.map((item) => item.Nummer)
-  const thisIndex = indexArray.indexOf(this.Nummer)
-  let lastfälle: number[] = []
-  if (thisIndex === -1) {
-   lastfälle = system.Lastfallliste.map((lastfall) => lastfall.Nummer)
-  } else {
-   system.Lastfallliste.forEach((lastfall, index) => {
-    if (index !== thisIndex) {
-     lastfälle.push(lastfall.Nummer)
-    }
-   })
-  }
-  return lastfälle
+ andereLastfallnummern(system: System): number[] {
+  return system.Lastfallliste.filter((lf) => lf.Nummer !== this.Nummer).map((lf) => lf.Nummer)
  }
 
- get Balkenelementliste() {
-  return this.Elementliste.filter((element) => element.Typ === "Balkenelement") as Balkenelement[]
- }
-
- get header() {
+ header(system: System): Spalte[] {
+  const andere = this.andereLastfallnummern(system)
   return [
    { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
@@ -126,8 +129,8 @@ export default class Lastfall implements isStatikobjekt {
     title: "Statiktheorie",
     value: this.Theorie,
     inputType: "select",
-    selectListKeys: [this.Theorie].concat(Object.values(Theorie)),
-    selectListValues: [this.Theorie].concat(Object.values(Theorie)),
+    selectListKeys: [this.Theorie as string].concat(Object.values(Theorie)),
+    selectListValues: [this.Theorie as string].concat(Object.values(Theorie)),
    },
    {
     title: "Lastfall kopieren",
@@ -135,28 +138,11 @@ export default class Lastfall implements isStatikobjekt {
     inputType: "select",
     selectListKeys: [
      this.istKopieVonNummer ? `Lastfall ${this.istKopieVonNummer}` : "Keiner",
-    ].concat(
-     ["Keiner"].concat(this.andereLastfallnummern.map((lastfall) => `Lastfall ${lastfall}`)),
-    ),
-    selectListValues: [this.istKopieVonNummer].concat([0].concat(this.andereLastfallnummern)),
+    ].concat(["Keiner"].concat(andere.map((lastfall) => `Lastfall ${lastfall}`))),
+    selectListValues: [this.istKopieVonNummer].concat([0].concat(andere)),
+    tooltip:
+     "<p>Übernimmt alle Lasten des gewählten Lastfalls. Die Statiktheorie bleibt die dieses Lastfalls.</p><p>Der kopierte Lastfall darf selbst keine Kopie sein.</p>",
    },
-   /*
-   {
-    title: "Lastfall kopieren",
-    value: this.istKopieVonNummer,
-    inputType: "select",
-    selectListKeys: ["Keinen"].concat(
-     [`Keinen`].concat(
-      system.Lastfallliste.splice(this.arrayIndex, 1).map(
-       (lastfall) => `Lastfall ${lastfall.Nummer}`,
-      ),
-     ),
-    ),
-    selectListValues: [this.istKopieVonNummer].concat(
-     [0].concat(system.Lastfallliste.splice(this.arrayIndex, 1).map((lastfall) => lastfall.Nummer)),
-    ),
-   },
-   */
   ]
  }
 }

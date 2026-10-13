@@ -1,32 +1,13 @@
 <template>
- <defs>
-  <defs>
-   <!-- A marker to be used as an arrowhead -->
-   <marker
-    id="arrowVertKnotenlast"
-    viewBox="0 0 10 10"
-    refX="5"
-    refY="5"
-    markerWidth="15"
-    markerHeight="15"
-    orient="auto-start-reverse"
-    :fill="graphicSettings.FARBE_STABLAST"
-    stroke-width="1.5"
-   >
-    <path d="M 0 0 L 10 5 L 0 10 z" />
-   </marker>
-  </defs>
- </defs>
-
  <g
-  v-for="last in lastVektoren"
-  :key="last.path"
+  v-for="(last, index) in lastVektoren"
+  :key="index"
  >
   <!-- Lastpfeile -->
   <path
    :d="last.path"
    :stroke="graphicSettings.FARBE_STABLAST"
-   marker-end="url(#arrowVertKnotenlast)"
+   marker-end="url(#sw-pfeil-knotenlast)"
    stroke-width="1.5"
    fill="none"
   />
@@ -41,81 +22,70 @@
    :x="last.text.point.x"
    :y="last.text.point.z"
   >
-   {{
-    Math.round(
-     (last.text.value * einheit.vonSI + Number.EPSILON) *
-      10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE,
-    ) /
-    10 ** graphicSettings.NACHKOMMASTELLEN_LASTWERTE
-   }}{{ graphicSettings.EINHEIT_SHOW ? einheit.text : "" }}
+   {{ myRound(last.text.value * last.einheit.vonSI, graphicSettings.NACHKOMMASTELLEN_LASTWERTE)
+   }}{{ graphicSettings.EINHEIT_SHOW ? last.einheit.text : "" }}
   </text>
  </g>
 </template>
 
 <script setup lang="ts">
- import Vector from "@/typescript/classes/Vector"
+ import type Vector from "@/typescript/classes/Vector"
  import { computed } from "vue"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
  import type Knoten from "@/typescript/classes/Knoten"
  import type Knotenlast from "@/typescript/classes/Knotenlast"
  import type { isEinheit } from "@/typescript/classes/InterfaceEinheit"
+ import { bildpunkt, type Ansicht } from "@/composables/useViewport"
+ import { EINHEITEN } from "@/typescript/einheiten"
+ import { myRound } from "@/typescript/util"
 
  const graphicSettings = useGraphicSettingsStore()
-
- const einheit: isEinheit = useGraphicSettingsStore().EINHEIT_LASTEN_KRAFT
 
  const props = defineProps<{
   lasten: Knotenlast[]
   knoten: Knoten
-  transform: { x: number; y: number; scale: number }
+  transform: Ansicht
   scaleLasten: number
  }>()
 
- let knotenpunkt = computed(() => {
-  return new Vector(
-   props.knoten.Koordinaten.x * props.transform.scale + props.transform.x,
-   props.knoten.Koordinaten.z * props.transform.scale + props.transform.y,
-  )
- })
+ let knotenpunkt = computed(() =>
+  bildpunkt(props.transform, props.knoten.Koordinaten.x, props.knoten.Koordinaten.z),
+ )
 
  let lastVektoren = computed(() => {
-  let lastVektoren: { path: string; text: { point: Vector; value: number } }[] = []
-  let dir: number
-  let k1: Vector
-  let k2: Vector
+  let lastVektoren: { path: string; text: { point: Vector; value: number }; einheit: isEinheit }[] =
+   []
   const pfeillänge = 50
+  const kraft = graphicSettings.EINHEIT_LASTEN_KRAFT
   props.lasten.forEach((last) => {
-   //Kräfte in global x-Richtung
-   if (last.Lastvektor[0]) {
-    const lastwert = last.Lastvektor[0]
-    dir = -Math.PI
-    k1 = knotenpunkt.value.movePolar(graphicSettings.ABSTAND_KNOTENLAST, dir)
-    k2 = k1.movePolar(pfeillänge, dir)
+   //Kräfte in global x- bzw. z-Richtung
+   for (let i = 0; i <= 1; i++) {
+    const lastwert = last.Lastvektor[i]
+    if (!lastwert) continue
+    const dir = i === 0 ? -Math.PI : -Math.PI / 2
+    const k1 = knotenpunkt.value.movePolar(graphicSettings.ABSTAND_KNOTENLAST, dir)
+    const k2 = k1.movePolar(pfeillänge, dir)
     const textpunkt = k2.movePolar(15, -Math.PI / 4)
     const path =
      lastwert > 0 ? `M ${k2.x} ${k2.z} L ${k1.x} ${k1.z}` : `M ${k1.x} ${k1.z} L ${k2.x} ${k2.z}`
-    lastVektoren.push({ path: path, text: { point: textpunkt, value: Math.abs(lastwert) } })
-   }
-   //Kräfte in global z-Richtung
-   if (last.Lastvektor[1]) {
-    const lastwert = last.Lastvektor[1]
-    dir = -Math.PI / 2
-    k1 = knotenpunkt.value.movePolar(graphicSettings.ABSTAND_KNOTENLAST, dir)
-    k2 = k1.movePolar(pfeillänge, dir)
-    const textpunkt = k2.movePolar(15, -Math.PI / 4)
-    const path =
-     lastwert > 0 ? `M ${k2.x} ${k2.z} L ${k1.x} ${k1.z}` : `M ${k1.x} ${k1.z} L ${k2.x} ${k2.z}`
-    lastVektoren.push({ path: path, text: { point: textpunkt, value: Math.abs(lastwert) } })
+    lastVektoren.push({
+     path,
+     text: { point: textpunkt, value: Math.abs(lastwert) },
+     einheit: kraft,
+    })
    }
    if (last.Lastvektor[2]) {
     const lastwert = last.Lastvektor[2]
-    //d="M140,20 a20,20 0 1,0 -20,20" />
+    const k = knotenpunkt.value
     const path =
      lastwert > 0
-      ? `M ${knotenpunkt.value.x + 20} ${knotenpunkt.value.z} a20,20 0 1,0 -20,20`
-      : `M ${knotenpunkt.value.x + 20} ${knotenpunkt.value.z} a20,20 0 1,1 -20,-20`
-    const textpunkt = knotenpunkt.value.movePolar(35, -Math.PI / 4)
-    lastVektoren.push({ path: path, text: { point: textpunkt, value: Math.abs(lastwert) } })
+      ? `M ${k.x + 20} ${k.z} a20,20 0 1,0 -20,20`
+      : `M ${k.x + 20} ${k.z} a20,20 0 1,1 -20,-20`
+    lastVektoren.push({
+     path,
+     text: { point: k.movePolar(35, -Math.PI / 4), value: Math.abs(lastwert) },
+     einheit: EINHEITEN.kNm,
+    })
    }
   })
   return lastVektoren

@@ -1,8 +1,8 @@
-import { useSystemStore } from "@/stores/SystemStore"
 import type Material from "./Material"
-import type { isStatikobjekt } from "./InterfaceStatikobjekt"
+import type { isStatikobjekt, Spalte } from "./InterfaceStatikobjekt"
 import type { isEinheit } from "./InterfaceEinheit"
-import { useEinheitenStore } from "@/stores/EinheitenStore"
+import { EINHEITEN } from "../einheiten"
+import type System from "./System"
 
 export default class Querschnitt implements isStatikobjekt {
  Nummer: number
@@ -12,21 +12,25 @@ export default class Querschnitt implements isStatikobjekt {
  Material: Material | null
  A: number //Fläche in m²
  I: number //Flächenträgheitsmoment (um y) in m^4
+ /** Querschnittshöhe in m (nur für linear veränderliche Temperatur benötigt) */
+ h: number
 
  einheitFlaeche: isEinheit
  einheitTraeg: isEinheit
+ einheitHöhe: isEinheit
 
  constructor(Nummer: number = 0) {
-  const einheiten = useEinheitenStore()
   this.Nummer = Nummer
   this.Name = "neuer Querschnitt"
   this.Materialnummer = 1
   this.Material = null
   this.A = 0
   this.I = 0
+  this.h = 0
 
-  this.einheitFlaeche = einheiten.cm2
-  this.einheitTraeg = einheiten.cm4
+  this.einheitFlaeche = EINHEITEN.cm2
+  this.einheitTraeg = EINHEITEN.cm4
+  this.einheitHöhe = EINHEITEN.cm
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein
@@ -38,25 +42,28 @@ export default class Querschnitt implements isStatikobjekt {
    this.Materialnummer,
    this.A * this.einheitFlaeche.vonSI,
    this.I * this.einheitTraeg.vonSI,
+   this.h * this.einheitHöhe.vonSI,
   ]
  }
 
- set values([Nummer, Name, Materialnummer, A, I]: [
+ set values([Nummer, Name, Materialnummer, A, I, h]: [
   Nummer: number,
   Name: string,
   Materialnummer: number,
   Fläche: number,
   Trägheitsmoment: number,
+  Höhe?: number,
  ]) {
   this.Nummer = Nummer
   this.Name = Name
   this.Materialnummer = Materialnummer
   this.A = A * this.einheitFlaeche.nachSI
   this.I = I * this.einheitTraeg.nachSI
+  this.h = (h ?? 0) * this.einheitHöhe.nachSI
  }
 
- get header() {
-  const system = useSystemStore().system
+ header(system: System): Spalte[] {
+  const material = system.Materialliste.find((m) => m.Nummer === this.Materialnummer)
   return [
    { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
@@ -69,13 +76,9 @@ export default class Querschnitt implements isStatikobjekt {
     title: "Material",
     value: this.Materialnummer,
     inputType: "select",
-    selectListKeys: [
-     `${this.Materialnummer}: ${
-      system.Materialliste.find((material) => material.Nummer === this.Materialnummer)
-       ? system.Materialliste.find((material) => material.Nummer === this.Materialnummer)?.Name
-       : "?"
-     }`,
-    ].concat(system.Materialliste.map((material) => `${material.Nummer}: ${material.Name}`)),
+    selectListKeys: [`${this.Materialnummer}: ${material ? material.Name : "?"}`].concat(
+     system.Materialliste.map((material) => `${material.Nummer}: ${material.Name}`),
+    ),
     selectListValues: [this.Materialnummer].concat(
      system.Materialliste.map((material) => material.Nummer),
     ),
@@ -93,6 +96,15 @@ export default class Querschnitt implements isStatikobjekt {
     value: this.I,
     inputType: "input",
     inputFormat: "number",
+   },
+   {
+    title: "h",
+    unit: this.einheitHöhe,
+    value: this.h,
+    inputType: "input",
+    inputFormat: "number",
+    tooltip:
+     "<p>Querschnittshöhe. Wird nur für linear veränderliche Temperaturlasten benötigt.</p>",
    },
   ]
  }
