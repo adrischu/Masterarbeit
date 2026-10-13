@@ -5,13 +5,14 @@
   v-model="dialog"
  >
   <template v-slot:activator="{ props: activatorProps }">
-   <v-btn
-    icon="mdi-trash-can-outline"
+   <v-list-item
     v-bind="activatorProps"
-   ></v-btn>
+    prepend-icon="mdi-trash-can-outline"
+    title="Neues System (alles löschen)"
+   />
   </template>
   <v-card
-   text="Soll das aktuelle System wirklich gelöscht werden?"
+   text="Soll das aktuelle System wirklich gelöscht werden? (Rückgängig ist möglich.)"
    title="Achtung!"
   >
    <template v-slot:actions>

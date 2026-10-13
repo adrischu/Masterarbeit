@@ -2,140 +2,104 @@
  <div class="header">
   <v-toolbar
    density="compact"
-   class="action-fields"
+   class="werkzeugleiste"
    color="green-lighten-4"
-   elevation="10"
-   :border="true"
+   elevation="4"
   >
-   <!--  -->
-   <!-- File-Upload -->
-   <!--  -->
-   <div style="width: 48px">
-    <label for="file-upload">
-     <i class="fas fa-upload">
-      <v-icon
-       style="cursor: pointer"
-       icon="mdi-upload"
-      ></v-icon>
-
-      <!-- <v-btn
-       disabled
-       icon="mdi-upload"
-      ></v-btn> -->
-     </i>
-    </label>
-    <input
-     id="file-upload"
-     type="file"
-     ref="fileInput"
-     style="display: none"
-     @change="clickFileUpload"
-    />
-   </div>
-
-   <!--  -->
-   <!-- File Save -->
-   <!--  -->
+   <!-- Datei öffnen -->
    <v-btn
-    @click="saveSystemToFile"
-    icon="mdi-floppy"
+    icon="mdi-folder-open-outline"
+    title="System öffnen"
+    @click="fileInput?.click()"
+   ></v-btn>
+   <input
+    type="file"
+    ref="fileInput"
+    accept=".json,application/json"
+    style="display: none"
+    @change="clickFileUpload"
+   />
+
+   <!-- Speichern -->
+   <v-btn
+    v-if="!schmal"
+    @click="speichern"
+    icon="mdi-content-save-outline"
+    title="System speichern"
    ></v-btn>
 
-   <!--  -->
-   <!-- Delete System -->
-   <!--  -->
-   <DialogDeleteSystem
-    @accept-delete="
-     () => {
-      preloadSystem(0)
-      emit('force-rerender')
-     }
-    "
-   />
+   <!-- Rückgängig / Wiederholen -->
+   <v-btn
+    icon="mdi-undo"
+    title="Rückgängig (Strg+Z)"
+    :disabled="!systemStore.kannRückgängig"
+    @click="systemStore.rückgängig()"
+   ></v-btn>
+   <v-btn
+    v-if="!schmal"
+    icon="mdi-redo"
+    title="Wiederholen (Strg+Y)"
+    :disabled="!systemStore.kannWiederholen"
+    @click="systemStore.wiederholen()"
+   ></v-btn>
 
    <v-divider
     class="divider"
     vertical
    />
 
-   <!--  -->
    <!-- Rechenbutton -->
-   <!--  -->
    <v-btn
     icon="mdi-calculator"
+    title="Berechnen"
+    color="green-darken-3"
     @click="handleStartBerechnung()"
    ></v-btn>
 
-   <!--  -->
    <!-- Sichtbarkeiten -->
-   <!--  -->
    <v-menu :close-on-content-click="false">
     <template v-slot:activator="{ props }">
      <v-btn
       icon="mdi-eye-outline"
+      title="Sichtbarkeit"
       v-bind="props"
      />
     </template>
-    <v-list>
-     <v-list-item>
+    <v-list density="compact">
+     <v-list-item
+      v-for="eintrag in sichtbarkeiten"
+      :key="eintrag.schlüssel"
+     >
       <v-checkbox-btn
-       label="Werte"
-       v-model="graphicSettings.SICHTBARKEIT_WERTE"
-      ></v-checkbox-btn>
-     </v-list-item>
-     <v-list-item>
-      <v-checkbox-btn
-       label="Lasten"
-       v-model="graphicSettings.SICHTBARKEIT_LASTEN"
-      ></v-checkbox-btn>
-     </v-list-item>
-     <v-list-item>
-      <v-checkbox-btn
-       label="Schnittgrößen"
-       v-model="graphicSettings.SICHTBARKEIT_SCHNITTGROESSEN"
-      ></v-checkbox-btn>
-     </v-list-item>
-     <v-list-item>
-      <v-checkbox-btn
-       label="Verformung"
-       v-model="graphicSettings.SICHTBARKEIT_VERFORMUNG"
-      ></v-checkbox-btn>
-     </v-list-item>
-     <v-list-item>
-      <v-checkbox-btn
-       label="Lagerkräfte"
-       v-model="graphicSettings.SICHTBARKEIT_LAGERKRAEFTE"
+       :label="eintrag.titel"
+       v-model="(graphicSettings as any)[eintrag.schlüssel]"
       ></v-checkbox-btn>
      </v-list-item>
     </v-list>
    </v-menu>
 
-   <!--  -->
    <!-- Lastfallauswahl -->
-   <!--  -->
    <!-- item-value="Nummer" sorgt dafür dass nicht das komplette Objekt verglichen wird, was zu "max stack size exceeded" führen kann -->
    <v-select
-    v-model="lastfall"
+    class="auswahl"
+    v-model="lastfallnummer"
     :items="systemStore.system.Lastfallliste"
     :item-props="lastfallProps"
-    return-object
     item-value="Nummer"
     hide-details
+    density="compact"
+    variant="plain"
    ></v-select>
 
-   <v-divider
-    class="divider"
-    vertical
-   />
-
-   <!--  -->
    <!-- Ergebnisgröße Auswahl -->
-   <!--  -->
    <v-select
+    class="auswahl auswahl-klein"
     hide-details
+    density="compact"
+    variant="plain"
     v-model="ergebnisgroesse"
     :items="ergebnisgroessenAuswahl"
-    :disabled="!lastfall.istBerechnet"
+    :disabled="!lastfall?.istBerechnet"
     ><template #selection="{ item }">
      <span v-html="item.raw.title"></span>
     </template>
@@ -150,71 +114,84 @@
 
    <v-spacer></v-spacer>
 
-   <!--  -->
-   <!-- Parameteranalyse -->
-   <!--  -->
-   <!-- <v-menu>
-    <template v-slot:activator="{ props }">
-     <v-btn
-      icon="mdi-chart-line"
-      v-bind="props"
-     />
-    </template>
-    <v-list>
-     <v-list-item>
-      <v-btn @click="system1Analyse1Element">System 1 - 1 Element</v-btn>
-     </v-list-item>
-     <v-list-item>
-      <v-btn @click="system1Analyse2Element">System 1 - 2 Elemente</v-btn>
-     </v-list-item>
-     <v-list-item>
-      <v-btn @click="system2Analyse1Element">System 1 - 2 Elemente</v-btn>
-     </v-list-item>
-    </v-list>
-   </v-menu> -->
-
-   <!--  -->
-   <!-- "Mehr-Menü" -->
-   <!--  -->
-   <v-menu :close-on-content-click="true">
+   <!-- "Mehr-Menü" (auf schmalen Bildschirmen auch Speichern, Wiederholen, Löschen) -->
+   <v-menu :close-on-content-click="false">
     <template v-slot:activator="{ props }">
      <v-btn
       icon="mdi-dots-vertical"
+      title="Weitere Funktionen"
       v-bind="props"
      />
     </template>
-    <v-list>
-     <!-- Grafik als SVG-Speichern -->
-     <v-list-item>
-      <v-btn @click="alsSVGSpeichern">Als .svg speichern</v-btn>
-     </v-list-item>
-
-     <!-- Handbuch -->
-     <v-list-item>
-      <DialogHandbuch />
-     </v-list-item>
-
-     <!-- Einstellungen -->
-     <v-list-item>
-      <DialogEinstellungen />
-     </v-list-item>
+    <v-list density="compact">
+     <v-list-item
+      v-if="schmal"
+      prepend-icon="mdi-content-save-outline"
+      title="System speichern"
+      @click="speichern"
+     />
+     <v-list-item
+      v-if="schmal"
+      prepend-icon="mdi-redo"
+      title="Wiederholen"
+      :disabled="!systemStore.kannWiederholen"
+      @click="systemStore.wiederholen()"
+     />
+     <DialogDeleteSystem
+      @accept-delete="
+       () => {
+        systemStore.vorÄnderung()
+        preloadSystem(0)
+       }
+      "
+     />
+     <v-list-item
+      prepend-icon="mdi-shape-outline"
+      title="Beispielsysteme"
+      @click="beispielDialog = true"
+     />
+     <v-divider />
+     <DialogStabilitaet
+      v-if="lastfall"
+      :lastfall="lastfall"
+     />
+     <DialogLaststeigerung
+      v-if="lastfall"
+      :lastfall="lastfall"
+     />
+     <v-divider />
+     <v-list-item
+      prepend-icon="mdi-svg"
+      title="Grafik als SVG speichern"
+      @click="alsSVGSpeichern"
+     />
+     <v-list-item
+      prepend-icon="mdi-file-image-outline"
+      title="Grafik als PNG speichern"
+      @click="pngSpeichern"
+     />
+     <v-divider />
+     <DialogHandbuch />
+     <DialogEinstellungen />
     </v-list>
    </v-menu>
   </v-toolbar>
  </div>
 
- <div class="main-content">
+ <div
+  class="main-content"
+  ref="hauptbereich"
+ >
   <!-- Div für Grafikfenster -->
   <div
    id="grafik-fenster"
    class="svg-container"
-   ref="svgContainer"
    :style="{ height: graphicSettings.HÖHE_GRAFIK + '%' }"
   >
    <FensterGrafik
+    v-if="lastfall"
     :lastfall="lastfall"
     :ergebnisgroesse="ergebnisgroesse"
-    :svgContainer="svgContainer"
    />
   </div>
 
@@ -223,103 +200,177 @@
    class="table-container"
    :style="{ height: graphicSettings.HÖHE_TABELLE + '%' }"
   >
-   <v-icon
-    size="30"
-    icon="mdi-unfold-more-horizontal"
-    class="resize-icon"
-    @mousedown="startResizing"
-   />
+   <!-- Halbkreis zum Ändern der Höhe von Grafik und Tabelle (Maus, Touch und Stift) -->
+   <div
+    class="resize-griff"
+    title="Ziehen, um Grafik und Tabelle zu vergrößern bzw. zu verkleinern"
+    @pointerdown="startResizing"
+    @pointermove="resizePanels"
+    @pointerup="stopResizing"
+    @pointercancel="stopResizing"
+    @dblclick="höheZurücksetzen()"
+   >
+    <div class="resize-halbkreis">
+     <v-icon
+      size="22"
+      icon="mdi-drag-horizontal"
+     />
+    </div>
+   </div>
    <div class="table-scroll">
-    <TabelleVariabel :lastfall="lastfall" />
+    <TabelleVariabel
+     v-if="lastfall"
+     :lastfall="lastfall"
+    />
    </div>
   </div>
  </div>
  <!-- Div für Fußzeile -->
- <div class="footer">&copy; Adrian Schubert - {{ new Date().getFullYear() }} - v1.0.0</div>
+ <div class="footer">
+  &copy; Adrian Schubert - {{ new Date().getFullYear() }} - v1.1.0
+  <span
+   v-if="systemStore.ungespeichert"
+   class="ungespeichert"
+   >· ungespeicherte Änderungen (automatisch im Browser gesichert)</span
+  >
+ </div>
 
  <DialogFehler
   v-if="fehlerDialog"
   @afterLeave="toggleFehlerDialog()"
  />
+
+ <!-- Beispielsysteme -->
+ <v-dialog
+  v-model="beispielDialog"
+  max-width="480"
+ >
+  <v-card title="Beispielsysteme">
+   <v-list>
+    <v-list-item
+     v-for="b in beispiele"
+     :key="b.nr"
+     :title="b.titel"
+     :subtitle="b.text"
+     @click="beispielLaden(b.nr)"
+    />
+   </v-list>
+  </v-card>
+ </v-dialog>
+
+ <v-snackbar
+  v-model="meldungAnzeigen"
+  timeout="6000"
+  :color="meldungFarbe"
+ >
+  {{ meldung }}
+ </v-snackbar>
 </template>
 
 <script setup lang="ts">
- import { ref, type Ref } from "vue"
+ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
+ import { useDisplay } from "vuetify"
  import { useSystemStore } from "@/stores/SystemStore"
- import type Lastfall from "@/typescript/classes/Lastfall"
  import TabelleVariabel from "./tabellen/TabelleVariabel.vue"
  import FensterGrafik from "./FensterGrafik.vue"
  import DialogEinstellungen from "./dialoge/DialogEinstellungen.vue"
  import DialogHandbuch from "./dialoge/DialogHandbuch.vue"
  import DialogFehler from "./dialoge/DialogFehler.vue"
  import DialogDeleteSystem from "./dialoge/DialogDeleteSystem.vue"
- import { saveSystemToFile } from "@/typescript/DateiFunktionen"
- import { handleFileUpload } from "@/typescript/DateiFunktionen"
- import { alsSVGSpeichern } from "@/typescript/DateiFunktionen"
- //  import { alsPNGSpeichern } from "@/typescript/DateiFunktionen"
- //  import { system1Analyse1Element } from "@/typescript/parameterstudie"
- //  import { system1Analyse2Element } from "@/typescript/parameterstudie"
- //  import { system2Analyse1Element } from "@/typescript/parameterstudie"
+ import DialogStabilitaet from "./dialoge/DialogStabilitaet.vue"
+ import DialogLaststeigerung from "./dialoge/DialogLaststeigerung.vue"
+ import {
+  saveSystemToFile,
+  systemAusDateiLaden,
+  alsSVGSpeichern,
+  alsPNGSpeichern,
+ } from "@/typescript/DateiFunktionen"
  import { useGraphicSettingsStore } from "@/stores/GraphicSettingsStore"
  import { preloadSystem } from "@/typescript/SystemPreload"
+ import type Lastfall from "@/typescript/classes/Lastfall"
 
  const systemStore = useSystemStore()
  const graphicSettings = useGraphicSettingsStore()
- let isResizing = false
- const svgContainer: Ref<HTMLElement | null> = ref(null)
+ const { width } = useDisplay()
+ /** Schmale Bildschirme (Smartphone hochkant): selten genutzte Knöpfe ins Menü verschieben */
+ const schmal = computed(() => width.value < 600)
 
- const emit = defineEmits<{
-  (event: "force-rerender"): void
- }>()
- let lastfall: Ref<Lastfall> = ref(systemStore.system.Lastfallliste[0])
+ const fileInput = ref<HTMLInputElement | null>(null)
+ const hauptbereich = ref<HTMLElement | null>(null)
+
+ //Lastfallauswahl über die Nummer (bleibt gültig, wenn das System ersetzt wird, z. B. bei Rückgängig)
+ const lastfallnummer = ref<number>(systemStore.system.Lastfallliste[0]?.Nummer ?? 1)
+ const lastfall = computed<Lastfall | undefined>(
+  () =>
+   systemStore.system.Lastfallliste.find((lf) => lf.Nummer === lastfallnummer.value) ??
+   systemStore.system.Lastfallliste[0],
+ )
+ watch(lastfall, (lf) => {
+  if (lf && lf.Nummer !== lastfallnummer.value) lastfallnummer.value = lf.Nummer
+ })
+
  let ergebnisgroesse = ref(2)
- let ergebnisgroessenAuswahl: { title: string; value: number }[] = [
+ const ergebnisgroessenAuswahl = computed(() => [
   { title: `N [${graphicSettings.EINHEIT_ERGEBNIS_KRAFT.text}]`, value: 0 },
   { title: `V [${graphicSettings.EINHEIT_ERGEBNIS_KRAFT.text}]`, value: 1 },
   { title: `M [${graphicSettings.EINHEIT_ERGEBNIS_MOMENT.text}]`, value: 2 },
   { title: `u [${graphicSettings.EINHEIT_ERGEBNIS_LÄNGE.text}]`, value: 3 },
   { title: `w [${graphicSettings.EINHEIT_ERGEBNIS_LÄNGE.text}]`, value: 4 },
   { title: `φ [${graphicSettings.EINHEIT_ERGEBNIS_WINKEL.text}]`, value: 5 },
- ]
+ ])
  let lastfallProps = function (lastfall: Lastfall) {
-  return { title: `Lastfall ${lastfall.Nummer}`, subtitle: lastfall.Name }
+  return { title: `LF ${lastfall.Nummer}`, subtitle: lastfall.Name }
  }
 
- function startResizing(e: MouseEvent) {
+ const sichtbarkeiten = [
+  { titel: "Werte", schlüssel: "SICHTBARKEIT_WERTE" },
+  { titel: "alle Werte (sonst nur Extremwerte)", schlüssel: "SICHTBARKEIT_ALLEWERTE" },
+  { titel: "Lasten", schlüssel: "SICHTBARKEIT_LASTEN" },
+  { titel: "Schnittgrößen", schlüssel: "SICHTBARKEIT_SCHNITTGROESSEN" },
+  { titel: "Verformung", schlüssel: "SICHTBARKEIT_VERFORMUNG" },
+  { titel: "Lagerkräfte", schlüssel: "SICHTBARKEIT_LAGERKRAEFTE" },
+  { titel: "Eigenform (Stabilität)", schlüssel: "SICHTBARKEIT_EIGENFORM" },
+ ]
+
+ //
+ //Größenänderung Grafik/Tabelle (Pointer Events: Maus, Touch, Stift)
+ //
+ let isResizing = false
+ const MIN_HÖHE = 10 //%
+ const MAX_HÖHE = 92 //%
+
+ function startResizing(e: PointerEvent) {
   e.preventDefault()
   isResizing = true
-  window.addEventListener("mousemove", resizePanels)
-  window.addEventListener("mouseup", stopResizing)
+  ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
  }
 
- function resizePanels(e: MouseEvent) {
-  if (!isResizing) return
-  const minHeight: number = 15 //15
-  const maxHeight: number = 90 //90
-  const container = document.querySelector(".main-content") as HTMLElement
-  const containerRect = container.getBoundingClientRect()
-  const offsetY = e.clientY - 0 - containerRect.top //20 is button height
-  console.log(containerRect.height)
-  const newGraphicHeight = Math.min(
-   maxHeight,
-   Math.max(minHeight, (offsetY / containerRect.height) * 100),
-  )
-  graphicSettings.HÖHE_GRAFIK = newGraphicHeight //%
-  graphicSettings.HÖHE_TABELLE = 100 - newGraphicHeight //%
+ function resizePanels(e: PointerEvent) {
+  if (!isResizing || !hauptbereich.value) return
+  const rect = hauptbereich.value.getBoundingClientRect()
+  const anteil = ((e.clientY - rect.top) / rect.height) * 100
+  const grafik = Math.min(MAX_HÖHE, Math.max(MIN_HÖHE, anteil))
+  graphicSettings.HÖHE_GRAFIK = grafik
+  graphicSettings.HÖHE_TABELLE = 100 - grafik
  }
 
- function stopResizing() {
+ function stopResizing(e: PointerEvent) {
   isResizing = false
-  window.removeEventListener("mousemove", resizePanels)
-  window.removeEventListener("mouseup", stopResizing)
+  ;(e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId)
  }
 
+ function höheZurücksetzen() {
+  graphicSettings.HÖHE_GRAFIK = 60
+  graphicSettings.HÖHE_TABELLE = 40
+ }
+
+ //
+ //Berechnung
+ //
  function handleStartBerechnung(): void {
   //Der Fehlerdialog wird geöffnet, wenn vor der Berechnung noch Fehler vorhanden sind,
   //oder wenn nach der Berechnung Fehler vorhanden sind.
-  if (!systemStore.system.berechnen()) {
-   toggleFehlerDialog()
-  } else if (systemStore.system.Fehlerliste.length) {
+  if (!systemStore.berechnen() || systemStore.system.Fehlerliste.length) {
    toggleFehlerDialog()
   }
  }
@@ -329,46 +380,102 @@
   fehlerDialog.value = !fehlerDialog.value
  }
 
- function clickFileUpload(e: Event) {
-  handleFileUpload(e)!.onloadend = (e2) => {
-   const content = e2.target?.result
-   if (content) {
-    emit("force-rerender")
-   }
+ //
+ //Dateien
+ //
+ const meldung = ref("")
+ const meldungFarbe = ref("green-darken-2")
+ const meldungAnzeigen = ref(false)
+ function zeigeMeldung(text: string, fehler = false) {
+  meldung.value = text
+  meldungFarbe.value = fehler ? "red-darken-2" : "green-darken-2"
+  meldungAnzeigen.value = true
+ }
+
+ async function clickFileUpload(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  try {
+   await systemAusDateiLaden(file)
+   zeigeMeldung(`"${file.name}" wurde geöffnet.`)
+  } catch (fehler) {
+   zeigeMeldung((fehler as Error).message, true)
+  } finally {
+   input.value = ""
   }
  }
+
+ function speichern() {
+  saveSystemToFile()
+ }
+
+ async function pngSpeichern() {
+  try {
+   await alsPNGSpeichern()
+  } catch (fehler) {
+   zeigeMeldung((fehler as Error).message, true)
+  }
+ }
+
+ //
+ //Beispielsysteme
+ //
+ const beispielDialog = ref(false)
+ const beispiele = [
+  { nr: 7, titel: "Startsystem", text: "Kragarm, LF2 kopiert LF1 und rechnet nach Th. II" },
+  { nr: 1, titel: "RSTAB-Vergleich (Arbeit Tab. 2)", text: "Rahmen mit Gelenk, Vorverformung" },
+  { nr: 2, titel: "Kragarm mit 10 Stäben (Arbeit Tab. 3)", text: "Vergleich der Näherungen" },
+  { nr: 3, titel: "Parameterstudie System 1", text: "Kragarm 1 Element, alle Theorien" },
+  { nr: 5, titel: "System 2 (verschieblicher Rahmen)", text: "Stabilität: α_cr" },
+ ]
+ function beispielLaden(nr: number) {
+  systemStore.vorÄnderung()
+  preloadSystem(nr)
+  beispielDialog.value = false
+ }
+
+ //
+ //Tastaturkürzel
+ //
+ function tastatur(e: KeyboardEvent) {
+  const ziel = e.target as HTMLElement
+  if (ziel && (ziel.tagName === "INPUT" || ziel.tagName === "SELECT")) return
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
+   e.preventDefault()
+   systemStore.rückgängig()
+  } else if (
+   (e.ctrlKey || e.metaKey) &&
+   (e.key.toLowerCase() === "y" || (e.key.toLowerCase() === "z" && e.shiftKey))
+  ) {
+   e.preventDefault()
+   systemStore.wiederholen()
+  }
+ }
+ onMounted(() => window.addEventListener("keydown", tastatur))
+ onBeforeUnmount(() => window.removeEventListener("keydown", tastatur))
 </script>
 
 <style>
  .svg-container {
-  position: relative; /* Stellt sicher, dass die absolut positionierten Elemente relativ zum Container positioniert werden */
-  width: 100%; /* Breite des SVG-Containers */
-  height: 20%; /* Höhe des SVG-Containers */
+  position: relative;
+  width: 100%;
+  min-height: 0;
  }
 
  .table-container {
   position: relative;
   width: 100%;
-  height: 80%;
-  overflow: visible; /* ✅ allows floating button to show fully */
   min-height: 0;
- }
-
- /* ✅ scrolling only applies to content */
- .table-scroll {
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  min-height: 0;
- }
-
- .table-content {
-  height: 100%;
   display: flex;
   flex-direction: column;
-  overflow-y: hidden;
-  z-index: 10;
+  border-top: 1px solid #bbb;
+ }
+
+ .table-scroll {
+  flex: 1;
   min-height: 0;
+  overflow: hidden;
  }
 
  .divider {
@@ -376,29 +483,45 @@
   margin-bottom: 7px;
  }
 
- /* Stilregeln für die Auswahlfelder hier hinzufügen */
- .file-input {
-  height: 200px;
+ .werkzeugleiste .auswahl {
+  max-width: 220px;
+  min-width: 90px;
  }
- .file-input:deep().v-input__control,
- .file-input:deep().v-input__details {
-  display: none;
+ .werkzeugleiste .auswahl-klein {
+  max-width: 130px;
  }
 
- /* ✅ floating correctly, no clipping */
- .resize-icon {
-  position: absolute !important;
-  top: 0;
+ /* Griff zum Ändern der Höhe: Halbkreis mittig über der Tabelle, Greiffläche ≥ 44 px */
+ .resize-griff {
+  position: absolute;
+  top: -30px;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
+  width: 72px;
+  height: 46px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
   cursor: row-resize;
-  background: white;
-  border-radius: 50%;
-  padding: 4px;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
-  /* z-index: 10; */
+  touch-action: none;
+  z-index: 5;
  }
- .resize-icon:hover {
-  background-color: #eee;
+ .resize-halbkreis {
+  width: 60px;
+  height: 30px;
+  border-radius: 30px 30px 0 0;
+  background: white;
+  border: 1px solid #bbb;
+  border-bottom: none;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+ }
+ .resize-griff:hover .resize-halbkreis {
+  background: #eef7ee;
+ }
+ .ungespeichert {
+  color: #8a5a00;
  }
 </style>

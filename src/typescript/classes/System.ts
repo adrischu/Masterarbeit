@@ -7,10 +7,43 @@ import Material from "./Material"
 import Lastfall from "./Lastfall"
 import Knotenlast from "./Knotenlast"
 import Gelenk from "./Gelenk"
-import { startBerechnungen, ergebnisseLöschen } from "../berechnungen"
+import {
+ startBerechnungen,
+ ergebnisseLöschen,
+ STANDARD_RECHENOPTIONEN,
+ type Berechnungsergebnis,
+ type Rechenoptionen,
+} from "../berechnungen"
 import StablastStreckenlast from "./StablastStreckenlast"
 import StablastVorverformung from "./StablastVorverformung"
+import StablastEinzellast from "./StablastEinzellast"
+import StablastTemperatur from "./StablastTemperatur"
 import Fehler from "./Fehler"
+
+/** Alle Objekttypen, die über die Tabellen eingegeben werden können */
+export const STATIKOBJEKTTYPEN = [
+ "Lager",
+ "Knoten",
+ "Material",
+ "Querschnitt",
+ "Gelenk",
+ "Stab",
+ "Lastfall",
+ "Knotenlast",
+ "StablastStreckenlast",
+ "StablastVorverformung",
+ "StablastEinzellast",
+ "StablastTemperatur",
+] as const
+
+/** Lastarten, die einem Lastfall zugeordnet sind, mit dem Namen ihrer Liste im Lastfall */
+export const LASTLISTEN = {
+ Knotenlast: "Knotenlastliste",
+ StablastStreckenlast: "StablastListeStreckenlast",
+ StablastVorverformung: "StablastListeVorverformung",
+ StablastEinzellast: "StablastListeEinzellast",
+ StablastTemperatur: "StablastListeTemperatur",
+} as const
 
 export default class System {
  Knotenliste: Knoten[]
@@ -21,17 +54,8 @@ export default class System {
  Materialliste: Material[]
  Lastfallliste: Lastfall[]
  Fehlerliste: Fehler[]
-
- istBerechnet: boolean
-
- /**Anzahl an Freiheitsgraden (gehalten oder nicht gehalten)
-  * Ergebt sich zu:
-  * - Knoten * 3 + Gelenkdefinitionen * 3
-  */
- Freiheitsgrade: number
- /**Inzidenznummern der nicht-gehaltenen Freiheitsgrade */
- Verformungsinzidenzen: number[]
- Freiheitsgrade_name: string[]
+ /** Wird bei jeder Änderung des Systems erhöht (für Undo/Redo, Autosave und Tabellen) */
+ Revision: number
 
  constructor() {
   //Die folgenden Listen bilden das System
@@ -43,12 +67,11 @@ export default class System {
   this.Materialliste = []
   this.Lastfallliste = []
   this.Fehlerliste = []
+  this.Revision = 0
+ }
 
-  //Die folgenden Variablen verändern sich über die Berechnung
-  this.istBerechnet = false
-  this.Freiheitsgrade = 0
-  this.Verformungsinzidenzen = []
-  this.Freiheitsgrade_name = []
+ get istBerechnet(): boolean {
+  return this.Lastfallliste.length > 0 && this.Lastfallliste.every((lf) => lf.istBerechnet)
  }
 
  delete(): void {
@@ -60,107 +83,107 @@ export default class System {
   this.Materialliste = []
   this.Lastfallliste = []
   this.Fehlerliste = []
-
-  //Die folgenden Variablen verändern sich über die Berechnung
-  this.istBerechnet = false
+  this.Revision++
  }
 
- berechnen(): boolean {
-  //Es werden alle Berechnungsfehler gelöscht. Sonst kann die Berechnung nicht gestartet werden.
-  this.Fehlerliste = this.Fehlerliste.filter((e) => e.Typ !== "Berechnung")
-  //Berechnung wird nur gestartet, wenn Fehlerliste leer ist.
-  if (this.Fehlerliste.length) {
-   return false
-  } else {
-   startBerechnungen(this)
-   return true
-  }
-  //Hier Überprüfungen einbauen
+ /**
+  * Berechnet alle Lastfälle und übernimmt die Ergebnisse.
+  * @returns false, wenn wegen Eingabefehlern nicht gerechnet wurde
+  */
+ berechnen(optionen: Rechenoptionen = STANDARD_RECHENOPTIONEN): boolean {
+  const ergebnis = this.berechnungDurchführen(optionen)
+  if (!ergebnis) return false
+  this.ergebnisseÜbernehmen(ergebnis)
+  return true
+ }
+
+ /**
+  * Führt die Berechnung durch, ohne das System zu verändern.
+  * (Die Oberfläche ruft dies auf dem nicht-reaktiven Rohobjekt auf und übernimmt die Ergebnisse
+  * anschließend über das reaktive Objekt.)
+  * @returns null, wenn Eingabefehler vorliegen
+  */
+ berechnungDurchführen(
+  optionen: Rechenoptionen = STANDARD_RECHENOPTIONEN,
+ ): Berechnungsergebnis | null {
+  this.buildSystem()
+  if (this.Fehlerliste.length) return null
+  return startBerechnungen(this, optionen)
+ }
+
+ /** Übernimmt Berechnungsergebnisse in die Lastfälle und die Fehlerliste. */
+ ergebnisseÜbernehmen(ergebnis: Berechnungsergebnis): void {
+  this.Fehlerliste = this.Fehlerliste.filter((e) => e.Typ !== "Berechnung").concat(ergebnis.fehler)
+  this.Lastfallliste.forEach((lastfall, i) => {
+   //Zuordnung über die Position, da das Ergebnis auf dem Rohobjekt berechnet sein kann
+   const lf = [...ergebnis.ergebnisse.keys()][i]
+   lastfall.Ergebnis = (lf && ergebnis.ergebnisse.get(lf)) ?? null
+   lastfall.Stabilität = null
+  })
  }
 
  //-----------------------------------------------------------------
  //Methoden, um Objekte, zu verändern, hinzuzufügen, oder zu löschen
  //-----------------------------------------------------------------
 
- //Ermitteln den Typ des Objekts, damit im Nachhinein das richtige Statikobjektarray verändert werden kann
- determineObjectClass(
-  objektTyp: string,
-  lastfallnummer: number,
- ): {
-  statikobjekt: isStatikobjekt
-  statikobjektArray: isStatikobjekt[]
- } {
-  let statikobjekt: isStatikobjekt
-  let statikobjektArray: isStatikobjekt[]
+ /** Erzeugt ein neues, leeres Statikobjekt des angegebenen Typs. */
+ neuesStatikobjekt(objektTyp: string, nummer: number = 1): isStatikobjekt {
   switch (objektTyp) {
-   case "Knoten": {
-    statikobjekt = new Knoten()
-    statikobjektArray = this.Knotenliste
-    break
-   }
-   case "Stab": {
-    statikobjekt = new Stab()
-    statikobjektArray = this.Stabliste
-    break
-   }
-   case "Lager": {
-    statikobjekt = new Lager()
-    statikobjektArray = this.Lagerliste
-    break
-   }
-   case "Material": {
-    statikobjekt = new Material()
-    statikobjektArray = this.Materialliste
-    break
-   }
-   case "Querschnitt": {
-    statikobjekt = new Querschnitt()
-    statikobjektArray = this.Querschnittliste
-    break
-   }
-   case "Gelenk": {
-    statikobjekt = new Gelenk()
-    statikobjektArray = this.Gelenkliste
-    break
-   }
-   case "Lastfall": {
-    statikobjekt = new Lastfall()
-    statikobjektArray = this.Lastfallliste
-    break
-   }
-   case "Knotenlast": {
-    statikobjekt = new Knotenlast()
-    statikobjektArray = this.searchObjectByNummer(
-     lastfallnummer,
-     this.Lastfallliste,
-    )!.Knotenlastliste
-    // this.Lastfallliste[lastfallnummer].Knotenlastliste
-    break
-   }
-   case "StablastStreckenlast": {
-    statikobjekt = new StablastStreckenlast()
-    statikobjektArray = this.searchObjectByNummer(
-     lastfallnummer,
-     this.Lastfallliste,
-    )!.StablastListeStreckenlast
-    break
-   }
-   case "StablastVorverformung": {
-    statikobjekt = new StablastVorverformung()
-    statikobjektArray = this.searchObjectByNummer(
-     lastfallnummer,
-     this.Lastfallliste,
-    )!.StablastListeVorverformung
-    break
-   }
+   case "Knoten":
+    return new Knoten(nummer)
+   case "Stab":
+    return new Stab(nummer)
+   case "Lager":
+    return new Lager(nummer)
+   case "Material":
+    return new Material(nummer)
+   case "Querschnitt":
+    return new Querschnitt(nummer)
+   case "Gelenk":
+    return new Gelenk(nummer)
+   case "Lastfall":
+    return new Lastfall(nummer)
+   case "Knotenlast":
+    return new Knotenlast(nummer)
+   case "StablastStreckenlast":
+    return new StablastStreckenlast(nummer)
+   case "StablastVorverformung":
+    return new StablastVorverformung(nummer)
+   case "StablastEinzellast":
+    return new StablastEinzellast(nummer)
+   case "StablastTemperatur":
+    return new StablastTemperatur(nummer)
+   default:
+    throw new Error(`Unbekannter Objekttyp "${objektTyp}"`)
+  }
+ }
+
+ /** Liste, in der Objekte des angegebenen Typs gespeichert werden. */
+ objektliste(objektTyp: string, lastfallnummer: number = 0): isStatikobjekt[] {
+  switch (objektTyp) {
+   case "Knoten":
+    return this.Knotenliste
+   case "Stab":
+    return this.Stabliste
+   case "Lager":
+    return this.Lagerliste
+   case "Material":
+    return this.Materialliste
+   case "Querschnitt":
+    return this.Querschnittliste
+   case "Gelenk":
+    return this.Gelenkliste
+   case "Lastfall":
+    return this.Lastfallliste
    default: {
-    console.log(
-     `Fehler in /src/typescript/System.ts bei Funktion determineObjectClass. "objektTyp = ${objektTyp}"`,
-    )
-    break
+    const liste = LASTLISTEN[objektTyp as keyof typeof LASTLISTEN]
+    const lastfall = this.searchObjectByNummer(lastfallnummer, this.Lastfallliste)
+    if (!liste || !lastfall) {
+     throw new Error(`Objektliste für "${objektTyp}" (LF ${lastfallnummer}) nicht gefunden`)
+    }
+    return lastfall[liste] as isStatikobjekt[]
    }
   }
-  return { statikobjekt: statikobjekt!, statikobjektArray: statikobjektArray! }
  }
 
  addStatikobjekt(
@@ -169,18 +192,13 @@ export default class System {
   lastfallnummer: number = 0,
   buildSystem: boolean = true,
  ): void {
-  const statikobjekt: isStatikobjekt = this.determineObjectClass(
-   objektTyp,
-   lastfallnummer,
-  ).statikobjekt
-  const statikobjektArray: isStatikobjekt[] = this.determineObjectClass(
-   objektTyp,
-   lastfallnummer,
-  ).statikobjektArray
+  const statikobjekt = this.neuesStatikobjekt(objektTyp)
+  const statikobjektArray = this.objektliste(objektTyp, lastfallnummer)
 
-  statikobjekt!.values = statikobjektdaten
-  statikobjektArray!.push(statikobjekt!)
+  statikobjekt.values = statikobjektdaten
+  statikobjektArray.push(statikobjekt)
   statikobjektArray.sort((a, b) => a.Nummer - b.Nummer)
+  this.Revision++
   if (buildSystem) this.buildSystem()
   ergebnisseLöschen(this)
  }
@@ -191,29 +209,21 @@ export default class System {
   objektindex: number,
   lastfallnummer: number,
  ): void {
-  const statikobjektArray: isStatikobjekt[] = this.determineObjectClass(
-   objektTyp,
-   lastfallnummer,
-  ).statikobjektArray
-
+  const statikobjektArray = this.objektliste(objektTyp, lastfallnummer)
   statikobjektArray[objektindex].values = statikobjektdaten
+  statikobjektArray.sort((a, b) => a.Nummer - b.Nummer)
+  this.Revision++
   this.buildSystem()
   ergebnisseLöschen(this)
  }
 
  deleteStatikobjekt(objektTyp: string, objektindex: number, lastfallnummer: number): void {
-  const statikobjektArray: isStatikobjekt[] = this.determineObjectClass(
-   objektTyp,
-   lastfallnummer,
-  ).statikobjektArray
-
+  const statikobjektArray = this.objektliste(objektTyp, lastfallnummer)
   statikobjektArray.splice(objektindex, 1)
+  this.Revision++
   this.buildSystem()
   ergebnisseLöschen(this)
  }
-
- //Durchsucht ein Array aus Statikobjekten mit einem key gibt das passende Objekt zurück.
- //Falls nichts gefunden wird, wird null zurückgegeben.
 
  //
  //Hier wird das Statiksystem "zusammengebaut". Die Objekte des Systems werden nun miteinander verknüpft.
@@ -228,20 +238,17 @@ export default class System {
     knoten.Lager = this.searchObjectByNummer(knoten.Lagernummer, this.Lagerliste)
    } else {
     knoten.Lager = new Lager(0)
-    knoten.Lager.values = [0, false, false, false, 0, 0, 0] //neues Lager ohne Lagerung und ohne Federn
+    knoten.Lager.values = [0, false, false, false, 0, 0, 0, 0] //neues Lager ohne Lagerung und ohne Federn
    }
   })
 
   //Stab bekommt Anfangsknoten- Endknoten- Querschnitt- und Gelenkobjekt
   //Gleichzeitig werden den Knoten angreifende Stäbe zugewiesen.
   this.Stabliste.forEach((stab) => {
-   //Anfangsknoten
    stab.Anfangsknoten = this.searchObjectByNummer(stab.Anfangsknotennummer, this.Knotenliste)
-   //if (stab.Anfangsknoten) stab.Anfangsknoten.Stabliste.push(stab)
-   //Endknoten
    stab.Endknoten = this.searchObjectByNummer(stab.Endknotennummer, this.Knotenliste)
-   //if (stab.Endknoten) stab.Endknoten.Stabliste.push(stab)
-   //Querschnitt
+   stab.Anfangsknoten?.Stabliste.push(stab)
+   stab.Endknoten?.Stabliste.push(stab)
    stab.Querschnitt = this.searchObjectByNummer(stab.Querschnittsnummer, this.Querschnittliste)
    //Anfangsgelenk
    if (stab.Anfangsgelenknummer !== 0) {
@@ -266,31 +273,21 @@ export default class System {
 
   //Lastfall bekommt Lastfall zur Kopie
   this.Lastfallliste.forEach((lastfall) => {
-   lastfall.istKopieVon = this.searchObjectByNummer(lastfall.istKopieVonNummer, this.Lastfallliste)
-   /*if (lastfall.istKopieVonNummer) {
-    this.Lastfallliste.forEach((searchLastfall) => {
-     if (searchLastfall.Nummer === lastfall.istKopieVonNummer) {
-      lastfall.istKopieVon = searchLastfall
-     }
-    })
-   }*/
+   lastfall.istKopieVon = lastfall.istKopieVonNummer
+    ? this.searchObjectByNummer(lastfall.istKopieVonNummer, this.Lastfallliste)
+    : null
   })
 
-  //Knotenlasten bekommen Knoten
   this.Lastfallliste.forEach((lastfall) => {
+   //Knotenlasten bekommen Knoten
    lastfall.Knotenlastliste.forEach((knotenlast) => {
     knotenlast.Knoten = this.searchObjectByNummer(knotenlast.Knotennummer, this.Knotenliste)
     knotenlast.Lastfallnummer = lastfall.Nummer
    })
-   //Streckenlasten bekommen Stab
-   lastfall.StablastListeStreckenlast.forEach((streckenlast) => {
-    streckenlast.Stab = this.searchObjectByNummer(streckenlast.Stabnummer, this.Stabliste)
-    streckenlast.Lastfallnummer = lastfall.Nummer
-   })
-   //Vorverformungen bekommen Stab
-   lastfall.StablastListeVorverformung.forEach((vorferformung) => {
-    vorferformung.Stab = this.searchObjectByNummer(vorferformung.Stabnummer, this.Stabliste)
-    vorferformung.Lastfallnummer = lastfall.Nummer
+   //Stablasten bekommen Stab
+   lastfall.Stablastliste.forEach((stablast) => {
+    stablast.Stab = this.searchObjectByNummer(stablast.Stabnummer, this.Stabliste)
+    stablast.Lastfallnummer = lastfall.Nummer
    })
   })
 
@@ -301,19 +298,63 @@ export default class System {
   * Überprüft das System auf Eingabefehler
   */
  checkSystem(): void {
-  this.Fehlerliste = []
+  const fehler: Fehler[] = []
+  const neuerFehler = (text: string) => fehler.push(new Fehler("Eingabe", text))
 
   //Überprüft ob mindestens ein Stab existiert.
   if (this.Stabliste.length === 0) {
-   this.Fehlerliste.push(new Fehler("Eingabe", `Es wird mindestens ein Stab benötigt.`))
+   neuerFehler(`Es wird mindestens ein Stab benötigt.`)
+  }
+  if (this.Lastfallliste.length === 0) {
+   neuerFehler(`Es wird mindestens ein Lastfall benötigt.`)
   }
 
-  //Überprüft ob alle zugewiesenen Lager existieren.
+  //Doppelte Nummern
+  const doppelteNummern = (liste: isStatikobjekt[], name: string, zusatz = "") => {
+   const gesehen = new Set<number>()
+   const doppelt = new Set<number>()
+   liste.forEach((objekt) => {
+    if (gesehen.has(objekt.Nummer)) doppelt.add(objekt.Nummer)
+    gesehen.add(objekt.Nummer)
+   })
+   doppelt.forEach((nr) => neuerFehler(`${zusatz}${name} Nr. ${nr} ist mehrfach vorhanden.`))
+  }
+  doppelteNummern(this.Lagerliste, "Lager")
+  doppelteNummern(this.Knotenliste, "Knoten")
+  doppelteNummern(this.Materialliste, "Material")
+  doppelteNummern(this.Querschnittliste, "Querschnitt")
+  doppelteNummern(this.Gelenkliste, "Gelenk")
+  doppelteNummern(this.Stabliste, "Stab")
+  doppelteNummern(this.Lastfallliste, "Lastfall")
+  this.Lastfallliste.forEach((lastfall) => {
+   const zusatz = `LF ${lastfall.Nummer}: `
+   doppelteNummern(lastfall.Knotenlastliste, "Knotenlast", zusatz)
+   doppelteNummern(lastfall.StablastListeStreckenlast, "Streckenlast", zusatz)
+   doppelteNummern(lastfall.StablastListeVorverformung, "Vorverformung", zusatz)
+   doppelteNummern(lastfall.StablastListeEinzellast, "Einzellast", zusatz)
+   doppelteNummern(lastfall.StablastListeTemperatur, "Temperaturlast", zusatz)
+  })
+
+  //Material- und Querschnittswerte
+  this.Materialliste.forEach((material) => {
+   if (!(material.E > 0)) neuerFehler(`Material ${material.Nummer}: E-Modul muss größer 0 sein.`)
+  })
+  this.Querschnittliste.forEach((querschnitt) => {
+   if (!(querschnitt.A > 0)) {
+    neuerFehler(`Querschnitt ${querschnitt.Nummer}: Fläche A muss größer 0 sein.`)
+   }
+   if (!(querschnitt.I > 0)) {
+    neuerFehler(`Querschnitt ${querschnitt.Nummer}: Trägheitsmoment I muss größer 0 sein.`)
+   }
+  })
+
+  //Überprüft ob alle zugewiesenen Lager existieren und ob Knoten an Stäbe angeschlossen sind.
   this.Knotenliste.forEach((knoten) => {
    if (!knoten.Lager) {
-    this.Fehlerliste.push(
-     new Fehler("Eingabe", `Knoten ${knoten.Nummer}: Lager ${knoten.Lagernummer} existiert nicht.`),
-    )
+    neuerFehler(`Knoten ${knoten.Nummer}: Lager ${knoten.Lagernummer} existiert nicht.`)
+   }
+   if (knoten.Stabliste.length === 0) {
+    neuerFehler(`Knoten ${knoten.Nummer} ist mit keinem Stab verbunden.`)
    }
   })
 
@@ -321,95 +362,67 @@ export default class System {
    stab.istZeichenbar = true
    //Überprüft ob Anfangsknoten existieren.
    if (!stab.Anfangsknoten) {
-    this.Fehlerliste.push(
-     new Fehler(
-      "Eingabe",
-      `Stab ${stab.Nummer}: Anfangsknoten (Nr. ${stab.Anfangsknotennummer}) existiert nicht.`,
-     ),
+    neuerFehler(
+     `Stab ${stab.Nummer}: Anfangsknoten (Nr. ${stab.Anfangsknotennummer}) existiert nicht.`,
     )
     stab.istZeichenbar = false //Ohne Anfangsknoten kann der Stab nicht mehr gezeichnet werden.
    }
 
    //Überprüft ob Endknoten existieren.
    if (!stab.Endknoten) {
-    this.Fehlerliste.push(
-     new Fehler(
-      "Eingabe",
-      `Stab ${stab.Nummer}: Endknoten (Nr. ${stab.Endknotennummer}) existiert nicht.`,
-     ),
-    )
+    neuerFehler(`Stab ${stab.Nummer}: Endknoten (Nr. ${stab.Endknotennummer}) existiert nicht.`)
     stab.istZeichenbar = false //Ohne Endknoten kann der Stab nicht mehr gezeichnet werden.
    }
 
    //Überprüft ob Querschnitt existiert.
    if (!stab.Querschnitt) {
-    this.Fehlerliste.push(
-     new Fehler(
-      "Eingabe",
-      `Stab ${stab.Nummer}: Querschnitt ${stab.Querschnittsnummer} existiert nicht.`,
-     ),
-    )
-   } else {
+    neuerFehler(`Stab ${stab.Nummer}: Querschnitt ${stab.Querschnittsnummer} existiert nicht.`)
+   } else if (!stab.Querschnitt!.Material) {
     //Überprüft ob Material existiert.
-    if (!stab.Querschnitt!.Material) {
-     this.Fehlerliste.push(
-      new Fehler(
-       "Eingabe",
-       `Stab ${stab.Nummer}: Material ${stab.Querschnitt!.Materialnummer} existiert nicht.`,
-      ),
-     )
-    }
+    neuerFehler(
+     `Stab ${stab.Nummer}: Material ${stab.Querschnitt!.Materialnummer} existiert nicht.`,
+    )
    }
 
-   //Überprüft ob Anfangsgelenk existiert
+   //Überprüft ob Gelenke existieren
    if (!stab.Anfangsgelenk) {
-    this.Fehlerliste.push(
-     new Fehler(
-      "Eingabe",
-      `Stab ${stab.Nummer}: Anfangsgelenk (Nr. ${stab.Anfangsgelenknummer}) existiert nicht.`,
-     ),
+    neuerFehler(
+     `Stab ${stab.Nummer}: Anfangsgelenk (Nr. ${stab.Anfangsgelenknummer}) existiert nicht.`,
     )
    }
-
-   //Überprüft ob Endgelenk existiert
    if (!stab.Endgelenk) {
-    this.Fehlerliste.push(
-     new Fehler(
-      "Eingabe",
-      `Stab ${stab.Nummer}: Endgelenk (Nr. ${stab.Endgelenknummer}) existiert nicht.`,
-     ),
-    )
+    neuerFehler(`Stab ${stab.Nummer}: Endgelenk (Nr. ${stab.Endgelenknummer}) existiert nicht.`)
    }
 
-   //    Überprüft ob Stablänge größer null ist
-   try {
-    if (stab.Länge === 0) {
-     this.Fehlerliste.push(new Fehler("Eingabe", `Stab ${stab.Nummer}: Stablänge ist 0.`))
-    }
-   } catch (error) {
-    //Wenn einer der beiden Knoten nicht existiert entsteht hier ein Fehler.
-    //In diesem Fall wird die Länge nicht überprüft und es wird einfach weitergemacht.
+   if (!(Number.isInteger(stab.Elementanzahl) && stab.Elementanzahl >= 1)) {
+    neuerFehler(`Stab ${stab.Nummer}: Die Elementanzahl muss eine ganze Zahl ≥ 1 sein.`)
+   }
+
+   //Überprüft ob Stablänge größer null ist
+   if (stab.Anfangsknoten && stab.Endknoten && stab.Länge === 0) {
+    neuerFehler(`Stab ${stab.Nummer}: Stablänge ist 0.`)
    }
   })
 
   this.Lastfallliste.forEach((lastfall) => {
    //Überprüfe ob Kopielastfall existiert
    if (lastfall.istKopieVonNummer && !lastfall.istKopieVon) {
-    this.Fehlerliste.push(
-     new Fehler(
-      "Eingabe",
-      `LF ${lastfall.Nummer}: Lastfall ${lastfall.istKopieVonNummer} zum kopieren existiert nicht.`,
-     ),
+    neuerFehler(
+     `LF ${lastfall.Nummer}: Lastfall ${lastfall.istKopieVonNummer} zum Kopieren existiert nicht.`,
+    )
+   }
+   if (lastfall.istKopieVon === lastfall) {
+    neuerFehler(`LF ${lastfall.Nummer}: Ein Lastfall kann sich nicht selbst kopieren.`)
+   } else if (lastfall.istKopieVon?.istKopieVon) {
+    neuerFehler(
+     `LF ${lastfall.Nummer}: Lastfall ${lastfall.istKopieVonNummer} ist selbst eine Kopie. Bitte direkt den Original-Lastfall (${lastfall.istKopieVon.istKopieVonNummer}) kopieren.`,
     )
    }
    //Überprüft ob Knoten für Knotenlast existiert
    lastfall.Knotenlastliste.forEach((knotenlast) => {
     if (!knotenlast.Knoten) {
-     this.Fehlerliste.push(
-      new Fehler(
-       "Eingabe",
-       `LF ${lastfall.Nummer}: Knotenlast ${knotenlast.Nummer}: Knoten ${knotenlast.Knotennummer} existiert nicht.`,
-      ),
+     neuerFehler(
+      `LF ${lastfall.Nummer}: Knotenlast ${knotenlast.Nummer}: Knoten ${knotenlast.Knotennummer} existiert nicht.`,
      )
     }
    })
@@ -417,15 +430,33 @@ export default class System {
    //Überprüft ob Stab für Stablast existiert
    lastfall.Stablastliste.forEach((stablast) => {
     if (!stablast.Stab) {
-     this.Fehlerliste.push(
-      new Fehler(
-       "Eingabe",
-       `LF ${lastfall.Nummer}: Stablast ${stablast.Nummer}: Stab ${stablast.Stabnummer} existiert nicht.`,
-      ),
+     neuerFehler(
+      `LF ${lastfall.Nummer}: ${stablast.Typ.replace("Stablast", "")} ${stablast.Nummer}: Stab ${
+       stablast.Stabnummer
+      } existiert nicht.`,
+     )
+    }
+   })
+   //Einzellasten innerhalb des Stabes
+   lastfall.StablastListeEinzellast.forEach((last) => {
+    if (last.Stab && last.Stab.Anfangsknoten && last.Stab.Endknoten) {
+     if (last.a < 0 || last.a > last.Stab.Länge * (1 + 1e-12)) {
+      neuerFehler(
+       `LF ${lastfall.Nummer}: Einzellast ${last.Nummer}: Die Stelle a liegt außerhalb von Stab ${last.Stabnummer}.`,
+      )
+     }
+    }
+   })
+   //Temperaturlast mit Temperaturunterschied benötigt Querschnittshöhe
+   lastfall.StablastListeTemperatur.forEach((last) => {
+    if (last.dTM !== 0 && last.Stab?.Querschnitt && !(last.Stab.Querschnitt.h > 0)) {
+     neuerFehler(
+      `LF ${lastfall.Nummer}: Temperaturlast ${last.Nummer}: Für ΔT_M wird die Querschnittshöhe h von Querschnitt ${last.Stab.Querschnittsnummer} benötigt.`,
      )
     }
    })
   })
+  this.Fehlerliste = fehler
  }
 
  searchObjectByNummer(key: number, objectArray: Knoten[]): Knoten | null
@@ -435,19 +466,7 @@ export default class System {
  searchObjectByNummer(key: number, objectArray: Material[]): Material | null
  searchObjectByNummer(key: number, objectArray: Stab[]): Stab | null
  searchObjectByNummer(key: number, objektindex: Lastfall[]): Lastfall | null
- searchObjectByNummer(key: number, objektindex: Knotenlast[]): Knotenlast | null
- searchObjectByNummer(key: number, objektindex: StablastStreckenlast[]): StablastStreckenlast | null
- searchObjectByNummer(
-  key: number,
-  objektindex: StablastVorverformung[],
- ): StablastVorverformung | null
  searchObjectByNummer(key: number, objectArray: isStatikobjekt[]): isStatikobjekt | null {
-  let returnObject = null
-  objectArray.forEach(function (statikobjekt) {
-   if (statikobjekt.Nummer === key) {
-    returnObject = statikobjekt
-   }
-  })
-  return returnObject
+  return objectArray.find((statikobjekt) => statikobjekt.Nummer === key) ?? null
  }
 }

@@ -1,10 +1,10 @@
-import { useSystemStore } from "@/stores/SystemStore"
 import Lager from "./Lager"
 import Vector from "./Vector"
-import type { isStatikobjekt } from "./InterfaceStatikobjekt"
+import type { isStatikobjekt, Spalte } from "./InterfaceStatikobjekt"
 import type Stab from "./Stab"
 import type { isEinheit } from "./InterfaceEinheit"
-import { useEinheitenStore } from "@/stores/EinheitenStore"
+import { EINHEITEN } from "../einheiten"
+import type System from "./System"
 
 export default class Knoten implements isStatikobjekt {
  //Werte werden bei Erstellung eines Knotens definiert.
@@ -16,13 +16,12 @@ export default class Knoten implements isStatikobjekt {
  /**Liste aller angreifenden Stäbe */
  Stabliste: Stab[]
  //folgende Werte werden erst bei der Berechnung definiert.
- /**Inzidenzen des Knoten für u,w,phi */
+ /**Inzidenzen des Knoten für u,w,phi (im ggf. gedrehten Lagerkoordinatensystem) */
  Inzidenzen: number[]
 
  einheitKoordinate: isEinheit
 
  constructor(Nummer: number = 0) {
-  const einheiten = useEinheitenStore()
   this.Nummer = Nummer
   this.Koordinaten = new Vector(0, 0)
   this.Lagernummer = 0
@@ -30,7 +29,7 @@ export default class Knoten implements isStatikobjekt {
   this.Inzidenzen = []
   this.Stabliste = []
 
-  this.einheitKoordinate = einheiten.m
+  this.einheitKoordinate = EINHEITEN.m
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein
@@ -53,11 +52,21 @@ export default class Knoten implements isStatikobjekt {
   this.Nummer = Nummer
   this.Koordinaten.x = x * this.einheitKoordinate.nachSI
   this.Koordinaten.z = z * this.einheitKoordinate.nachSI
-  this.Lagernummer = Lagernummer
+  this.Lagernummer = Lagernummer ?? 0
  }
 
- get header() {
-  const systemStore = useSystemStore()
+ /** Drehmatrix Knoten-KS -> globales KS (nur bei gedrehtem Lager ungleich Einheitsmatrix) */
+ get Drehmatrix(): number[][] {
+  return this.Lager
+   ? this.Lager.Drehmatrix
+   : [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+     ]
+ }
+
+ header(system: System): Spalte[] {
   return [
    { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
@@ -80,10 +89,10 @@ export default class Knoten implements isStatikobjekt {
     inputType: "select",
     inputFormat: "number",
     selectListKeys: [this.Lagernummer ? `Lager ${this.Lagernummer}` : "kein Lager"].concat(
-     ["kein Lager"].concat(systemStore.system.Lagerliste.map((lager) => `Lager ${lager.Nummer}`)),
+     ["kein Lager"].concat(system.Lagerliste.map((lager) => `Lager ${lager.Nummer}`)),
     ),
     selectListValues: [this.Lagernummer].concat(
-     [0].concat(systemStore.system.Lagerliste.map((lager) => lager.Nummer)),
+     [0].concat(system.Lagerliste.map((lager) => lager.Nummer)),
     ),
    },
   ]

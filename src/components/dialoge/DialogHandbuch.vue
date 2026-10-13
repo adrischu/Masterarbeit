@@ -5,11 +5,11 @@
   fullscreen
  >
   <template v-slot:activator="{ props: activatorProps }">
-   <!-- <v-btn
-    icon="mdi-book-open-variant"
+   <v-list-item
     v-bind="activatorProps"
-   ></v-btn> -->
-   <v-btn v-bind="activatorProps">Handbuch</v-btn>
+    prepend-icon="mdi-book-open-variant"
+    title="Handbuch"
+   />
   </template>
 
   <v-card>

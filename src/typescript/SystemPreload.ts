@@ -290,16 +290,16 @@ export function preloadSystem(systemNummer: number = 1): void {
     -1,
    )
    systemStore.system.addStatikobjekt("Knotenlast", [1, 2, 100, 1000, 0], 1)
-   systemStore.system.addStatikobjekt("Knotenlast", [1, 3, 0, 500, 0], 1)
+   systemStore.system.addStatikobjekt("Knotenlast", [2, 3, 0, 500, 0], 1)
    systemStore.system.addStatikobjekt("Lastfall", [2, "trig", Theorie.Theorie_2_trig, 0], -1)
    systemStore.system.addStatikobjekt("Knotenlast", [1, 2, 100, 1000, 0], 2)
-   systemStore.system.addStatikobjekt("Knotenlast", [1, 3, 0, 500, 0], 2)
+   systemStore.system.addStatikobjekt("Knotenlast", [2, 3, 0, 500, 0], 2)
    systemStore.system.addStatikobjekt("Lastfall", [3, "kubisch", Theorie.Theorie_2_kub, 0], -1)
    systemStore.system.addStatikobjekt("Knotenlast", [1, 2, 100, 1000, 0], 3)
-   systemStore.system.addStatikobjekt("Knotenlast", [1, 3, 0, 500, 0], 3)
+   systemStore.system.addStatikobjekt("Knotenlast", [2, 3, 0, 500, 0], 3)
    systemStore.system.addStatikobjekt("Lastfall", [4, "pDelta", Theorie.Theorie_2_pDelta, 0], -1)
    systemStore.system.addStatikobjekt("Knotenlast", [1, 2, 100, 1000, 0], 4)
-   systemStore.system.addStatikobjekt("Knotenlast", [1, 3, 0, 500, 0], 4)
+   systemStore.system.addStatikobjekt("Knotenlast", [2, 3, 0, 500, 0], 4)
    settings.schnittgrößenAufVerformtesSystemBeziehen = false
    break
   }
@@ -325,7 +325,7 @@ export function preloadSystem(systemNummer: number = 1): void {
     -1,
    )
    systemStore.system.addStatikobjekt("Knotenlast", [1, 2, 0, 1000, 0], 1)
-   systemStore.system.addStatikobjekt("Knotenlast", [1, 3, 0, 500, 0], 1)
+   systemStore.system.addStatikobjekt("Knotenlast", [2, 3, 0, 500, 0], 1)
    systemStore.system.addStatikobjekt("StablastStreckenlast", [1, 1, "lokal", "z", true, 8, 12], 1)
    settings.schnittgrößenAufVerformtesSystemBeziehen = false
    break

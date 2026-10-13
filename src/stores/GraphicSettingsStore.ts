@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { useEinheitenStore } from "./EinheitenStore"
+import { EINHEITEN } from "@/typescript/einheiten"
 
 /**
  * In diesem Speicher befinden sich Variablen, die die grafische Darstellung des Systems steuern.
@@ -55,12 +55,12 @@ export const useGraphicSettingsStore = defineStore("graphicSettingsStore", {
 
   //EINHEITENANZEIGE
   EINHEIT_SHOW: true,
-  EINHEIT_ERGEBNIS_KRAFT: useEinheitenStore().kN,
-  EINHEIT_ERGEBNIS_MOMENT: useEinheitenStore().kNm,
-  EINHEIT_ERGEBNIS_LÄNGE: useEinheitenStore().mm,
-  EINHEIT_ERGEBNIS_WINKEL: useEinheitenStore().mrad,
-  EINHEIT_LASTEN_KRAFT: useEinheitenStore().kN,
-  EINHEIT_LASTEN_STRECKENLAST: useEinheitenStore().kN_m,
+  EINHEIT_ERGEBNIS_KRAFT: EINHEITEN.kN,
+  EINHEIT_ERGEBNIS_MOMENT: EINHEITEN.kNm,
+  EINHEIT_ERGEBNIS_LÄNGE: EINHEITEN.mm,
+  EINHEIT_ERGEBNIS_WINKEL: EINHEITEN.mrad,
+  EINHEIT_LASTEN_KRAFT: EINHEITEN.kN,
+  EINHEIT_LASTEN_STRECKENLAST: EINHEITEN.kN_m,
 
   //SICHTBARKEITEN
   SICHTBARKEIT_LASTEN: true,
@@ -68,7 +68,9 @@ export const useGraphicSettingsStore = defineStore("graphicSettingsStore", {
   SICHTBARKEIT_SCHNITTGROESSEN: true,
   SICHTBARKEIT_LAGERKRAEFTE: true,
   SICHTBARKEIT_WERTE: true,
-  SICHTBARKEIT_ALLEWERTE: true,
+  /** true: alle Ausgabepunkte beschriften, false: nur Stabenden und Extremwerte */
+  SICHTBARKEIT_ALLEWERTE: false,
+  SICHTBARKEIT_EIGENFORM: true,
 
   //GRAFIKFENSTER
   HÖHE_GRAFIK: 70,

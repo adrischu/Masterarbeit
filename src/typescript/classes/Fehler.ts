@@ -1,15 +1,14 @@
 /**
  * ### Klasse Fehler
- * - Objekt um einen Fehler in der Eingabe oder der Berechnung
+ * - Objekt um einen Fehler in der Eingabe ("Eingabe") oder der Berechnung ("Berechnung")
  * zu definieren.
  */
 export default class Fehler {
- Typ: string
+ Typ: "Eingabe" | "Berechnung"
  Nachricht: string
 
- constructor(typ: string, nachricht: string) {
+ constructor(typ: "Eingabe" | "Berechnung", nachricht: string) {
   this.Typ = typ
   this.Nachricht = nachricht
-  console.error(`${typ}: ${nachricht}`)
  }
 }

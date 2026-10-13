@@ -1,531 +1,548 @@
 import type System from "./classes/System"
-import { matMultiplyVec, matTrans } from "./matrix"
 import Balkenelement from "./classes/Balkenelement"
-import Lastfall from "./classes/Lastfall"
-import { gauss } from "./gauss"
-import { cholesky } from "./cholesky"
+import type Lastfall from "./classes/Lastfall"
+import { ldltZerlegen, ldltLösen } from "./cholesky"
 import { Theorie } from "./enumerations"
-import type { isStablast } from "./classes/InterfaceStablast"
-import { useSettingsStore } from "@/stores/SettingsStore"
 import Federelement from "./classes/Federelement"
 import Fehler from "./classes/Fehler"
-import StablastStreckenlast from "./classes/StablastStreckenlast"
-import Stab from "./classes/Stab"
-import StablastVorverformung from "./classes/StablastVorverformung"
+import type Stab from "./classes/Stab"
+import type Knoten from "./classes/Knoten"
+import type { isElement } from "./classes/InterfaceElement"
+import type { LastfallErgebnis, Stabergebnis } from "./classes/Ergebnis"
+import { matMultiplyMat } from "./matrix"
+
+/** Einstellungen für die Berechnung (werden von der Oberfläche aus dem SettingsStore übergeben) */
+export interface Rechenoptionen {
+ /**Stabkennzahl, unter welcher statt des trigonometrischen Ansatzes der kubische Ansatz verwendet
+  * wird. Seit der numerisch stabilen Formulierung nicht mehr nötig (0 = nie). */
+ minEpsilon: number
+ /**Maximale Iterationsanzahl bei Berechnung nach Th 2 Ordnung */
+ maxIterationen: number
+ /**Maximal erlaubter Fehler zwischen zwei Iterationsschritten (Gl. 80) */
+ maxIterationsFehler: number
+ /**Schnittgrößen in der Ausgabe auf das verformte System beziehen */
+ schnittgrößenAufVerformtesSystemBeziehen: boolean
+ /**Zwischenergebnisse in der Konsole ausgeben */
+ debug: boolean
+}
+
+export const STANDARD_RECHENOPTIONEN: Rechenoptionen = {
+ minEpsilon: 0,
+ maxIterationen: 50,
+ maxIterationsFehler: 1e-8,
+ schnittgrößenAufVerformtesSystemBeziehen: false,
+ debug: false,
+}
+
+/** Abweichungen von den Lastfalldaten (z. B. für Laststeigerung oder Stabilität) */
+export interface Lastfallvariante {
+ /** Faktor auf alle Lasten (nicht auf Vorverformungen) */
+ lastfaktor?: number
+ /** Abweichende Theorie */
+ theorie?: Theorie
+}
+
+/** Ergebnis einer Berechnung aller Lastfälle */
+export interface Berechnungsergebnis {
+ ergebnisse: Map<Lastfall, LastfallErgebnis | null>
+ fehler: Fehler[]
+}
 
 //-------------------------------------------------------------------------------
 /**
  * ### ABLAUF DER BERECHNUNGEN
- * - 1. Eventuell vorhandene Ergebnisarrays werden gelöscht.
- * - 2. Freiheitsgrade des Systems werden definiert (einmal alle und einmal nur nicht-gehaltene).
- * #### Punkte 3-6 werden für jeden Lastfall wiederholt:
- * - 3. Elemente werden aus den Stäben erstellt.
- * - 4. Wird bis zur Konvergenz wiederholt (Abbruchkriterium über maxIterationen und maxIterationsfehler).
- *    - 4.1 Stabtheorie für jedes Element ermitteln (genauere Beschreibung in Funktion)
- *    - 4.2 Lastvektor aufstellen.
- *    - 4.3 Globale Gesamtsteifigkeitsmatrix aufbauen.
- *    - 4.4 Randbedingungen einarbeiten (Zeilen und Spalten streichen).
- *    - 4.5 Gleichungssystem lösen (Gauss-Algorithmus).
- *    - 4.6 Stabendkräfte aus Verformungen rückrechnen (f = k * w). Mittlere Normalkraft für Stabkenzahl ermitteln.
- *    - 4.7 Fehler zu vergangener Iteration bestimmen (Euklidische Abstandsformel).
- * - 5. Schnittgrößen entlang des Stabes berechnen.
- * - 6. Lagerkräfte bestimmen (F = K * W).
+ * Für jeden Lastfall:
+ * - 1. Freiheitsgrade definieren (Knoten, Zwischenknoten der Stäbe, freigegebene Gelenkrichtungen).
+ * - 2. Elemente aus den Stäben erstellen (Stab.Elementanzahl Elemente je Stab, Federelemente für
+ *      Gelenkfedern) und die Stablasten auf die Elemente verteilen.
+ * - 3. Wird bis zur Konvergenz wiederholt (Abbruchkriterium über maxIterationen und maxIterationsfehler).
+ *    - 3.1 Stabtheorie für jedes Element ermitteln
+ *    - 3.2 Lastvektor aufstellen.
+ *    - 3.3 Globale Gesamtsteifigkeitsmatrix aufbauen.
+ *    - 3.4 Randbedingungen einarbeiten (Zeilen und Spalten streichen).
+ *    - 3.5 Gleichungssystem lösen (Cholesky bzw. LDLᵀ).
+ *    - 3.6 Stabendkräfte aus Verformungen rückrechnen (f = k * u + f0). Mittlere Normalkraft ermitteln.
+ *    - 3.7 Fehler zu vergangener Iteration bestimmen (Gl. 80).
+ * - 4. Schnittgrößen entlang der Stäbe berechnen.
+ * - 5. Lagerkräfte bestimmen.
+ *
+ * Die Funktion verändert das System nicht (außer den Knoteninzidenzen) und liefert die Ergebnisse
+ * zurück. Übernommen werden sie mit "System.ergebnisseÜbernehmen".
  * @param system Systemobjekt.
  */
-export function startBerechnungen(system: System): void {
- console.log("Berechnungen werden gestartet.")
-
- const settingsStore = useSettingsStore()
- ergebnisseLöschen(system)
- freiheitsgradeDefinieren(system)
- console.log(`Gesamte Freiheitsgrade: ${system.Freiheitsgrade}`)
- console.log("Verformungsinzidenzen")
- console.table(system.Verformungsinzidenzen)
-
+export function startBerechnungen(
+ system: System,
+ optionen: Rechenoptionen = STANDARD_RECHENOPTIONEN,
+): Berechnungsergebnis {
+ const ergebnisse = new Map<Lastfall, LastfallErgebnis | null>()
+ const fehler: Fehler[] = []
  system.Lastfallliste.forEach((lastfall) => {
-  /**Maximale Anzahl an Iterationen */
-  const maxIterationen: number =
-   lastfall.Theorie === Theorie.Theorie_1 ? 1 : settingsStore.maxIterationen
-  /**Fehler zur letzten Iteration (euklidische Abstandsformel) */
-  let iterationsFehler: number
-  /**Aktuelle Iteration */
-  let iteration: number = 0
-
-  elementeAufstellen(system, lastfall)
-
-  do {
-   iteration++
-
-   ermittleStabtheorien(lastfall)
-
-   lastvektorAufstellen(system, lastfall)
-   console.log("\n\nLastvektor")
-   console.table(matTrans(lastfall.Lastvektor))
-
-   steifigkeitsmatrixAufstellen(system, lastfall)
-   console.log("\n\nNicht-kondensierte Gesamtsteifigkeitsmatrix (Th1)")
-   console.table(lastfall.M_K_lang)
-
-   randbedingungenEinarbeiten(system, lastfall)
-   console.log(`\n\nNicht-gehaltene Freiheitsgrade ${system.Verformungsinzidenzen}\n`)
-   console.log("\n\nKondensierte Gesamtsteifigkeitsmatrix (Th1)")
-   console.table(lastfall.M_K_kurz)
-
-   gleichungssystemLösen(system, lastfall)
-   console.log("\n\nVerformungsvektor")
-   console.table(matTrans(lastfall.Verformungsvektor_kurz))
-
-   elementkräfteBestimmen(system, lastfall)
-
-   iterationsFehler = verformungsDifferenz(
-    lastfall.Verformungsvektor_kurz,
-    lastfall.letzerVerformungsvektor_kurz,
-   )
-   console.log(`Absoluter Fehler in Iteration ${iteration} ":  ${iterationsFehler}`)
-   lastfall.letzerVerformungsvektor_kurz = lastfall.Verformungsvektor_kurz.slice()
-  } while (
-   iteration + 1 <= maxIterationen &&
-   iterationsFehler > settingsStore.maxIterationsFehler &&
-   lastfall.Fehlerliste.length === 0
-  )
-
-  //Gibt Fehlermeldung aus, wenn nach max Iterationen noch keine Konvergenz gefunden wurde.
-  if (
-   lastfall.Theorie !== Theorie.Theorie_1 &&
-   iteration === maxIterationen &&
-   iterationsFehler > settingsStore.maxIterationsFehler
-  ) {
-   lastfall.Fehlerliste.push(
-    new Fehler(
-     "Berechnung",
-     `LF${lastfall.Nummer}: Es wurde nach ${iteration} Iteration noch keine Konvergenz gefunden.`,
-    ),
-   )
-   console.log(
-    `LF${lastfall.Nummer}: Es wurde nach ${iteration} Iteration noch keine Konvergenz gefunden.`,
-   )
-  }
-  if (lastfall.Fehlerliste.length) {
-   //Fehler bei Berechnung des Lastfalls. Fehler werden auf Systemfehler überschrieben und Lastfall ist "nicht berechnet"
-   lastfall.Fehlerliste.forEach((fehler) => {
-    system.Fehlerliste.push(fehler)
-   })
-  } else {
-   //Erfolgreiche Berechnung des Lastfalls
-   schnittgrößenBestimmen(system, lastfall)
-   lagerkräfteBestimmen(system, lastfall)
-   lastfall.istBerechnet = true
-  }
+  const r = berechneLastfall(system, lastfall, optionen)
+  ergebnisse.set(lastfall, r.ergebnis)
+  fehler.push(...r.fehler)
  })
+ return { ergebnisse, fehler }
 }
-/**
- * ************************************************************************************
- * ************************************************************************************
- * FUNKTIONEN**************************************************************************
- * ************************************************************************************
- * ************************************************************************************
- */
 
 /**
- * Setzt zur Fehlervermeidung Ergebnisarrays aus vergangenen Berechnungen gleich [ ].
+ * Löscht die Ergebnisse aller Lastfälle.
  * @param system Systemobjekt
  */
 export function ergebnisseLöschen(system: System): void {
- system.Freiheitsgrade = 0
- system.Verformungsinzidenzen = []
  system.Lastfallliste.forEach((lastfall) => {
-  lastfall.Elementliste = []
-  lastfall.Verformungsvektor_kurz = []
-  lastfall.letzerVerformungsvektor_kurz = []
-  lastfall.Verformungsvektor_lang = []
-  lastfall.Lastvektor = []
-  lastfall.Lagerkräfte = []
-  lastfall.M_K_kurz = []
-  lastfall.M_K_lang = []
-  lastfall.Fehlerliste = []
-  lastfall.istBerechnet = false
- })
- system.Stabliste.forEach((stab) => {
-  stab.Inzidenzen = Array(6)
+  lastfall.Ergebnis = null
+  lastfall.Stabilität = null
  })
 }
 
-/**
- * Zählt alle Freiheitsgrade und stellt Vektor mit nicht-gehaltenen Freiheitsgraden auf.
- * @param system Systemobjekt
- */
-function freiheitsgradeDefinieren(system: System): void {
- //Freiheitsgrade aus Knotenverformungen
- let freiheitsgrade: number = 0
- const freiheitsgrade_name: string[] = []
- system.Knotenliste.forEach((knoten) => {
-  for (let i = 0; i <= 2; i++) {
-   knoten.Inzidenzen[i] = freiheitsgrade
-   freiheitsgrade++
-   switch (i) {
-    case 0: {
-     freiheitsgrade_name.push(`u<sub>${knoten.Nummer}</sub>`)
-     break
-    }
-    case 1: {
-     freiheitsgrade_name.push(`w<sub>${knoten.Nummer}</sub>`)
-     break
-    }
-    case 2: {
-     freiheitsgrade_name.push(`&phi;<sub>${knoten.Nummer}</sub>`)
-     break
-    }
-   }
-  }
- })
-
- //Freiheitsgrade den Stäben zuordnen
- system.Stabliste.forEach((stab) => {
-  for (let i = 0; i < 3; i++) {
-   stab.Inzidenzen[i + 0] = stab.Anfangsknoten!.Inzidenzen[i]
-   stab.Inzidenzen[i + 3] = stab.Endknoten!.Inzidenzen[i]
-  }
- })
-
- /**
-  * Zusätzliche Freiheitsgrade aus Gelenkdefinitionen
-  * Wenn am Anfang(Ende) eine Gelenkdefinition vorhanden ist,
-  * werden drei Freiheitsgrade hinzugefügt, unabhängig vom genauen Aufbau des Gelenks.
-  * Zwei for Schleifen damit erst alle Gelenke vom Anfang und dann
-  * alle Gelenk vom Ende hinzugefügt werden (um Struktur beizubehalten)
-  */
- system.Stabliste.forEach((stab) => {
-  if (stab.Anfangsgelenknummer) {
-   for (let i = 0; i <= 2; i++) {
-    stab.Inzidenzen[i + 0] = freiheitsgrade
-    freiheitsgrade++
-    switch (i) {
-     case 0: {
-      freiheitsgrade_name.push(`u<sub>Stab${stab.Nummer},i</sub>`)
-      break
-     }
-     case 1: {
-      freiheitsgrade_name.push(`w<sub>Stab${stab.Nummer},i</sub>`)
-      break
-     }
-     case 2: {
-      freiheitsgrade_name.push(`&phi;<sub>Stab${stab.Nummer},i</sub>`)
-      break
-     }
-    }
-   }
-  }
-  if (stab.Endgelenknummer) {
-   for (let i = 0; i <= 2; i++) {
-    stab.Inzidenzen[i + 3] = freiheitsgrade
-    freiheitsgrade++
-    switch (i) {
-     case 0: {
-      freiheitsgrade_name.push(`u<sub>Stab${stab.Nummer},k</sub>`)
-      break
-     }
-     case 1: {
-      freiheitsgrade_name.push(`w<sub>Stab${stab.Nummer},k</sub>`)
-      break
-     }
-     case 2: {
-      freiheitsgrade_name.push(`&phi;<sub>Stab${stab.Nummer},k</sub>`)
-      break
-     }
-    }
-   }
-  }
- })
- system.Freiheitsgrade = freiheitsgrade
- system.Freiheitsgrade_name = freiheitsgrade_name
-
- //Nicht-gehaltene Inzidenzen aus Knotenverschiebungen
- //Nur gelagerte Freiheitsgrade gelten als gehalten. Federn sind KEINE Lagerung.
- const verformungsInzidenzen: number[] = []
- system.Knotenliste.forEach((knoten) => {
-  for (let i = 0; i <= 2; i++) {
-   if (!knoten.Lager!.Lagerung[i]) {
-    verformungsInzidenzen.push(knoten.Inzidenzen[i])
-   }
-  }
- })
-
- //Inzidenzen aus Gelenkdefinitionen
- system.Stabliste.forEach((stab) => {
-  if (stab.Anfangsgelenknummer) {
-   for (let i = 0; i < 3; i++) {
-    verformungsInzidenzen.push(stab.Inzidenzen[i])
-   }
-  }
-  if (stab.Endgelenknummer) {
-   for (let i = 3; i < 6; i++) {
-    verformungsInzidenzen.push(stab.Inzidenzen[i])
-   }
-  }
- })
- system.Verformungsinzidenzen = verformungsInzidenzen
+/** Freiheitsgrade des Systems */
+export interface Freiheitsgradmodell {
+ anzahl: number
+ namen: string[]
+ /** true für gelagerte (gehaltene) Freiheitsgrade */
+ gehalten: boolean[]
+ /** true für Verdrehungsfreiheitsgrade von Knoten (dürfen bei fehlender Steifigkeit gehalten werden) */
+ knotenverdrehung: boolean[]
+ /** Freiheitsgrade der Knotenpunkte entlang eines Stabes (Anfangsknoten, Zwischenknoten, Endknoten) */
+ stabpunkte: Map<Stab, { inzidenzen: number[]; knoten: Knoten | null }[]>
+ /** Zusätzliche Freiheitsgrade freigegebener Gelenkrichtungen [Anfang, Ende][Richtung] */
+ gelenkFG: Map<Stab, (number | null)[][]>
 }
 
+const FG_NAMEN = ["u", "w", "&phi;"]
+
 /**
- * Stellt für jeden Stab ein Balkenelement auf. Element wird mit zugehörigen Stablasten verknüpft.
- * @param system Systemobjekt.
- * @param lastfall Aktuelles Lastfallobjekt.
+ * Definiert alle Freiheitsgrade:
+ * - je Knoten u, w, φ (bei gedrehtem Lager im Lagerkoordinatensystem)
+ * - je Zwischenknoten eines unterteilten Stabes u, w, φ (global)
+ * - je freigegebener Gelenkrichtung ein zusätzlicher Freiheitsgrad des Stabendes (lokal)
+ * Nicht freigegebene Richtungen eines Gelenks teilen sich den Freiheitsgrad mit dem Knoten (exakt,
+ * ohne "starre" Federn).
  */
-function elementeAufstellen(system: System, lastfall: Lastfall) {
- //Alle Stablasten sammeln und beim Erstellen der Elemente diese den Stablasten zuordnen
- const stablasten: isStablast[] = []
- //Zu verwendenen Lastfall ermitteln. Falls ein anderer Lastfall
- //kopiert werden soll wird dieser hier verwendet.
- //Theorie wird weiterhin aus "lastfall" verwendet.
- const lf = lastfall.istKopieVon ? lastfall.istKopieVon : lastfall
- lf.StablastListeStreckenlast.forEach((last) => {
-  //Ein neues Lastobjekt erzeugen, damit bei kopierten Lastfällen keine Referenzkonflikte
-  //beim Originalobjekt entstehen.
-  stablasten.push(last.shallowCopy())
+export function freiheitsgradeDefinieren(system: System): Freiheitsgradmodell {
+ let anzahl = 0
+ const namen: string[] = []
+ const gehalten: boolean[] = []
+ const knotenverdrehung: boolean[] = []
+ const neu = (name: string, halt = false, verdrehung = false) => {
+  namen.push(name)
+  gehalten.push(halt)
+  knotenverdrehung.push(verdrehung)
+  return anzahl++
+ }
+
+ system.Knotenliste.forEach((knoten) => {
+  knoten.Inzidenzen = [0, 1, 2].map((i) =>
+   neu(`${FG_NAMEN[i]}<sub>${knoten.Nummer}</sub>`, !!knoten.Lager?.Lagerung[i], i === 2),
+  )
  })
- if (lastfall.Theorie !== Theorie.Theorie_1) {
-  lastfall.StablastListeVorverformung.forEach((last) => {
-   //Ein neues Lastobjekt erzeugen, damit bei kopierten Lastfällen keine Referenzkonflikte
-   //beim Originalobjekt entstehen.
-   stablasten.push(last.shallowCopy())
+
+ const stabpunkte = new Map<Stab, { inzidenzen: number[]; knoten: Knoten | null }[]>()
+ system.Stabliste.forEach((stab) => {
+  const punkte: { inzidenzen: number[]; knoten: Knoten | null }[] = [
+   { inzidenzen: stab.Anfangsknoten!.Inzidenzen, knoten: stab.Anfangsknoten },
+  ]
+  for (let i = 1; i < stab.Elementanzahl; i++) {
+   punkte.push({
+    inzidenzen: [0, 1, 2].map((j) => neu(`${FG_NAMEN[j]}<sub>S${stab.Nummer}.${i}</sub>`)),
+    knoten: null,
+   })
+  }
+  punkte.push({ inzidenzen: stab.Endknoten!.Inzidenzen, knoten: stab.Endknoten })
+  stabpunkte.set(stab, punkte)
+ })
+
+ const gelenkFG = new Map<Stab, (number | null)[][]>()
+ const lokaleNamen = ["u'", "w'", "&phi;"]
+ system.Stabliste.forEach((stab) => {
+  const fg: (number | null)[][] = [
+   [null, null, null],
+   [null, null, null],
+  ]
+  ;[stab.Anfangsgelenk, stab.Endgelenk].forEach((gelenk, ende) => {
+   if (!gelenk || !gelenk.Nummer) return
+   for (let j = 0; j < 3; j++) {
+    if (gelenk.Gelenke[j]) {
+     fg[ende][j] = neu(`${lokaleNamen[j]}<sub>S${stab.Nummer},${ende === 0 ? "A" : "E"}</sub>`)
+    }
+   }
   })
+  gelenkFG.set(stab, fg)
+ })
+
+ return { anzahl, namen, gehalten, knotenverdrehung, stabpunkte, gelenkFG }
+}
+
+/** Drehanteil (3x3) der Stabtransformation */
+function stabdrehung(stab: Stab): number[][] {
+ const T = stab.T
+ return [T[0].slice(0, 3), T[1].slice(0, 3), T[2].slice(0, 3)]
+}
+
+/**
+ * Stellt die Balkenelemente (Stab.Elementanzahl je Stab) und Federelemente auf und verteilt die
+ * Stablasten auf die Elemente.
+ */
+function elementeAufstellen(
+ system: System,
+ lastfall: Lastfall,
+ fg: Freiheitsgradmodell,
+ optionen: Rechenoptionen,
+ lastfaktor: number,
+ theorie: Theorie,
+): isElement[] {
+ const elemente: isElement[] = []
+ //Zu verwendenden Lastfall ermitteln. Falls ein anderer Lastfall kopiert werden soll, wird
+ //dieser hier verwendet. Die Theorie wird weiterhin aus "lastfall" verwendet.
+ const lf = lastfall.Lastquelle
+ const stablasten = lf.Stablastliste.filter(
+  (last) => theorie !== Theorie.Theorie_1 || last.Typ !== "StablastVorverformung",
+ )
+ const elementoptionen = {
+  minEpsilon: optionen.minEpsilon,
+  schnittgrößenAufVerformtesSystemBeziehen: optionen.schnittgrößenAufVerformtesSystemBeziehen,
  }
 
  system.Stabliste.forEach((stab) => {
-  const neuesElement = new Balkenelement(stab.Nummer, stab)
-  lastfall.Elementliste.push(neuesElement)
+  const punkte = fg.stabpunkte.get(stab)!
+  const gelenkFG = fg.gelenkFG.get(stab)!
+  const T = stab.T
+  const D = stabdrehung(stab)
+  for (let i = 0; i < stab.Elementanzahl; i++) {
+   const anfang = punkte[i]
+   const ende = punkte[i + 1]
+   const Ra = anfang.knoten ? anfang.knoten.Drehmatrix : einheitsmatrix(3)
+   const Re = ende.knoten ? ende.knoten.Drehmatrix : einheitsmatrix(3)
+   //A = T · blockdiag(Ra, Re)
+   const A: number[][] = matMultiplyMat(T, blockdiagonal(Ra, Re))!
+   const inzidenzen = anfang.inzidenzen.concat(ende.inzidenzen)
+   //Freigegebene Gelenkrichtungen: Zeile durch eigenen Freiheitsgrad ersetzen
+   const freigaben: { zeile: number; fg: number }[] = []
+   if (i === 0) {
+    gelenkFG[0].forEach((f, j) => f !== null && freigaben.push({ zeile: j, fg: f }))
+   }
+   if (i === stab.Elementanzahl - 1) {
+    gelenkFG[1].forEach((f, j) => f !== null && freigaben.push({ zeile: 3 + j, fg: f }))
+   }
+   freigaben.forEach((freigabe) => {
+    A.forEach((zeile) => zeile.push(0))
+    A[freigabe.zeile] = A[freigabe.zeile].map(() => 0)
+    A[freigabe.zeile][A[freigabe.zeile].length - 1] = 1
+    inzidenzen.push(freigabe.fg)
+   })
+   const element = new Balkenelement(
+    elemente.length + 1,
+    stab,
+    i + 1,
+    inzidenzen,
+    A,
+    elementoptionen,
+   )
+   element.lastfaktor = lastfaktor
+   stablasten.forEach((last) => {
+    if (last.Stab === stab) last.aufElementVerteilen(element)
+   })
+   elemente.push(element)
+  }
 
-  //Neues Balkenelement wird allen zugehörigen Stablasten zugeordnet
-  stablasten.forEach((stablast) => {
-   if (stablast.Stab === stab) {
-    stablast.Element = neuesElement
-    neuesElement.Stablasten.push(stablast)
+  //Federn in freigegebenen Gelenkrichtungen
+  ;[stab.Anfangsgelenk, stab.Endgelenk].forEach((gelenk, e) => {
+   if (!gelenk || !gelenk.Nummer) return
+   const knoten = e === 0 ? stab.Anfangsknoten! : stab.Endknoten!
+   const DR = matMultiplyMat(D, knoten.Drehmatrix)!
+   for (let j = 0; j < 3; j++) {
+    const f = gelenkFG[e][j]
+    if (f === null || !gelenk.Federn[j]) continue
+    elemente.push(
+     new Federelement(
+      elemente.length + 1,
+      stab,
+      gelenk,
+      j,
+      [f, ...knoten.Inzidenzen],
+      [1, ...DR[j].map((v) => -v)],
+     ),
+    )
    }
   })
  })
-
- system.Stabliste.forEach((stab) => {
-  if (stab.Anfangsgelenknummer) {
-   //Neues Federelement zwischen Anfangsknoten und Stab erstellen
-   const federelement: Federelement = new Federelement(
-    lastfall.Elementliste.length,
-    stab,
-    stab.Anfangsgelenk!,
-    stab.Anfangsknoten!.Inzidenzen.concat(
-     stab.Inzidenzen[0],
-     stab.Inzidenzen[1],
-     stab.Inzidenzen[2],
-    ),
-   )
-   lastfall.Elementliste.push(federelement)
-  }
-  if (stab.Endgelenknummer) {
-   //Neues Federelement zwischen Stab und Endknoten erstellen
-   const federelement: Federelement = new Federelement(
-    lastfall.Elementliste.length,
-    stab,
-    stab.Endgelenk!,
-    [stab.Inzidenzen[3], stab.Inzidenzen[4], stab.Inzidenzen[5]].concat(stab.Endknoten!.Inzidenzen),
-   )
-   lastfall.Elementliste.push(federelement)
-  }
- })
+ return elemente
 }
 
-/**
- * Bestimmt Stabtheorien für jedes einzelne Element:
- * - Zunächst wird die Theorie des Lastfalls übernommen.
- * - Bei der trigonometrischen Theorie wird für sehr kleine Stabkennzahlen für dieses Element zur
- * kubischen Theorie gewechselt.
- */
-
-function ermittleStabtheorien(lastfall: Lastfall): void {
- lastfall.Elementliste.forEach((element) => {
-  element.ermittleTheorie(lastfall.Theorie)
- })
+function einheitsmatrix(n: number): number[][] {
+ return Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 1 : 0)))
 }
 
-/**
- * Stellt Lastvektor (nicht gehaltene Freiheitsgrade) auf aus:
- * - Knotenlasten
- * - Knotenersatzlasten aus Elementlasten
- * @param system Systemobjekt.
- * @param lastfall Aktuelles Lastfallobjekt.
- */
-function lastvektorAufstellen(system: System, lastfall: Lastfall) {
- const tempLastvektor: number[] = Array(system.Freiheitsgrade).fill(0)
- //Zu verwendenen Lastfall ermitteln. Falls ein anderer Lastfall
- //kopiert werden soll wird dieser hier verwendet.
- const lf = lastfall.istKopieVon ? lastfall.istKopieVon : lastfall
+function blockdiagonal(A: number[][], B: number[][]): number[][] {
+ const n = A.length + B.length
+ const M = Array.from({ length: n }, () => Array(n).fill(0))
+ A.forEach((zeile, i) => zeile.forEach((v, j) => (M[i][j] = v)))
+ B.forEach((zeile, i) => zeile.forEach((v, j) => (M[A.length + i][A.length + j] = v)))
+ return M
+}
 
- //Knotenlasten
- lf.Knotenlastliste.forEach((knotenlast) => {
+/** Lastvektor aller Freiheitsgrade aus Knotenlasten (im Knoten-KS) */
+function knotenlastvektor(
+ system: System,
+ lastfall: Lastfall,
+ fg: Freiheitsgradmodell,
+ faktor: number,
+) {
+ const P: number[] = Array(fg.anzahl).fill(0)
+ lastfall.Lastquelle.Knotenlastliste.forEach((knotenlast) => {
+  const knoten = knotenlast.Knoten!
+  const R = knoten.Drehmatrix
   for (let i = 0; i <= 2; i++) {
-   tempLastvektor[knotenlast.Knoten!.Inzidenzen[i]] += knotenlast.Lastvektor[i]
+   //P_knoten = Rᵀ · P_global
+   let p = 0
+   for (let j = 0; j <= 2; j++) p += R[j][i] * knotenlast.Lastvektor[j]
+   P[knoten.Inzidenzen[i]] += p * faktor
   }
  })
-
- //Knotenersatzlasten aus Stablasten
- lastfall.Elementliste.forEach((element) => {
-  element.Stablasten.forEach((stablast) => {
-   stablast.integrationskonstantenBestimmen()
-   stablast.knotenersatzlastenBestimmen()
-   console.log("Knotenersatzlasten")
-   console.table(stablast.Knotenersatzlasten)
-   stablast.Knotenersatzlasten.forEach((lastterm, index) => {
-    tempLastvektor[element.Inzidenzen[index]] -= lastterm
-   })
-  })
- })
- lastfall.Lastvektor = system.Verformungsinzidenzen.map((index) => tempLastvektor[index])
+ return P
 }
 
-/**
- * Führt folgende Punkte aus:
- * - Stellt über Elementmatrizen die Globale Gesamtsteifigkeitsmatrix auf.
- * - Addiert Federkräfte zu den Steifigkeiten der jeweiligen Freiheitsgrade.
- * @param system Systemobjekt.
- * @param lastfall Aktuelles Lastfallobjekt.
- */
-function steifigkeitsmatrixAufstellen(system: System, lastfall: Lastfall) {
- //Nicht-kondensierte Steifigkeitsmatrix  zu Nullmatrix initialisieren
- lastfall.M_K_lang = Array.from({ length: system.Freiheitsgrade }, () =>
-  Array(system.Freiheitsgrade).fill(0),
- )
-
- /**
-  * unkondensierte Gesamtsteifigkeitsmatrix aufbauen
-  */
- lastfall.Elementliste.forEach((element) => {
-  console.log(`kglob Element${element.Nummer}`)
-  console.table(element.k_glob())
-  element.k_glob().forEach((row, rowIndex) => {
-   row.forEach((val, colIndex) => {
-    const i = element.Inzidenzen[rowIndex]
-    const j = element.Inzidenzen[colIndex]
-    lastfall.M_K_lang[i][j] += val
+/** Gesamtsteifigkeitsmatrix (alle Freiheitsgrade) inkl. Lagerfedern */
+export function steifigkeitsmatrixAufstellen(
+ system: System,
+ elemente: isElement[],
+ fg: Freiheitsgradmodell,
+): number[][] {
+ const K = Array.from({ length: fg.anzahl }, () => Array(fg.anzahl).fill(0))
+ elemente.forEach((element) => {
+  const kg = element.k_glob()
+  const inz = element.Inzidenzen
+  kg.forEach((zeile, a) => {
+   const Ki = K[inz[a]]
+   zeile.forEach((wert, b) => {
+    Ki[inz[b]] += wert
    })
   })
-  // for (let rows: number = 0; rows < element.nGleichungen; rows++) {
-  //  for (let cols: number = 0; cols < element.nGleichungen; cols++) {
-  //   lastfall.M_K_lang[element.Inzidenzen[rows]][element.Inzidenzen[cols]] += k_glob[rows][cols]
-  //  }
-  // }
  })
-
- /**
-  * Federkräfte addieren
-  * Federkräfte dürfen nur addiert werden, wenn der Freiheitsgrad NICHT gelagert ist.
-  */
+ //Federn der Lager addieren (nur in nicht gelagerten Richtungen). Federn sind KEINE Lagerung.
  system.Knotenliste.forEach((knoten) => {
   for (let i = 0; i <= 2; i++) {
    if (!knoten.Lager!.Lagerung[i]) {
     const j = knoten.Inzidenzen[i]
-    lastfall.M_K_lang[j][j] += knoten.Lager!.Feder[i]
+    K[j][j] += knoten.Lager!.Feder[i]
    }
   }
  })
+ return K
+}
+
+/** Streicht gehaltene Zeilen und Spalten */
+function kondensieren(K: number[][], frei: number[]): number[][] {
+ return frei.map((i) => frei.map((j) => K[i][j]))
 }
 
 /**
- * Baut aus der nicht-kondensierten globalen Gesamtsteifigkeitsmatrix die kondensierte
- * Gesamtsteifigkeitsmatrix auf (nur nicht-gehaltene Freiheitsgrade).
- * @param system Systemobjekt.
- * @param lastfall Aktuelles Lastfallobjekt.
+ * Anzahl der Eigenwerte der beidseitig eingespannten Druckelemente unterhalb der aktuellen
+ * Normalkraft (J0 nach Wittrick-Williams). Nur für den exakten Ansatz relevant.
  */
-function randbedingungenEinarbeiten(system: System, lastfall: Lastfall) {
- lastfall.M_K_kurz = Array.from({ length: system.Verformungsinzidenzen.length }, () =>
-  Array(system.Verformungsinzidenzen.length).fill(0),
- )
- for (let row: number = 0; row < system.Verformungsinzidenzen.length; row++) {
-  for (let col: number = 0; col < system.Verformungsinzidenzen.length; col++) {
-   lastfall.M_K_kurz[row][col] =
-    lastfall.M_K_lang![system.Verformungsinzidenzen[row]][system.Verformungsinzidenzen[col]]
+export function eingespannteEigenwerteUnterhalb(elemente: isElement[]): number {
+ let j0 = 0
+ elemente.forEach((element) => {
+  if (!(element instanceof Balkenelement)) return
+  if (element.Theorie !== Theorie.Theorie_2_trig || element.Nmean >= 0) return
+  j0 += anzahlEingespannteEigenwerte(element.epsilon)
+ })
+ return j0
+}
+
+/** Nullstellen von tan(z) = z (z > 0), für die antimetrischen Knickformen des eingespannten Stabes */
+const TAN_NULLSTELLEN: number[] = []
+function tanNullstelle(n: number): number {
+ while (TAN_NULLSTELLEN.length < n) {
+  const k = TAN_NULLSTELLEN.length + 1
+  let z = (k + 0.5) * Math.PI - 1 / ((k + 0.5) * Math.PI)
+  for (let it = 0; it < 50; it++) {
+   const f = Math.tan(z) - z
+   const df = 1 / Math.cos(z) ** 2 - 1
+   const dz = f / df
+   z -= dz
+   if (Math.abs(dz) < 1e-15 * z) break
   }
+  TAN_NULLSTELLEN.push(z)
  }
+ return TAN_NULLSTELLEN[n - 1]
 }
 
 /**
- * Führt folgende Schritte aus:
- * - Löst F = K * W mit dem Gauss-Algorithmus.
- * - Erstellt aus Ergebnis den Verformungsvektor (alle Freiheitsgrade).
- * - Weist den Stäben die Stabendverformungen zu.
- * - Transformiert diese Verformungen in die jeweiligen lokalen Systeme.
- * @param system Systemobjekt.
- * @param lastfall Aktuelles Lastfallobjekt.
+ * Anzahl der Knickeigenwerte des beidseitig eingespannten Stabes unterhalb von ε:
+ * symmetrisch ε = 2π, 4π, …; antimetrisch tan(ε/2) = ε/2 (ε = 8,9868; 15,4505; …)
  */
-function gleichungssystemLösen(system: System, lastfall: Lastfall) {
- //Da der Lastvektor in der Funktion gauss zum Verformungsvektor
- //umgeformt wird, werden diese beiden hier gleichgesetzt.
- lastfall.Verformungsvektor_kurz = lastfall.Lastvektor.slice()
- const solverStatus: number = cholesky(
-  lastfall.M_K_kurz.map((row) => [...row]),
-  lastfall.Verformungsvektor_kurz,
-  system.Verformungsinzidenzen.length,
- )
+export function anzahlEingespannteEigenwerte(epsilon: number): number {
+ let anzahl = Math.floor(epsilon / (2 * Math.PI))
+ for (let n = 1; 2 * tanNullstelle(n) < epsilon; n++) anzahl++
+ return anzahl
+}
 
- /*
- gauss(
-  system.Verformungsinzidenzen.length,
-  lastfall.M_K_kurz.map((row) => [...row]),
-  lastfall.Verformungsvektor_kurz,
- )
+/**
+ * Berechnet einen Lastfall.
+ * @returns Ergebnis (null bei Fehlern) und Fehlerliste
  */
+export function berechneLastfall(
+ system: System,
+ lastfall: Lastfall,
+ optionen: Rechenoptionen = STANDARD_RECHENOPTIONEN,
+ variante: Lastfallvariante = {},
+): { ergebnis: LastfallErgebnis | null; fehler: Fehler[] } {
+ const log = optionen.debug ? console.log : () => {}
+ const theorie = variante.theorie ?? lastfall.Theorie
+ const lastfaktor = variante.lastfaktor ?? 1
+ const fehler: Fehler[] = []
+ const fg = freiheitsgradeDefinieren(system)
+ const elemente = elementeAufstellen(system, lastfall, fg, optionen, lastfaktor, theorie)
+ const balkenelemente = elemente.filter((e) => e instanceof Balkenelement) as Balkenelement[]
+ const Pknoten = knotenlastvektor(system, lastfall, fg, lastfaktor)
 
- if (solverStatus) {
-  lastfall.Fehlerliste.push(
+ /**Maximale Anzahl an Iterationen */
+ const maxIterationen = theorie === Theorie.Theorie_1 ? 1 : Math.max(1, optionen.maxIterationen)
+ let frei: number[] = []
+ let K: number[][] = []
+ let Kkurz: number[][] = []
+ let P: number[] = []
+ let Pkurz: number[] = []
+ let Ukurz: number[] = []
+ let Ulang: number[] = Array(fg.anzahl).fill(0)
+ let UkurzAlt: number[] = []
+ let iteration = 0
+ let iterationsFehler = 0
+
+ do {
+  iteration++
+  elemente.forEach((element) => element.ermittleTheorie(theorie))
+
+  //Lastvektor: Knotenlasten − Starreinspannkräfte
+  P = Pknoten.slice()
+  elemente.forEach((element) => {
+   element.lastvektor().forEach((wert, i) => (P[element.Inzidenzen[i]] += wert))
+  })
+
+  K = steifigkeitsmatrixAufstellen(system, elemente, fg)
+  if (iteration === 1) {
+   //Knotenverdrehungen ohne Steifigkeit (alle angeschlossenen Stabenden gelenkig) werden gehalten,
+   //da sie keinen Einfluss auf das Tragverhalten haben.
+   frei = []
+   for (let i = 0; i < fg.anzahl; i++) {
+    if (fg.gehalten[i]) continue
+    if (fg.knotenverdrehung[i] && K[i][i] === 0 && P[i] === 0) continue
+    frei.push(i)
+   }
+  }
+  Kkurz = kondensieren(K, frei)
+  Pkurz = frei.map((i) => P[i])
+  log(`LF${lastfall.Nummer}, Iteration ${iteration}`, { K: Kkurz, P: Pkurz })
+
+  const zerlegung = ldltZerlegen(Kkurz)
+  if (!zerlegung.positivDefinit) {
+   fehler.push(lösungsfehler(system, lastfall, theorie, fg, frei, zerlegung, elemente, iteration))
+   break
+  }
+  Ukurz = ldltLösen(zerlegung, Pkurz)
+
+  //Verformungsvektor auffüllen (mit Nullen)
+  Ulang = Array(fg.anzahl).fill(0)
+  frei.forEach((inz, index) => (Ulang[inz] = Ukurz[index]))
+
+  elemente.forEach((element) => {
+   element.verformungenSetzen(Ulang)
+   element.kräfteBestimmen()
+   element.ermittleMittlereNormalkraft()
+  })
+
+  //Wittrick-Williams: Druckelemente über ihrer eigenen Knicklast (Knicken zwischen den Knoten)
+  if (theorie === Theorie.Theorie_2_trig && eingespannteEigenwerteUnterhalb(elemente) > 0) {
+   fehler.push(
+    new Fehler(
+     "Berechnung",
+     `LF${lastfall.Nummer}: Die Last liegt über der Verzweigungslast (ein Stabelement knickt zwischen seinen Knoten aus).`,
+    ),
+   )
+   break
+  }
+
+  iterationsFehler = verformungsDifferenz(Ukurz, UkurzAlt)
+  log(`Relativer Fehler in Iteration ${iteration}: ${iterationsFehler}`)
+  UkurzAlt = Ukurz.slice()
+ } while (iteration < maxIterationen && iterationsFehler > optionen.maxIterationsFehler)
+
+ //Gibt Fehlermeldung aus, wenn nach max Iterationen noch keine Konvergenz gefunden wurde.
+ if (
+  fehler.length === 0 &&
+  theorie !== Theorie.Theorie_1 &&
+  iterationsFehler > optionen.maxIterationsFehler
+ ) {
+  fehler.push(
    new Fehler(
     "Berechnung",
-    `LF${lastfall.Nummer}: Singuläre Steifigkeitsmatrix bei Zeile ${
-     system.Freiheitsgrade_name[system.Verformungsinzidenzen[solverStatus] - 1]
-    }. System ist instabil oder kinematisch.`,
+    `LF${lastfall.Nummer}: Es wurde nach ${iteration} Iterationen noch keine Konvergenz gefunden.`,
    ),
   )
-  console.log("Singuläre Steifigkeitsmatrix")
  }
+ if (fehler.length) return { ergebnis: null, fehler }
 
- //Verformungsvektor auffüllen (mit Nullen)
- lastfall.Verformungsvektor_lang = Array(system.Freiheitsgrade).fill(0)
- system.Verformungsinzidenzen.forEach((inz, index) => {
-  lastfall.Verformungsvektor_lang[inz] = lastfall.Verformungsvektor_kurz[index]
+ //Lagerkräfte: Gleichgewicht an allen Freiheitsgraden (Knotenlasten − Elementkräfte)
+ const lagerkräfte = Pknoten.slice()
+ elemente.forEach((element) => {
+  element.globaleKräfte().forEach((kraft, i) => (lagerkräfte[element.Inzidenzen[i]] -= kraft))
  })
 
- //Verformungen den Einzelnen Stäben zuweisen
- lastfall.Elementliste.forEach((element) => {
-  for (let i = 0; i < element.nGleichungen; i++) {
-   element.Verformungen[i] = lastfall.Verformungsvektor_lang[element.Inzidenzen[i]]
+ return {
+  ergebnis: {
+   Elementliste: elemente,
+   Balkenelementliste: balkenelemente,
+   Freiheitsgrade: fg.anzahl,
+   Freiheitsgrade_name: fg.namen,
+   Verformungsinzidenzen: frei,
+   Lastvektor: Pkurz,
+   Verformungsvektor_kurz: Ukurz,
+   Verformungsvektor_lang: Ulang,
+   M_K_lang: K,
+   M_K_kurz: Kkurz,
+   Lagerkräfte: lagerkräfte,
+   Iterationen: iteration,
+   Stabergebnisse: stabergebnisseBestimmen(system, balkenelemente),
+  },
+  fehler,
+ }
+}
+
+/** Erstellt die Fehlermeldung, wenn die Steifigkeitsmatrix nicht positiv definit ist. */
+function lösungsfehler(
+ system: System,
+ lastfall: Lastfall,
+ theorie: Theorie,
+ fg: Freiheitsgradmodell,
+ frei: number[],
+ zerlegung: ReturnType<typeof ldltZerlegen>,
+ elemente: isElement[],
+ iteration: number,
+): Fehler {
+ const zeile = zerlegung.singuläreZeile >= 0 ? zerlegung.singuläreZeile : zerlegung.negativeZeile
+ const fgName = fg.namen[frei[zeile]] ?? "?"
+ //Bei Th. II prüfen, ob das System nach Th. I lösbar ist. Dann ist die Last zu groß.
+ if (theorie !== Theorie.Theorie_1 && iteration > 1) {
+  const normalkräfte = elemente.map((e) => (e instanceof Balkenelement ? e.Nmean : 0))
+  elemente.forEach((e) => e instanceof Balkenelement && (e.Nmean = 0))
+  const K1 = kondensieren(steifigkeitsmatrixAufstellen(system, elemente, fg), frei)
+  elemente.forEach((e, i) => e instanceof Balkenelement && (e.Nmean = normalkräfte[i]))
+  if (ldltZerlegen(K1).positivDefinit) {
+   return new Fehler(
+    "Berechnung",
+    `LF${lastfall.Nummer}: Die Last liegt über der Verzweigungslast. Die Steifigkeitsmatrix nach Theorie II. Ordnung ist nicht positiv definit (bei ${fgName}).`,
+   )
   }
-  //Elementverformungen ins lokale System transformieren
-  element.Verformungen = matMultiplyVec(element.T, element.Verformungen)!
- })
+ }
+ return new Fehler(
+  "Berechnung",
+  `LF${lastfall.Nummer}: Singuläre Steifigkeitsmatrix bei Freiheitsgrad ${fgName}. System ist instabil oder kinematisch.`,
+ )
 }
 
 /**
- * Ermittelt aus den Stabendverformungen die Stabendkräfte.
- * @param system Systemobjekt.
- * @param lastfall Aktuelles Lastfallobjekt.
- */
-function elementkräfteBestimmen(system: System, lastfall: Lastfall) {
- lastfall.Elementliste.forEach((element) => {
-  //StabendKräfte aus Knotenverschiebungen ermitteln
-  element.F = matMultiplyVec(element.k_lok(), element.Verformungen)!
-  //Knotenersatzlasten aus Stablasten abziehen
-  //Knotenersatzlasten müssen erst ins lokale System transformiert werden.
-  element.Stablasten.forEach((stablast) => {
-   matMultiplyVec(element.T, stablast.Knotenersatzlasten)!.forEach((lastterm, index) => {
-    element.F[index] += lastterm
-   })
-  })
-  console.log(`Stabendkräfte Stab ${element.Nummer}`)
-  console.table(matTrans(element.F))
-
-  //Ermittelt mittlere Normalkraft des Elements für Stabkennzahl
-  element.ermittleMittlereNormalkraft()
- })
-}
-
-/**
- * Berechnet die Verformungsdifferenz zur letzten Iteration nach der euklidischen Abstandsformel.
+ * Berechnet die Verformungsdifferenz zur letzten Iteration nach der euklidischen Abstandsformel (Gl. 80).
  * @param u Verformungsvektor aus der aktuellen Iteration.
  * @param u_last Verformungsvektor aus der letzten Iteration.
  *
@@ -534,58 +551,64 @@ function elementkräfteBestimmen(system: System, lastfall: Lastfall) {
 function verformungsDifferenz(u: number[], u_last: number[]): number {
  let zaehler = 0
  let nenner = 0
- let fehler_eps = 0
- const freiheitsgrade = u.length
-
- if (u_last.length === 0) u_last = Array(freiheitsgrade).fill(0) //Für erste Iteration ist noch kein Verformungsvektor bekannt
-
- for (let i = 0; i < freiheitsgrade; i++) {
+ if (u_last.length === 0) u_last = Array(u.length).fill(0) //Für erste Iteration ist noch kein Verformungsvektor bekannt
+ for (let i = 0; i < u.length; i++) {
   zaehler += (u[i] - u_last[i]) ** 2
   nenner += u[i] ** 2
  }
- zaehler = Math.sqrt(zaehler)
- nenner = Math.sqrt(nenner)
- if (nenner === 0) {
-  fehler_eps = 0
- } else {
-  fehler_eps = zaehler / nenner
- }
- return fehler_eps
+ return nenner === 0 ? 0 : Math.sqrt(zaehler) / Math.sqrt(nenner)
 }
 
 /**
  * Berechnet für jeden Stab die Ausgabegrößen über die Stabachse.
- * @param system Systemobjekt.
- * @param lastfall Aktuelles Lastfallobjekt.
+ * Ausgabestellen: gleichmäßig verteilt (Stababschnitte), Elementgrenzen und Einzellasten
+ * (dort Werte links und rechts der Last).
  */
-function schnittgrößenBestimmen(system: System, lastfall: Lastfall) {
- lastfall.Elementliste.forEach((element) => {
-  element.AusgabepunkteBerechnen()
+export function stabergebnisseBestimmen(
+ system: System,
+ elemente: Balkenelement[],
+ auswerten: (element: Balkenelement, x: number, rechts: boolean) => number[] = (e, x, r) =>
+  e.Ausgabepunkt(x, r),
+): Stabergebnis[] {
+ return system.Stabliste.map((stab) => {
+  const erg: Stabergebnis = { Stab: stab, x: [], N: [], V: [], M: [], ux: [], uz: [], phi: [] }
+  const L = stab.Länge
+  const n = Math.max(1, Math.round(stab.Stababschnitte) || 1)
+  const stabelemente = elemente.filter((e) => e.Stab === stab)
+  stabelemente.forEach((element, ei) => {
+   const stellen: { x: number; rechts: boolean }[] = []
+   const xa = element.xAnfang
+   const xe = xa + element.L
+   for (let j = 0; j <= n; j++) {
+    const x = (j * L) / n
+    if (x >= xa - 1e-9 * L && x <= xe + 1e-9 * L)
+     stellen.push({ x: Math.min(Math.max(x - xa, 0), element.L), rechts: false })
+   }
+   stellen.push({ x: 0, rechts: false }, { x: element.L, rechts: false })
+   element.lasten.einzellasten.forEach((last) => {
+    if (last.a > 0 && last.a < element.L) {
+     stellen.push({ x: last.a, rechts: false }, { x: last.a, rechts: true })
+    }
+   })
+   stellen.sort((a, b) => a.x - b.x || Number(a.rechts) - Number(b.rechts))
+   const lastAmAnfang = element.lasten.einzellasten.some((last) => last.a <= 0)
+   stellen.forEach((stelle, i) => {
+    const vorher = stellen[i - 1]
+    if (vorher && Math.abs(vorher.x - stelle.x) < 1e-9 * L && vorher.rechts === stelle.rechts)
+     return
+    //Elementanfang ab dem zweiten Element: identisch mit Ende des Vorgängers
+    //(außer bei einer Einzellast genau am Zwischenknoten)
+    if (ei > 0 && stelle.x === 0 && !stelle.rechts && !lastAmAnfang) return
+    const w = auswerten(element, stelle.x, stelle.rechts)
+    erg.x.push(xa + stelle.x)
+    erg.N.push(w[0])
+    erg.V.push(w[1])
+    erg.M.push(w[2])
+    erg.ux.push(w[3])
+    erg.uz.push(w[4])
+    erg.phi.push(w[5])
+   })
+  })
+  return erg
  })
-}
-
-/**
- * Berechnet über F=K*W die Lagerkräfte.
- * @param system Systemobjekt.
- * @param lastfall Aktuelles Lastfallobjekt.
- */
-function lagerkräfteBestimmen(system: System, lastfall: Lastfall) {
- lastfall.Lagerkräfte = Array(system.Freiheitsgrade).fill(0)
-
- //Gleichgewicht am Knoten durchführen
- //Kräfte aus Stabenden
- lastfall.Elementliste.forEach((element) => {
-  const kräfte_global = matMultiplyVec(matTrans(element.T), element.F)!
-  for (let i = 0; i < element.nGleichungen; i++) {
-   lastfall.Lagerkräfte[element.Inzidenzen[i]] -= kräfte_global[i]
-  }
- })
- //Kräfte aus Knotenlasten
- lastfall.Knotenlastliste.forEach((knotenlast) => {
-  for (let i = 0; i <= 2; i++) {
-   lastfall.Lagerkräfte[knotenlast.Knoten?.Inzidenzen[i]!] += knotenlast.Lastvektor[i]
-  }
- })
- console.log("Lagerkräfte")
- console.table(lastfall.Lagerkräfte)
 }

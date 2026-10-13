@@ -1,6 +1,6 @@
-import { useEinheitenStore } from "@/stores/EinheitenStore.js"
-import type { isEinheit } from "./InterfaceEinheit.js"
-import type { isStatikobjekt } from "./InterfaceStatikobjekt.js"
+import { EINHEITEN } from "../einheiten"
+import type { isEinheit } from "./InterfaceEinheit"
+import type { isStatikobjekt, Spalte } from "./InterfaceStatikobjekt"
 
 /**
  * ### Klasse Gelenk
@@ -17,13 +17,12 @@ export default class Gelenk implements isStatikobjekt {
  einheitDrehfeder: isEinheit
 
  constructor(Nummer: number = 0) {
-  const einheiten = useEinheitenStore()
   this.Nummer = Nummer
   this.Gelenke = [false, false, false]
   this.Federn = [0, 0, 0]
 
-  this.einheitWegfeder = einheiten.kN_m
-  this.einheitDrehfeder = einheiten.kNm_rad
+  this.einheitWegfeder = EINHEITEN.kN_m
+  this.einheitDrehfeder = EINHEITEN.kNm_rad
  }
 
  //Werte  für Ausgabe in Tabellenblatt. Müssen in der gleichen Reihenfolge sein
@@ -58,8 +57,7 @@ export default class Gelenk implements isStatikobjekt {
   ]
  }
 
- get header() {
-  //   const systemStore = useSystemStore()
+ header(): Spalte[] {
   return [
    { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {

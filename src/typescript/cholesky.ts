@@ -1,157 +1,102 @@
 /**
- * Gleichungslöser nach Cholesky
- * netterweise bereitgestellt von Hr. Detlef Rothe 
- * Mail von Hr Rorht als Info:
- * 
- * Hallo Herr Schubert,
-
-anbei die Funktion zur Gleichungslösung nach Cholesky.
-
-Man kann die Lösung in zwei Teile aufteilen. Zuerst die Zerlegung in A=L*L^T (case 1). Dies ist unabhängig von den rechten Seiten. Dies ist der aufwändige Teil. Danach können mehrere rechten Seiten gelöst werden (case 2). Die L-Matrizen ändern sich dabei nicht. Das ist interessant bei Theorie I.Ordnung mit vielen rechten Seiten.
-
-Wenn Sie den gauss-Algorithmus  direkt austauschen wollen, dann können Sie in der Datei cholesky.ts die Switch-Anweisung entfernen incl. der Variablen flag und dem return 0; vor case 2.  Dann werden beide Teile nacheinander abgearbeitet.
-
-Viel Spaß,
-
-Detlef Rothe
- * 
- * @param a linke Seite (Steifigeitsmatrix)
- * @param b rechte Seite (Lastvektor)
- * @param n Anzahl an zu lösenden Gleichungen
- * @returns 0 bei fehlerfrei... sonst fehlerhafte Zeile
+ * ### Gleichungslöser für symmetrische Steifigkeitsmatrizen
+ *
+ * LDLᵀ-Zerlegung (Cholesky-Verfahren ohne Wurzel, ohne Pivotisierung). Grundlage ist die
+ * Cholesky-Funktion, die Prof. Rothe für die Masterarbeit bereitgestellt hat; sie wurde um
+ * - eine eindeutige Fehlerrückgabe (vorher war "Fehler in Zeile 0" nicht von "Erfolg" unterscheidbar),
+ * - einen relativen Pivot-Schwellwert (fast singuläre Matrizen werden erkannt) und
+ * - die Zählung negativer Pivots (Sturmsche Kette, für die Stabilitätsberechnung)
+ * erweitert.
  */
 
-export function cholesky(a: number[][], b: number[], n: number) {
- /* Cholesky Zerlegung   A = L*L^T = L*U
-
-          | x x x |
-      U = | 0 x x |
-          | 0 0 x |
-
-        der obere Teil der Matrix [A] enthält [U] nach der Zerlegung
-    */
-
- let i = 0,
-  j = 0,
-  k = 0
- let s = 0.0
-
- for (i = 0; i < n; ++i) {
-  if (a[i][i] <= 0.0) return i // Zeilenummer zurückgeben
-  else {
-   a[i][i] = Math.sqrt(a[i][i])
-   for (k = i + 1; k < n; ++k) {
-    a[i][k] /= a[i][i]
-   }
-   for (j = i + 1; j < n; ++j) {
-    for (k = j; k < n; ++k) {
-     a[j][k] -= a[i][j] * a[i][k]
-    }
-   }
-  }
- }
- // for (j = 0; j < n; j++) {
- //     console.log('a_stiff[]', a[j])
- // }
-
- for (k = 0; k < n; k++) {
-  s = b[k]
-  for (i = 0; i < k; ++i) {
-   s -= a[i][k] * b[i]
-  }
-  b[k] = s / a[k][k]
- }
-
- for (i = n - 1; i >= 0; --i) {
-  s = b[i]
-  for (k = i + 1; k < n; ++k) {
-   s -= a[i][k] * b[k]
-  }
-  b[i] = s / a[i][i]
- }
-
- return 0
+export interface Zerlegung {
+ /** true, wenn die Matrix positiv definit ist (alle Pivots > Schwellwert) */
+ positivDefinit: boolean
+ /** Erste Zeile mit (fast) verschwindendem Pivot, sonst −1 */
+ singuläreZeile: number
+ /** Erste Zeile mit negativem Pivot, sonst −1 */
+ negativeZeile: number
+ /** Anzahl negativer Pivots (= Anzahl negativer Eigenwerte, Trägheitssatz von Sylvester) */
+ negativePivots: number
+ /** untere Dreiecksmatrix L (Diagonale = 1, gespeichert unterhalb der Diagonalen) */
+ L: number[][]
+ /** Diagonale D */
+ d: number[]
 }
 
 /**
- * Cholesky in der Ursprungsform aus der Mail von Hr Rothe.
- * Mit dieser Variante können mehrere rechte Seiten gelöst werden mit weniger extra Aufwand, 
- * da zunächst K*K^T aufgestellt wird.
- * Mail von Hr Rothe hierzu:
- * 
- * Hallo Herr Schubert,
-
-anbei die Funktion zur Gleichungslösung nach Cholesky.
-
-Man kann die Lösung in zwei Teile aufteilen. Zuerst die Zerlegung in A=L*L^T (case 1). Dies ist unabhängig von den rechten Seiten. Dies ist der aufwändige Teil. Danach können mehrere rechten Seiten gelöst werden (case 2). Die L-Matrizen ändern sich dabei nicht. Das ist interessant bei Theorie I.Ordnung mit vielen rechten Seiten.
-
-Wenn Sie den gauss-Algorithmus  direkt austauschen wollen, dann können Sie in der Datei cholesky.ts die Switch-Anweisung entfernen incl. der Variablen flag und dem return 0; vor case 2.  Dann werden beide Teile nacheinander abgearbeitet.
-
-Viel Spaß,
-
-Detlef Rothe
-
+ * Zerlegt K = L·D·Lᵀ. Die Eingangsmatrix wird nicht verändert.
+ * @param K symmetrische Matrix
+ * @param toleranz relativer Schwellwert: |d_i| ≤ toleranz·|K_ii| gilt als singulär
+ * @param abbrechen bei true wird bei der ersten singulären Zeile abgebrochen (Lösen);
+ * bei false wird weitergerechnet (Zählen negativer Pivots für die Sturmsche Kette)
  */
+export function ldltZerlegen(K: number[][], toleranz = 1e-10, abbrechen = true): Zerlegung {
+ const n = K.length
+ const L: number[][] = K.map((zeile) => zeile.slice())
+ const d: number[] = Array(n).fill(0)
+ let singuläreZeile = -1
+ let negativeZeile = -1
+ let negativePivots = 0
+ for (let j = 0; j < n; j++) {
+  //d_j = K_jj − Σ L_jk² d_k
+  let s = L[j][j]
+  const Lj = L[j]
+  for (let k = 0; k < j; k++) s -= Lj[k] * Lj[k] * d[k]
+  d[j] = s
+  const grenze = toleranz * Math.abs(K[j][j])
+  if (!(Math.abs(s) > grenze) || !Number.isFinite(s)) {
+   if (singuläreZeile < 0) singuläreZeile = j
+   if (abbrechen) break
+   //Für die Zählung wird ein exakter Nullpivot minimal verschoben
+   d[j] = s === 0 ? -Number.MIN_VALUE : s
+  }
+  if (d[j] < 0) {
+   negativePivots++
+   if (negativeZeile < 0) negativeZeile = j
+  }
+  //L_ij = (K_ij − Σ L_ik L_jk d_k)/d_j  für i > j
+  for (let i = j + 1; i < n; i++) {
+   const Li = L[i]
+   let t = Li[j]
+   for (let k = 0; k < j; k++) t -= Li[k] * Lj[k] * d[k]
+   Li[j] = t / d[j]
+  }
+ }
+ return {
+  positivDefinit: singuläreZeile < 0 && negativePivots === 0,
+  singuläreZeile,
+  negativeZeile,
+  negativePivots,
+  L,
+  d,
+ }
+}
 
-/* 
-    Cholesky Zerlegung   A = L*L^T = L*U
+/** Löst L·D·Lᵀ·x = b (b wird nicht verändert) */
+export function ldltLösen(z: Zerlegung, b: number[]): number[] {
+ const n = b.length
+ const x = b.slice()
+ for (let i = 0; i < n; i++) {
+  let s = x[i]
+  for (let k = 0; k < i; k++) s -= z.L[i][k] * x[k]
+  x[i] = s
+ }
+ for (let i = 0; i < n; i++) x[i] /= z.d[i]
+ for (let i = n - 1; i >= 0; i--) {
+  let s = x[i]
+  for (let k = i + 1; k < n; k++) s -= z.L[k][i] * x[k]
+  x[i] = s
+ }
+ return x
+}
 
-          | x x x |
-      U = | 0 x x |
-          | 0 0 x |
-
-        der obere Teil der Matrix [A] enthält [U] nach der Zerlegung
-    
-export function cholesky(a: number[][], b: number[], n: number, flag: number) {
-
-
-        let i = 0,
-        j = 0,
-        k = 0
-       let s = 0.0
-      
-       switch (flag) {
-        case 1:
-         for (i = 0; i < n; ++i) {
-          if (a[i][i] <= 0.0) return i // Zeilenummer zurückgeben
-          else {
-           a[i][i] = Math.sqrt(a[i][i])
-           for (k = i + 1; k < n; ++k) {
-            a[i][k] /= a[i][i]
-           }
-           for (j = i + 1; j < n; ++j) {
-            for (k = j; k < n; ++k) {
-             a[j][k] -= a[i][j] * a[i][k]
-            }
-           }
-          }
-         }
-         // for (j = 0; j < n; j++) {
-         //     console.log('a_stiff[]', a[j])
-         // }
-         return 0
-      
-        case 2:
-         for (k = 0; k < n; k++) {
-          s = b[k]
-          for (i = 0; i < k; ++i) {
-           s -= a[i][k] * b[i]
-          }
-          b[k] = s / a[k][k]
-         }
-      
-         for (i = n - 1; i >= 0; --i) {
-          s = b[i]
-          for (k = i + 1; k < n; ++k) {
-           s -= a[i][k] * b[k]
-          }
-          b[i] = s / a[i][i]
-         }
-      
-         return 0
-      
-        default:
-         return -1
-       }
-      }
-*/
+/**
+ * Löst K·x = b für symmetrisch positiv definite K.
+ * @returns Lösung und Zerlegung (zur Fehlerauswertung)
+ */
+export function cholesky(K: number[][], b: number[]): { x: number[] | null; zerlegung: Zerlegung } {
+ const zerlegung = ldltZerlegen(K)
+ if (!zerlegung.positivDefinit) return { x: null, zerlegung }
+ return { x: ldltLösen(zerlegung, b), zerlegung }
+}

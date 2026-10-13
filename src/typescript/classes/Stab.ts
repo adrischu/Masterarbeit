@@ -1,9 +1,9 @@
-import Knoten from "./Knoten"
+import type Knoten from "./Knoten"
 import Vector from "./Vector"
-import { useSystemStore } from "@/stores/SystemStore"
-import type { isStatikobjekt } from "./InterfaceStatikobjekt"
+import type { isStatikobjekt, Spalte } from "./InterfaceStatikobjekt"
 import type Querschnitt from "./Querschnitt"
-import Gelenk from "./Gelenk"
+import type Gelenk from "./Gelenk"
+import type System from "./System"
 
 export default class Stab implements isStatikobjekt {
  //folgende Werte werden bei Erstellung eines Knotens definiert.
@@ -19,13 +19,11 @@ export default class Stab implements isStatikobjekt {
  Anfangsgelenk: Gelenk | null
  Endgelenknummer: number
  Endgelenk: Gelenk | null
+ /**Anzahl der Abschnitte für die Ergebnisausgabe (Ausgabepunkte = Stababschnitte + 1) */
  Stababschnitte: number
+ /**Anzahl der Balkenelemente, in die der Stab für die Berechnung unterteilt wird */
+ Elementanzahl: number
  istZeichenbar: boolean
- //folgende Werte werden bei der Berechnung definiert
- Inzidenzen: number[]
- M_k: number[][] | null
- M_T: number[][] | null
- M_K: number[][] | null
 
  constructor(Nummer: number = 1) {
   this.Nummer = Nummer
@@ -40,11 +38,8 @@ export default class Stab implements isStatikobjekt {
   this.Endgelenknummer = 0
   this.Endgelenk = null
   this.Stababschnitte = 10
-  this.Inzidenzen = []
+  this.Elementanzahl = 1
   this.istZeichenbar = true
-  this.M_k = []
-  this.M_T = []
-  this.M_K = []
  }
 
  get Länge(): number {
@@ -74,6 +69,7 @@ export default class Stab implements isStatikobjekt {
    this.Anfangsgelenknummer,
    this.Endgelenknummer,
    this.Stababschnitte,
+   this.Elementanzahl,
   ]
  }
 
@@ -85,6 +81,7 @@ export default class Stab implements isStatikobjekt {
   Anfangsgelenknummer,
   Endgelenknummer,
   Stababschnitte,
+  Elementanzahl,
  ]: [
   Nummer: number,
   Anfangsknotennummer: number,
@@ -93,6 +90,7 @@ export default class Stab implements isStatikobjekt {
   Anfangsgelenknummer: number,
   Endgelenknummer: number,
   Stababschnitte: number,
+  Elementanzahl?: number,
  ]) {
   this.Nummer = Nummer
   this.Anfangsknotennummer = Anfangsknotennummer
@@ -101,10 +99,10 @@ export default class Stab implements isStatikobjekt {
   this.Anfangsgelenknummer = Anfangsgelenknummer
   this.Endgelenknummer = Endgelenknummer
   this.Stababschnitte = Stababschnitte
+  this.Elementanzahl = Elementanzahl ?? 1
  }
 
- get header() {
-  const system = useSystemStore().system
+ header(system: System): Spalte[] {
   return [
    { title: "Nr.", value: this.Nummer, inputType: "fixed", inputFormat: "number" },
    {
@@ -177,6 +175,14 @@ export default class Stab implements isStatikobjekt {
     inputFormat: "number",
     tooltip:
      "<p>Anzahl der Abschnitte, in die der Stab zur Ergebnisausgabe zerteilt wird.</p><p>Die Anzahl der Stababschnitte hat keine Auswirkung auf die Berechnung.</p>",
+   },
+   {
+    title: "Elemente",
+    value: this.Elementanzahl,
+    inputType: "input",
+    inputFormat: "number",
+    tooltip:
+     "<p>Anzahl der Balkenelemente, in die der Stab für die Berechnung unterteilt wird (Standard 1).</p><p>Beim trigonometrischen Ansatz ist 1 Element exakt. Die Näherungsansätze (kubisch, P-&Delta;) werden mit mehr Elementen genauer. Vorverformungen wirken immer auf den ganzen Stab.</p>",
    },
   ]
  }
