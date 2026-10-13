@@ -15,6 +15,9 @@ coverage
 *.local
 organisation
 
+# Arbeitskopien lokaler Claude-Agenten
+.claude/worktrees/
+
 # Lokale Hilfsdateien (Projekt-Export für LLMs)
 _project_export_for_llm.*
 outputAllCode.py
