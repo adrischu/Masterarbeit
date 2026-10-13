@@ -333,6 +333,7 @@
  const updateDimensions = () => {
   graphWidth.value = props.svgContainer!.clientWidth
   graphHeight.value = props.svgContainer!.clientHeight
+  console.log(graphWidth.value, graphHeight.value)
  }
 
  const transform = computed(() => {

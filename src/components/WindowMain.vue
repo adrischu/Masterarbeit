@@ -223,14 +223,15 @@
    class="table-container"
    :style="{ height: graphicSettings.HÖHE_TABELLE + '%' }"
   >
-   <!-- Resize Icon -->
    <v-icon
     size="30"
     icon="mdi-unfold-more-horizontal"
     class="resize-icon"
     @mousedown="startResizing"
    />
-   <TabelleVariabel :lastfall="lastfall" />
+   <div class="table-scroll">
+    <TabelleVariabel :lastfall="lastfall" />
+   </div>
   </div>
  </div>
  <!-- Div für Fußzeile -->
@@ -293,12 +294,18 @@
 
  function resizePanels(e: MouseEvent) {
   if (!isResizing) return
+  const minHeight: number = 15 //15
+  const maxHeight: number = 90 //90
   const container = document.querySelector(".main-content") as HTMLElement
   const containerRect = container.getBoundingClientRect()
-  const offsetY = e.clientY - 20 - containerRect.top
-  const newGraphicHeight = Math.min(90, Math.max(15, (offsetY / containerRect.height) * 100))
-  graphicSettings.HÖHE_GRAFIK = newGraphicHeight
-  graphicSettings.HÖHE_TABELLE = 100 - newGraphicHeight
+  const offsetY = e.clientY - 0 - containerRect.top //20 is button height
+  console.log(containerRect.height)
+  const newGraphicHeight = Math.min(
+   maxHeight,
+   Math.max(minHeight, (offsetY / containerRect.height) * 100),
+  )
+  graphicSettings.HÖHE_GRAFIK = newGraphicHeight //%
+  graphicSettings.HÖHE_TABELLE = 100 - newGraphicHeight //%
  }
 
  function stopResizing() {
@@ -343,9 +350,25 @@
   position: relative;
   width: 100%;
   height: 80%;
+  overflow: visible; /* ✅ allows floating button to show fully */
+  min-height: 0;
+ }
+
+ /* ✅ scrolling only applies to content */
+ .table-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+ }
+
+ .table-content {
+  height: 100%;
   display: flex;
   flex-direction: column;
   overflow-y: hidden;
+  z-index: 10;
+  min-height: 0;
  }
 
  .divider {
@@ -362,11 +385,12 @@
   display: none;
  }
 
+ /* ✅ floating correctly, no clipping */
  .resize-icon {
-  position: absolute;
-  top: 15px; /* Has to be size/2 */
+  position: absolute !important;
+  top: 0;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   cursor: row-resize;
   background: white;
   border-radius: 50%;

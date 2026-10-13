@@ -305,12 +305,17 @@
 </script>
 
 <style scoped>
- .tabelle-variabel {
+ #tabelle-window,
+ #tabelle-window .v-window__container,
+ #tabelle-window .v-window-item {
   height: 100%;
+ }
+
+ .tabelle-variabel {
+  flex: 1;
+  display: flex;
   width: 100%;
-  margin: 0;
-  padding: 0;
-  background-color: rgb(255, 255, 255);
-  display: flex 1;
+  height: 100%;
+  background: white;
  }
 </style>
